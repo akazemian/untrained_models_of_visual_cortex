@@ -1,0 +1,5 @@
+,region,model,alpha,mean_score
+0,IT,alexnet_mp,10000,0.47662905869739397
+1,V4,alexnet_mp,10000,0.3463069542565129
+2,IT,alexnet_untrained_mp,0,0.29722262930036303
+3,V4,alexnet_untrained_mp,1,0.2608260096643459
