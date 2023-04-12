@@ -71,7 +71,9 @@ for layer in layers:
             activations = Activations(model=model,
                                 layer_names=[layer],
                                 dataset=dataset,
-                                preprocess=preprocess
+                                preprocess=preprocess,
+                                max_pool = False,
+                                pca = True
                                 )                  
 
             activations_identifier = model_name + '_' + dataset + '_' + layer

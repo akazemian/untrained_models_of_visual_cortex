@@ -21,7 +21,6 @@ import numpy as np
 
 
 
-
 def get_best_alpha(data_dict,alphas,legend_name_dict=None):
     
 
@@ -54,4 +53,6 @@ def get_best_alpha(data_dict,alphas,legend_name_dict=None):
     df_max_alphas = df.loc[max_idx].reset_index(drop=True)
 
     return df_max_alphas
-    
+
+
+

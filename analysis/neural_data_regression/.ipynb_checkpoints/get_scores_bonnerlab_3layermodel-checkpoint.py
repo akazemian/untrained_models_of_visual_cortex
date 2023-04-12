@@ -33,18 +33,18 @@ PATH_TO_BETAS = f'/data/atlas/regression_betas/'
 DATASET = 'naturalscenes_zscored_processed'
 REGIONS= ['V4']
 
-MODEL = EngineeredModel3L(filters_3 = 10000).Build()
-MODEL_NAME = 'model_final_mp_3l_10000_all'
+MODEL = EngineeredModel3L(filters_3 = 20000, batches_3=5).Build()
+MODEL_NAME = 'model_final_mp_3l_100000_all'
 ACTIVATIONS_IDEN = MODEL_NAME + '_' + DATASET
 
 CORE_ACTIVATIONS_NAME = 'model_final_mp_all'
 CORE_ACTIVATIONS_IDEN =  CORE_ACTIVATIONS_NAME + '_' + DATASET
 CORE_ACTIVATIONS_ALPHAS = [0] + [10**i for i in range(11)] 
 
-MODE = 'train'
+MODE = 'test'
 #ALPHAS = [0] + [10**i for i in range(11)] 
-ALPHAS = [10**i for i in range(6,11)] 
-#ALPHAS = [10**9]
+#ALPHAS = [10**i for i in range(6,11)] 
+ALPHAS = [10**9]
 
 for alpha in ALPHAS:
     
@@ -64,9 +64,8 @@ for alpha in ALPHAS:
                          )
 
 
-    #alpha = 100
     regression_model = Ridge(alpha=alpha)
-    scores_identifier = ACTIVATIONS_IDEN + '_' + f'Ridge(alpha={alpha})' 
+    scores_identifier = ACTIVATIONS_IDEN + '_' + 'V4' + '_' + f'Ridge(alpha={alpha})' 
     scorer(model_name=MODEL_NAME,
            activations_identifier=ACTIVATIONS_IDEN,
            scores_identifier=scores_identifier,

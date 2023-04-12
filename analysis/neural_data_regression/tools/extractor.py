@@ -21,12 +21,14 @@ from torch.autograd import Variable
 from tqdm import tqdm
 from tools.loading import *
 from torch import nn
-from tools.utils import get_best_alpha 
-
+from sklearn.decomposition import PCA
+import pickle
+from models.layer_operations.convolution import RandomProjections
 
 PATH_TO_BETAS = f'/data/atlas/regression_betas/'
 PATH_TO_CORE_ACTIVATIONS = '/data/atlas/core_activations/'
 PATH_TO_BEST_CHANNELS = '/data/atlas/best_channels/'
+PATH_TO_PCA = '/data/atlas/pca'
 
 
 
@@ -109,37 +111,52 @@ class PytorchWrapper:
 
     
 def batch_activations(model: nn.Module, 
-                      identifier: str, 
+                      model_name: str, 
                       layer_names: list, 
                       images: torch.Tensor,
                       image_labels: list,
-                      max_pool:bool) -> xr.Dataset:
+                      max_pool: bool,
+                      random_proj: bool,
+                      pca: bool,
+                      _pca,
+                     n_components: int) -> xr.Dataset:
 
         
+#         rp = RandomProjections(1000)
         activations_dict = model.get_activations(images = images, layer_names = layer_names)
         activations_final = []
         
+        
+        
         for layer in layer_names:
+                             
             
-            if layer == 'c2':
-                
-                file_path = os.path.join(PATH_TO_CORE_ACTIVATIONS,f'{identifier}.h5')
-                if os.path.exists(file_path):
-                    append_to_array(activations_dict[layer], file_path)
-                
-                else:
-                    write_to_array(activations_dict[layer], file_path)                     
+            activations_b = activations_dict[layer]
             
             if max_pool :
-                mp = nn.MaxPool2d(activations_dict[layer].shape[-1]) # added
-                activations_b = mp(torch.Tensor(activations_dict[layer]))
-                activations_b = np.array(activations_b.reshape(activations_dict[layer].shape[0],-1))
+                #mp = nn.AvgPool2d(activations_dict[layer].shape[-1]) 
+                mp = nn.MaxPool2d(activations_dict[layer].shape[-1]) 
+                activations_b = mp(torch.Tensor(activations_b))
+                
             
-            else:
-                activations_b = activations_dict[layer].reshape(activations_dict[layer].shape[0],-1)
+            print(activations_b.shape)
+            if pca:
+                activations_b = _pca_transform(activations_b.reshape(activations_dict[layer].shape[0],-1), _pca, n_components)
+                activations_b = activations_b.cpu()
+                print(activations_b.shape)
+            
+            
+            elif random_proj:
+                
+                activations_b = rp(activations_b)
+                print(activations_b.shape)
+                
+            
+            activations_b = activations_b.reshape(activations_dict[layer].shape[0],-1)
+            print(activations_b.shape)
             
             ds = xr.Dataset(
-                data_vars=dict(x=(["presentation", "features"], activations_b)),
+                data_vars=dict(x=(["presentation", "features"], np.array(activations_b))),
                 coords={'stimulus_id': (['presentation'], image_labels)})
             activations_final.append(ds)     
         
@@ -162,7 +179,11 @@ class Activations:
                  layer_names: list,
                  dataset: str,
                  preprocess,
-                 max_pool: bool,
+                 mode: str,
+                 max_pool: bool = False,
+                 pca: bool = False,
+                 n_components: int = None,
+                 random_proj: bool = False,
                  batch_size: int = 100):
         
         self.model = model
@@ -171,6 +192,10 @@ class Activations:
         self.preprocess = preprocess
         self.batch_size = batch_size
         self.max_pool = max_pool 
+        self.pca = pca
+        self.random_proj = random_proj
+        self.mode = mode
+        self.n_components = n_components
      
         
     def get_array(self,path,identifier):
@@ -179,28 +204,41 @@ class Activations:
         
         else:
         
-            print('extracting activations')
             
             wrapped_model = PytorchWrapper(self.model)
-            image_paths = LoadImagePaths(name=self.dataset)
-            labels = get_image_labels(self.dataset,image_paths)  
-            processed_images = self.preprocess(image_paths,self.dataset) 
+            image_paths = LoadImagePaths(name = self.dataset, mode = self.mode)
+            labels = get_image_labels(self.dataset, image_paths)  
+            processed_images = self.preprocess(image_paths, self.dataset) 
+            model_name = identifier.split(f'_{self.dataset}')[0]
             
-            
+
+        
+            if self.pca:
+                path_to_pcs = os.path.join(PATH_TO_PCA,model_name)
+                file = open(path_to_pcs, 'rb')
+                _pca = pickle.load(file)
+            else:
+                _pca = None
+    
+    
+            print('extracting activations')
             
             i = 0   
             ds_list = []
             pbar = tqdm(total = len(image_paths)//self.batch_size)
             
-            
             while i < len(image_paths):
             
                 batch_data_final = batch_activations(wrapped_model,
-                                                     identifier,
+                                                     model_name,
                                                      self.layer_names,
                                                      processed_images[i:i+self.batch_size],
                                                      labels[i:i+self.batch_size],
-                                                     max_pool = self.max_pool)
+                                                     max_pool = self.max_pool,
+                                                     pca = self.pca,
+                                                     _pca = _pca,
+                                                     n_components = self.n_components,
+                                                    random_proj = self.random_proj)
                     
                 ds_list.append(batch_data_final)    
                 i += self.batch_size
@@ -360,7 +398,7 @@ def load_best_channels(identifier, idx):
     best_channels_file = os.path.join(PATH_TO_BEST_CHANNELS,f'{identifier}.h5')
 
         
-    if os.path.exists(os.path.join(best_channels_file)):
+    if os.path.exists(best_channels_file):
         f = tables.open_file(best_channels_file, mode='r')
         return f.root.data[:]
     
@@ -369,3 +407,20 @@ def load_best_channels(identifier, idx):
         selected_channels = f.root.data[:,idx,:,:]
         write_to_array(selected_channels, best_channels_file)
         return selected_channels
+    
+    
+    
+    
+
+def _pca_transform(X, _pca, n_components=1000):
+
+    X = torch.clone(torch.Tensor(X))
+    X -= _pca.mean_
+    eig_vec = torch.Tensor(_pca.components_.transpose()[:, :n_components])
+    
+    
+    return X @ eig_vec
+
+
+
+

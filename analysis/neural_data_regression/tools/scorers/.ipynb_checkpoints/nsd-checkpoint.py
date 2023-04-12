@@ -15,7 +15,10 @@ import pickle
 ACTIVATIONS_PATH = '/data/atlas/activations'
 NEURAL_DATA_PATH = '/data/atlas/neural_data'
 DATASET = 'naturalscenes_zscored_processed'
-SHARED_IDS = list(xr.open_dataset('/data/atlas/activations/model_final_100_naturalscenes').stimulus_id.values)
+
+PATH_TO_NSD_SHARED_IDS = '/data/atlas/neural_data/nsd_shared_ids'
+file = open(PATH_TO_NSD_SHARED_IDS, 'rb')
+SHARED_IDS = pickle.load(file)
 
 
 import warnings
@@ -34,7 +37,7 @@ def nsd_scorer_unshared_cv(model_name: str,
                            scores_identifier: str, 
                            regression_model: Regression, 
                            regions: list = ['V1','V2','V3','V4'], 
-                           save_betas: bool = False) -> xr.Dataset:
+                           n_components:int = None) -> xr.Dataset:
     
         """
         
@@ -68,7 +71,7 @@ def nsd_scorer_unshared_cv(model_name: str,
         
         """
         
-        activations_data = xr.open_dataarray(os.path.join(ACTIVATIONS_PATH,activations_identifier))         
+        activations_data = xr.open_dataarray(os.path.join(ACTIVATIONS_PATH,activations_identifier))  
         
         ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
                                     coords={'subject': (['r_values'], []),
@@ -86,15 +89,16 @@ def nsd_scorer_unshared_cv(model_name: str,
                                        subject = subject,
                                        region = region,
                                        return_ids = True)
-                
+
+
                 X = filter_activations(data = activations_data,
                                        ids = ids)
+                if n_components is not None:
+                    X = X[:,:n_components]
 
-                
                 y_true, y_predicted = regression_cv(x=X,
                                                     y=y,
                                                     model=regression_model,
-                                                    save_betas=save_betas,
                                                     scores_identifier=scores_identifier)
                 r = torch.stack(
                    [pearson_r(y_true_, y_predicted_) for y_true_, y_predicted_ in zip(y_true, y_predicted)]
@@ -123,7 +127,7 @@ def nsd_scorer_shared_cv(model_name: str,
                          scores_identifier:str, 
                          regression_model: Regression, 
                          regions : list = ['V1','V2','V3','V4'], 
-                         save_betas: bool = False) -> xr.Dataset:
+                         n_components:int = None) -> xr.Dataset:
     
         """
         
@@ -134,7 +138,9 @@ def nsd_scorer_shared_cv(model_name: str,
         
         activations_data = xr.open_dataarray(os.path.join(ACTIVATIONS_PATH,activations_identifier))         
         X = filter_activations(ids = SHARED_IDS,  data = activations_data)
-                
+        
+        if n_components is not None:
+            X = X[:,:n_components]        
                 
         ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
                                     coords={'subject': (['r_values'], []),
@@ -155,7 +161,6 @@ def nsd_scorer_shared_cv(model_name: str,
                 y_true, y_predicted = regression_cv(x=X,
                                                     y=y,
                                                     model=regression_model,
-                                                    save_betas=save_betas,
                                                     scores_identifier=scores_identifier)
                 r = torch.stack(
                    [pearson_r(y_true_, y_predicted_) for y_true_, y_predicted_ in zip(y_true, y_predicted)]
@@ -184,7 +189,7 @@ def nsd_scorer_all(model_name: str,
                    scores_identifier: str, 
                    regression_model: Regression,
                    regions: list,
-                   save_betas: bool = False) -> xr.Dataset:
+                   n_components:int = None) -> xr.Dataset:
     
         """
 
@@ -212,8 +217,14 @@ def nsd_scorer_all(model_name: str,
                                        region = region, return_ids = False)
 
                 X_train = filter_activations(ids = ids,  data = activations_data)
-
                 X_test = filter_activations(ids = SHARED_IDS,  data = activations_data)
+                
+                if n_components is not None:
+                        X_train = X_train[:,:n_components]
+                        X_test = X_test[:,:n_components]
+                
+                print(X_train.shape)
+                print(X_test.shape)
 
 
                 y_true, y_predicted = regression_shared_unshared(x_train=X_train,
@@ -279,7 +290,6 @@ def load_nsd_data(mode: str, subject: int, region: str, return_ids: bool = True)
         data = xr.open_dataset(file_path + file_ext)
         ids = list(data.stimulus_id.values)
         data = torch.Tensor(data['x'].values).transpose(0,1)
-        print(data.shape)
         
         if return_ids:
             return ids, data

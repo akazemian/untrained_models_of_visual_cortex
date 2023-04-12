@@ -112,6 +112,7 @@ class RandomProjections(nn.Module):
         weight = filters(filter_type='1x1',out_channels=self.out_channels,in_channels=in_channels)
  
         weight = weight.cuda()
+        x = torch.Tensor(x)
         x =  x.cuda()
         
         x = F.conv2d(x,weight=weight,padding=0)

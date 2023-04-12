@@ -247,14 +247,14 @@ def regression_cv(
     model: Regression = Ridge(),
     n_folds: int = 10,
     shuffle: bool = True,
-    save_betas: bool = False,
+#    save_betas: bool = False,
     scores_identifier: str = None
 ):
 
     y_true, y_predicted = [], []
     splits = create_splits(n=y.shape[-2], n_folds=n_folds, shuffle=shuffle)
     
-    fold = 0
+    #fold = 0
     for indices_test in tqdm(splits, desc="split", leave=False):
         clf , y_true_, y_predicted_ = regression(
             model=model,
@@ -265,14 +265,14 @@ def regression_cv(
         y_true.append(y_true_)
         y_predicted.append(y_predicted_)
         
-        if save_betas:
-            path_to_model_betas = os.path.join(PATH_TO_BETAS,scores_identifier)
-            if not os.path.exists(path_to_model_betas):
-                os.mkdir(path_to_model_betas)
-            f = open(f'{path_to_model_betas}/betas_fold_{fold}','wb')
-            pickle.dump(model.coef_,f)
-            f.close()        
-            fold += 1
+        # if save_betas:
+        #     path_to_model_betas = os.path.join(PATH_TO_BETAS,scores_identifier)
+        #     if not os.path.exists(path_to_model_betas):
+        #         os.mkdir(path_to_model_betas)
+        #     f = open(f'{path_to_model_betas}/betas_fold_{fold}','wb')
+        #     pickle.dump(model.coef_,f)
+        #     f.close()        
+        #     fold += 1
 
     return y_true, y_predicted
 

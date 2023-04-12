@@ -1,12 +1,9 @@
-from models.engineered_model import Model
 from models.layer_operations.convolution import StandardConvolution,RandomProjections
 from models.layer_operations.output import Output
-
 from models.layer_operations.convolution import *
-from models.layer_operations.output import Output
 import torch
 from torch import nn
-                         
+                       
 
 
 class Model(nn.Module):
@@ -14,31 +11,37 @@ class Model(nn.Module):
     
     def __init__(self,
                 c1: nn.Module,
+                mp1: nn.Module,
                 c2: nn.Module,
-                batches_2: int,
+                mp2: nn.Module,
+                batches_2: int, 
                 last: nn.Module,
-                print_shape: bool = False
+                print_shape: bool = True
                 ):
         
         super(Model, self).__init__()
         
         
         self.c1 = c1 
+        self.mp1 = mp1
         self.c2 = c2
+        self.mp2 = mp2
         self.batches_2 = batches_2
         self.last = last
-        self.mp = nn.MaxPool2d(2)
         self.print_shape = print_shape
         
         
     def forward(self, x:nn.Module):
                 
         
-        #conv layer 1
+        x = x.cuda()#conv layer 1
         x = self.c1(x)
         if self.print_shape:
             print('conv1', x.shape)
     
+        x = self.mp1(x)
+        if self.print_shape:
+            print('mp1', x.shape)        
         
         #conv layer 2
         conv_2 = []
@@ -48,15 +51,17 @@ class Model(nn.Module):
         if self.print_shape:
             print('conv2', x.shape)
             
+        x = self.mp2(x)
+        if self.print_shape:
+            print('mp2', x.shape)            
+        
         x = self.last(x)
         if self.print_shape:
             print('output', x.shape)
         
-        return x    
-
-
-
-  
+        return x 
+    
+    
 class EngineeredModel2L:
     
     """
@@ -75,7 +80,7 @@ class EngineeredModel2L:
     """
     
     def __init__(self, curv_params = {'n_ories':8,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
-                 filters_2=20000,batches_2=1):
+                 filters_2=5000,batches_2=1):
     
         
         self.curv_params = curv_params
@@ -88,9 +93,12 @@ class EngineeredModel2L:
     
     def Build(self):
     
-        c1 = StandardConvolution(filter_size=45,filter_type='curvature',pooling=('max',6),curv_params=self.curv_params)     
-        c2 = StandardConvolution(out_channels=self.filters_2,filter_size=9,filter_type='random',pooling=('max',2))
+        c1 = StandardConvolution(filter_size=15,filter_type='curvature',curv_params=self.curv_params)     
+        mp1 = nn.MaxPool2d(kernel_size=3)
+        c2 = nn.Conv2d(24, self.filters_2, kernel_size=(9, 9), device='cuda')
+        mp2 = nn.MaxPool2d(kernel_size=2)
+
         last = Output()
 
-        return Model(c1,c2,self.batches_2,last)  
+        return Model(c1,mp1,c2,mp2,self.batches_2,last)  
     

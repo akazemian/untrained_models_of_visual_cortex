@@ -23,6 +23,7 @@ MODEL_SCORES_PATH = '/data/atlas/model_scores'
 TRAIN_IDS = "/home/akazemi3/Desktop/MB_Lab_Project/analysis/neural_data_regression/train_ids_majajhong"
 TEST_IDS = "/home/akazemi3/Desktop/MB_Lab_Project/analysis/neural_data_regression/test_ids_majajhong"
 
+DATASET = 'majajhong'
 SUBJECTS = ['Chabo','Tito']
 
             
@@ -44,7 +45,7 @@ def majajhong_scorer_all_cv(model_name: str,
                                             'region': (['r_values'], [])
                                              })
             
-            X = load_activations(activations_identifier, ids = None)
+            X = load_activations(activations_identifier, mode = 'cv')
 
             
             for region in regions:   
@@ -104,7 +105,7 @@ def majajhong_scorer_subset_cv(model_name: str,
 
         print('region: ',region)
         
-        for subject in subjects:
+        for subject in SUBJECTS:
 
             print('subject: ',subject)
 
@@ -151,7 +152,7 @@ def majajhong_scorer_all(model_name: str,
     for region in regions:   
 
         print('region: ',region)
-        for subject in subjects:
+        for subject in SUBJECTS:
 
             print('subject: ',subject)
 
@@ -271,14 +272,14 @@ def load_activations(activations_identifier: str, mode: bool = None) -> torch.Te
         elif mode == 'test':
 
             with open(TEST_IDS, "rb") as fp:   
-                train_ids = pickle.load(fp)
+                test_ids = pickle.load(fp)
             activations_data = activations_data.sel(presentation=test_ids)    
         
         
         
         activations_data = activations_data.sortby('presentation', ascending=True)
         
-        return torch.Tensor(activations_data.values)
+        return torch.Tensor(activations_data.x.values)
     
     
     
