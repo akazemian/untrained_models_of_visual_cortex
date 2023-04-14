@@ -5,9 +5,9 @@ import os
 import sys
 import torchvision
 
-PATH = '/home/akazemi3/Desktop/MB_Lab_Project/'
+PATH = '/home/atlask/Desktop/MB_Lab_Project/'
 sys.path.append(PATH)
-# from models.kymatio import *
+
 
 from tools.processing import *
 from models.call_model import *
@@ -29,6 +29,7 @@ from sklearn.cross_decomposition import PLSRegression
 import random
 from sklearn.linear_model import Ridge
 from models.all_models.model_2L import EngineeredModel2L
+from models.all_models.model_3L import EngineeredModel3L
 from models.all_models.model_3L_pca import EngineeredModel3LPCA
 from models.all_models.model_4L import EngineeredModel4L
 from models.all_models.alexnet_untrained_wide_1 import AlexnetU1
@@ -36,9 +37,9 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 untrained_alexnet = torchvision.models.alexnet(pretrained=False)
  
-    
-# define paths
-ACTIVATIONS_PATH = '/data/atlas/activations'
+ROOT = os.getenv('MB_DATA_PATH')
+ACTIVATIONS_PATH = os.path.join(ROOT,'activations')   
+
 
 # define constants
 DATASET = 'naturalscenes_zscored_processed'
@@ -57,8 +58,8 @@ ALPHAS = [10**i for i in range(2,5)]
     
 MODEL_DICT = {
                       
-#               'model_3L_mp_100':{'model':EngineeredModel3L(filters_3=100).Build(),
-#               'layers': ['last'], 'preprocess':PreprocessGS},  
+               'model_3L_10000':{'model':EngineeredModel3L(filters_3=10000).Build(),
+               'layers': ['last'], 'preprocess':PreprocessGS},  
     
 #               'model_3L_mp_1000':{'model':EngineeredModel3L(filters_3=1000).Build(),
 #               'layers': ['last'], 'preprocess':PreprocessGS},  
@@ -66,8 +67,8 @@ MODEL_DICT = {
               # 'model_3L_mp_20000':{'model':EngineeredModel3L(filters_3=10000).Build(),
               # 'layers': ['last'], 'preprocess':PreprocessGS},  
               
-                'model_3L_PCA_more_pcs':{'model':EngineeredModel3LPCA().Build(),
-              'layers': ['last'], 'preprocess':PreprocessGS},      
+#                'model_3L_PCA_more_pcs':{'model':EngineeredModel3LPCA().Build(),
+#              'layers': ['last'], 'preprocess':PreprocessGS},      
     
 #               'alexnet_untrained_mp':{'model': untrained_alexnet,
 #               'layers': ['features.12'], 'preprocess':PreprocessRGB},

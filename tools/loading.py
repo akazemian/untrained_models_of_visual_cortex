@@ -12,13 +12,15 @@ import xarray as xr
 import pandas as pd
 import pickle 
 
-PATH_TO_NSD_SHARED_IDS = '/data/atlas/neural_data/nsd_shared_ids'
-PATH_TO_NSD_SAMPLE_IDS = '/data/atlas/neural_data/nsd_sample_ids_10000'
-OBJECT_2_VEC_PATH = '/data/shared/datasets/object2vec/stimuli'
-NSD_PATH = '/data/shared/datasets/allen2021.natural_scenes/images'
-MAJAJHONG_PATH = '/data/shared/brainio/brain-score/dicarlo.hvm-public'
-IMAGENET_21K_PATH = '/data/shared/datasets/ilsvrc2012/train'
-LOCALIZER_PATH =  '/home/akazemi3/Desktop/localizer_stimuli'
+ROOT = os.getenv('MB_DATA_PATH')
+
+PATH_TO_NSD_SHARED_IDS = os.path.join(ROOT,'neural_data/nsd_shared_ids')
+PATH_TO_NSD_SAMPLE_IDS = os.path.join(ROOT,'neural_data/nsd_sample_ids_10000')
+NSD_PATH = os.path.join(ROOT,'datasets/allen2021.natural_scenes/images')
+MAJAJHONG_PATH = os.path.join(ROOT,'datasets/dicarlo.hvm-public')
+IMAGENET_21K_PATH = os.path.join(ROOT,'datasets/ilsvrc2012/train')
+#OBJECT_2_VEC_PATH = '/data/shared/datasets/object2vec/stimuli'
+#LOCALIZER_PATH =  '/home/akazemi3/Desktop/localizer_stimuli'
 
 
 

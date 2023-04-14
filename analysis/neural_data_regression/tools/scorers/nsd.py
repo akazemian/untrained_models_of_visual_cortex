@@ -12,11 +12,12 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm 
 import pickle 
 
-ACTIVATIONS_PATH = '/data/atlas/activations'
-NEURAL_DATA_PATH = '/data/atlas/neural_data'
-DATASET = 'naturalscenes_zscored_processed'
 
-PATH_TO_NSD_SHARED_IDS = '/data/atlas/neural_data/nsd_shared_ids'
+ROOT = os.getenv('MB_DATA_PATH')
+ACTIVATIONS_PATH = os.path.join(ROOT,'activations')
+NEURAL_DATA_PATH = os.path.join(ROOT,'neural_data')
+DATASET = 'naturalscenes_zscored_processed'
+PATH_TO_NSD_SHARED_IDS = os.path.join(NEURAL_DATA_PATH,'nsd_shared_ids')
 file = open(PATH_TO_NSD_SHARED_IDS, 'rb')
 SHARED_IDS = pickle.load(file)
 

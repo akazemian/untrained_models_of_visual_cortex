@@ -25,10 +25,8 @@ from sklearn.decomposition import PCA
 import pickle
 from models.layer_operations.convolution import RandomProjections
 
-PATH_TO_BETAS = f'/data/atlas/regression_betas/'
-PATH_TO_CORE_ACTIVATIONS = '/data/atlas/core_activations/'
-PATH_TO_BEST_CHANNELS = '/data/atlas/best_channels/'
-PATH_TO_PCA = '/data/atlas/pca'
+ROOT = os.getenv('MB_DATA_PATH')
+PATH_TO_PCA = os.path.join(ROOT,'pca')
 
 
 
