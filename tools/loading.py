@@ -11,6 +11,8 @@ from PIL import Image
 import xarray as xr
 import pandas as pd
 import pickle 
+import random
+
 
 ROOT = os.getenv('MB_DATA_PATH')
 
@@ -19,8 +21,18 @@ PATH_TO_NSD_SAMPLE_IDS = os.path.join(ROOT,'neural_data/nsd_sample_ids_10000')
 NSD_PATH = os.path.join(ROOT,'datasets/allen2021.natural_scenes/images')
 MAJAJHONG_PATH = os.path.join(ROOT,'datasets/dicarlo.hvm-public')
 IMAGENET_21K_PATH = os.path.join(ROOT,'datasets/ilsvrc2012/train')
-#OBJECT_2_VEC_PATH = '/data/shared/datasets/object2vec/stimuli'
-#LOCALIZER_PATH =  '/home/akazemi3/Desktop/localizer_stimuli'
+
+
+
+
+
+def generate_nsd_sample(num_samples=10000):
+    p = LoadNSDImages(unshared_images=True)
+    p_sample = random.sample(p,num_samples)
+    f = open(PATH_TO_NSD_SAMPLE_IDS,'wb')
+    pickle.dump(p_sample,f)
+    f.close()
+    return
 
 
 
@@ -56,27 +68,32 @@ def LoadNSDImages(shared_images=False,unshared_images=False,subset=False):
      
     print('shared images:',shared_images)
     print('unshared images:',unshared_images)
+    print('subset images:',subset)
 
-    if subset:        
-        f = open(PATH_TO_NSD_SAMPLE_IDS,'rb')
-        sample_images = pickle.load(f)
-        f.close()
-        return sample_images
-    shared_ids = pickle.load(open(PATH_TO_NSD_SHARED_IDS, 'rb'))   
-    
+
     all_images = []
-    for image in sorted(os.listdir(NSD_PATH)):
+           
+    if subset: 
+        if not os.path.exists(PATH_TO_NSD_SAMPLE_IDS):
+            generate_nsd_sample()
+        return pickle.load(open(PATH_TO_NSD_SAMPLE_IDS,'rb'))
+
+    else:
         
-        if shared_images:
-            if image.strip('.png') in shared_ids:
+        shared_ids = pickle.load(open(PATH_TO_NSD_SHARED_IDS, 'rb'))   
+        
+        for image in sorted(os.listdir(NSD_PATH)):
+                
+            if shared_images:
+                if image.strip('.png') in shared_ids:
+                    all_images.append(f'{NSD_PATH}/{image}')
+            
+            elif unshared_images:
+                if image.strip('.png') not in shared_ids:
+                    all_images.append(f'{NSD_PATH}/{image}')            
+            
+            else:
                 all_images.append(f'{NSD_PATH}/{image}')
-        
-        elif unshared_images:
-            if image.strip('.png') not in shared_ids:
-                all_images.append(f'{NSD_PATH}/{image}')            
-        
-        else:
-            all_images.append(f'{NSD_PATH}/{image}')
 
     return all_images 
     

@@ -32,7 +32,9 @@ from models.all_models.model_2L import EngineeredModel2L
 from models.all_models.model_3L import EngineeredModel3L
 from models.all_models.model_3L_pca import EngineeredModel3LPCA
 from models.all_models.model_4L import EngineeredModel4L
-from models.all_models.alexnet_untrained_wide_1 import AlexnetU1
+from models.all_models.alexnet_untrained_wide import AlexnetU
+from models.all_models.alexnet_untrained_wide_pca import AlexnetUPCA
+
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 untrained_alexnet = torchvision.models.alexnet(pretrained=False)
@@ -58,11 +60,12 @@ ALPHAS = [10**i for i in range(2,5)]
     
 MODEL_DICT = {
                       
-               'model_3L_10000':{'model':EngineeredModel3L(filters_3=10000).Build(),
-               'layers': ['last'], 'preprocess':PreprocessGS},  
+                      
+              'alexnet_u_wide_100000_nsd_pca_256_components':{'model':AlexnetUPCA(n_components=256).Build(),
+              'layers': ['last'], 'preprocess':PreprocessRGBLarge},  
     
-#               'model_3L_mp_1000':{'model':EngineeredModel3L(filters_3=1000).Build(),
-#               'layers': ['last'], 'preprocess':PreprocessGS},  
+            #   'model_3L_mp_1000':{'model':EngineeredModel3L(filters_3=1000).Build(),
+            #   'layers': ['last'], 'preprocess':PreprocessGSSmall},  
     
               # 'model_3L_mp_20000':{'model':EngineeredModel3L(filters_3=10000).Build(),
               # 'layers': ['last'], 'preprocess':PreprocessGS},  
@@ -73,8 +76,8 @@ MODEL_DICT = {
 #               'alexnet_untrained_mp':{'model': untrained_alexnet,
 #               'layers': ['features.12'], 'preprocess':PreprocessRGB},
               
-#              'alexnet_mp':{'model': torchvision.models.alexnet(pretrained=True),
-#               'layers': ['features.12'], 'preprocess':PreprocessRGB},
+            #  'alexnet_mp_GS':{'model': torchvision.models.alexnet(pretrained=True),
+            #   'layers': ['features.12'], 'preprocess':PreprocessGSLarge},
                 
 
 }

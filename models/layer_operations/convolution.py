@@ -57,12 +57,14 @@ class StandardConvolution(nn.Module):
         
         in_channels = x.shape[1]
 
+        # for RGB input
         if in_channels == 3:
             w = filters(filter_type=self.filter_type,out_channels=self.out_channels,in_channels=1,
                          kernel_size=self.filter_size,curv_params=self.curv_params)
             weight = w.repeat(1,3,1,1)
 
             
+        # grayscale input
         else:
             weight = filters(filter_type=self.filter_type,out_channels=self.out_channels,in_channels=in_channels,
                          kernel_size=self.filter_size,curv_params=self.curv_params)

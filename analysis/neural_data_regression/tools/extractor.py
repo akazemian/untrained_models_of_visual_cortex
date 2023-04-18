@@ -1,19 +1,10 @@
 
 import warnings
 warnings.warn('my warning')
-
 from collections import OrderedDict
 import xarray as xr
-
-import logging
 import numpy as np
-from PIL import Image
-
-SUBMODULE_SEPARATOR = '.'
-from torch import nn
-import pickle
 import tables
-
 SUBMODULE_SEPARATOR = '.'
 import os
 import torch
@@ -21,7 +12,6 @@ from torch.autograd import Variable
 from tqdm import tqdm
 from tools.loading import *
 from torch import nn
-from sklearn.decomposition import PCA
 import pickle
 from models.layer_operations.convolution import RandomProjections
 

@@ -30,10 +30,9 @@ import random
 from sklearn.linear_model import Ridge
 from models.all_models.model_2L import EngineeredModel2L
 from models.all_models.model_3L import EngineeredModel3L
-from models.all_models.alexnet_untrained_wide_1 import AlexnetU1
-from models.all_models.alexnet_untrained_wide_2 import AlexnetU2    
-from models.all_models.alexnet_untrained_wide_3 import AlexnetU3    
-    
+from models.all_models.alexnet_untrained_wide import AlexnetU
+from models.all_models.alexnet_untrained_wide_pca import AlexnetUPCA    
+
 # define paths
 ACTIVATIONS_PATH = '/data/atlas/activations'
 
@@ -53,9 +52,10 @@ ALPHAS = [10**i for i in range(1,5)]
 
     
 MODEL_DICT = {
-                      
-              'model_3L_mp_100000_nsd_pca':{'model':EngineeredModel3L(filters_3=20000,batches_3=5).Build(),
-              'layers': ['last'], 'preprocess':PreprocessGS},  
+
+            
+            #   'model_3L_mp_100000_nsd_pca':{'model':EngineeredModel3L(filters_3=20000,batches_3=5).Build(),
+            #   'layers': ['last'], 'preprocess':PreprocessGS},  
     
     
     
