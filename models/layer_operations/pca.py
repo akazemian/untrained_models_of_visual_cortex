@@ -30,7 +30,7 @@ class SpatialPCA(nn.Module):
         
 
         
-        spatial_eig_vec = self._eig_vec
+        spatial_eig_vec = self._eig_vec[:,:self.n_components]
         print('spatial_eig_vec',spatial_eig_vec.shape)
         spatial_mean = self._mean
         print('spatial_mean',spatial_mean.shape)
