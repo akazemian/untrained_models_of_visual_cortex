@@ -67,9 +67,9 @@ class Model(nn.Module):
         if self.print_shape:
             print('conv3', x.shape)
             
-        x = self.mp3(x)
-        if self.print_shape:
-            print('mp3', x.shape)
+        # x = self.mp3(x)
+        # if self.print_shape:
+        #     print('mp3', x.shape)
         
         x = self.last(x)
         if self.print_shape:
@@ -98,7 +98,7 @@ class EngineeredModel3L:
     """
     
     def __init__(self, curv_params = {'n_ories':8,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
-                 filters_2=4000,filters_3=10000,batches_3 = 1):
+                 filters_2=2000,filters_3=10000,batches_3 = 1):
     
         
         self.curv_params = curv_params

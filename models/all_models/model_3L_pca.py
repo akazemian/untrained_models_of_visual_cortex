@@ -108,7 +108,7 @@ class EngineeredModel3LPCA:
     """
     
     def __init__(self, curv_params = {'n_ories':8,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
-                 filters_2=3000,filters_3=10000,n_components=5000):
+                 filters_2=2000,filters_3=10000,n_components=5000):
     
         
         self.curv_params = curv_params
@@ -116,7 +116,7 @@ class EngineeredModel3LPCA:
         self.filters_2 = filters_2
         self.filters_3 = filters_3
 
-        self._pca3 = load_pca_file(IDEN_L3)
+        self._pca3 = load_pca_file(IDEN)
         self.n_components = n_components
         
     def Build(self):

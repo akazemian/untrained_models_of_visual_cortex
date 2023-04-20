@@ -1,7 +1,7 @@
 from models.engineered_model import Model
 from models.layer_operations.convolution import StandardConvolution,RandomProjections
 from models.layer_operations.output import Output
-from models.layer_operations.pca import SpatialPCA
+from models.layer_operations.pca import SpatialPCA, NormalPCA
 from models.layer_operations.convolution import *
 from models.layer_operations.output import Output
 import torch
@@ -10,19 +10,10 @@ import os
 import pickle
 
 
-PATH_TO_PCA = '/data/atlas/pca'
+ROOT_DATA = os.getenv('MB_DATA_PATH')
+PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
+IDEN = 'model_pca_5000_naturalscenes'
 
-# N_COMPONENTS_L2 = 200
-# N_COMPONENTS_L3 = 500
-
-N_COMPONENTS_L2 = 500
-N_COMPONENTS_L3 = 1000
-
-# IDEN_L2 = f'model_2L_mp_4000_nsd_pca_{N_COMPONENTS_L2}_components'
-# IDEN_L3 = f'model_3L_mp_10000_nsd_pca_{N_COMPONENTS_L3}_components'
- 
-IDEN_L2 = f'model_2L_mp_5000_nsd_pca_{N_COMPONENTS_L2}_components'
-IDEN_L3 = f'model_3L_mp_10000_nsd_pca_{N_COMPONENTS_L3}_components'
 
 def load_pca_file(identifier):
 
@@ -41,7 +32,6 @@ class Model(nn.Module):
                 mp1: nn.Module,
                 c2: nn.Module,
                 mp2: nn.Module,
-                pca2: nn.Module,
                 c3: nn.Module,
                 pca3: nn.Module,
                 last: nn.Module,
@@ -55,7 +45,6 @@ class Model(nn.Module):
         self.mp1 = mp1
         self.c2 = c2
         self.mp2 = mp2
-        self.pca2 = pca2
         self.c3 = c3
         self.pca3 = pca3
         self.last = last
@@ -82,10 +71,6 @@ class Model(nn.Module):
         x = self.mp2(x)
         if self.print_shape:
             print('mp2', x.shape)
-            
-            
-        x = self.pca2(x)
-        print('pca2', x.shape)
         
         #conv layer 3
         x = self.c3(x)
@@ -123,7 +108,7 @@ class EngineeredModel3LPCA:
     """
     
     def __init__(self, curv_params = {'n_ories':8,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
-                 filters_2=5000,filters_3=10000):
+                 filters_2=2000,filters_3=10000,n_components=5000):
     
         
         self.curv_params = curv_params
@@ -131,9 +116,8 @@ class EngineeredModel3LPCA:
         self.filters_2 = filters_2
         self.filters_3 = filters_3
 
-        self._pca2 = load_pca_file(IDEN_L2)
-        self._pca3 = load_pca_file(IDEN_L3)
-        
+        self._pca3 = load_pca_file(IDEN)
+        self.n_components = n_components
         
     def Build(self):
     
@@ -142,10 +126,9 @@ class EngineeredModel3LPCA:
         
         c2 = nn.Conv2d(24, self.filters_2, kernel_size=(9, 9))
         mp2 = nn.MaxPool2d(kernel_size=2)
-        pca2 = SpatialPCA(_pca = self._pca2, n_components = N_COMPONENTS_L2)
         
-        c3 = nn.Conv2d(N_COMPONENTS_L2, self.filters_3, kernel_size=(7,7))
-        pca3 = SpatialPCA(_pca = self._pca3, n_components = N_COMPONENTS_L3)
+        c3 = nn.Conv2d(self.filters_2, self.filters_3, kernel_size=(7,7))
+        pca3 = NormalPCA(_pca = self._pca3, n_components = self.n_components)
         
         last = Output()
 
@@ -155,7 +138,6 @@ class EngineeredModel3LPCA:
                 mp1 = mp1,
                 c2 = c2,
                 mp2 = mp2,
-                pca2 = pca2,
                 c3 = c3,
                 pca3 = pca3,
                 last = last,

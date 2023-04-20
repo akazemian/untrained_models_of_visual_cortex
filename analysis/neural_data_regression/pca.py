@@ -37,7 +37,7 @@ import pickle
     
 DATASET = 'naturalscenes'    
 MAX_POOL = False
-N_COMPONENTS =  10000
+N_COMPONENTS =  5000
 PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp') if MAX_POOL else os.path.join(ROOT_DATA,'pca')
 
 # models    
@@ -89,7 +89,10 @@ for model_name, model_info in MODEL_DICT.items():
        
     
     print(model_name)
-    activations_identifier = model_info['iden'] + '_' + 'pca' + '_' + str(N_COMPONENTS) + '_' + DATASET
+    activations_identifier = model_info['iden']
+    if MAX_POOL:
+        activations_identifier = activations_identifier + '_' + 'mp'
+    activations_identifier = activations_identifier + '_' + 'pca' + '_' + str(N_COMPONENTS) + '_' + DATASET
         
     if os.path.exists(os.path.join(os.path.join(PATH_TO_PCA,activations_identifier))):
         print(f'pcs are already saved in {PATH_TO_PCA} as {activations_identifier}')
@@ -110,7 +113,7 @@ for model_name, model_info in MODEL_DICT.items():
                                 pca = False,
                                 random_proj=False
                                 )                   
-            activations.get_array(ACTIVATIONS_PATH,activations_identifier)     
+            activat5000ions.get_array(ACTIVATIONS_PATH,activations_identifier)     
 
 
             X = xr.open_dataset(os.path.join(ACTIVATIONS_PATH,activations_identifier)).x.values

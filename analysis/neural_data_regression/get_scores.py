@@ -78,6 +78,8 @@ def get_activations_iden(model_info):
         return activations_identifier + '_' + DATASET
   
 
+
+
 def get_scores_iden(activations_identifier, region, mode, alpha):
     
     scores_identifier = activations_identifier + '_' + REGION + '_' + MODE + '_' + f'ridge(alpha={alpha})' 
@@ -85,10 +87,11 @@ def get_scores_iden(activations_identifier, region, mode, alpha):
 
 
 
+
+
+
 MODEL_DICT = {
-                    
-    
-    
+                       
 #            'model_vone':{
 #                 'model':EngineeredModel2LVOne(im_size=96,filters_2=10000).Build(),
 #                 'layers': ['last'], 
@@ -98,7 +101,7 @@ MODEL_DICT = {
 #                 'pca':False,
 #                 'max_pool':True,
 #                 'alphas':[10**i for i in range(3,7)]},
-    
+   
 
 #             'model_vone_224':{
 #                 'model':EngineeredModel3LVOne(im_size=224).Build(),
@@ -110,63 +113,61 @@ MODEL_DICT = {
 #                 'max_pool':True,
 #                 'alphas':[10**i for i in range(3,7)]},     
     
-            'alexnet u wide 100 pcs':{
-                'iden':'alexnet_u_wide',
-                'model':AlexnetUPCA(n_components=100).Build(),
+            'model 100 pcs':{
+                'iden':'model',
+                'model':EngineeredModel3LPCA(n_components=100).Build(),
                 'layers': ['last'], 
-                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-                'num_layers':5,
+                'preprocess':Preprocess(im_size=96).PreprocessGS, 
+                'num_layers':3,
                 'num_features':10000,
                 'pca':True,
                 'num_pca_components':100,
                 'pca_dataset':'nsd',
                 'max_pool':False,
-                'alphas':[0] + [10**i for i in range(4)]},
+                'alphas': [10**i for i in range(2,4)]},
     
     
-        'alexnet u wide 256 pcs':{
-                'iden':'alexnet_u_wide',
-                'model':AlexnetUPCA(n_components=256).Build(),
+            'model 256 pcs':{
+                'iden':'model',
+                'model':EngineeredModel3LPCA(n_components=256).Build(),
                 'layers': ['last'], 
-                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-                'num_layers':5,
+                'preprocess':Preprocess(im_size=96).PreprocessGS, 
+                'num_layers':3,
                 'num_features':10000,
                 'pca':True,
                 'num_pca_components':256,
                 'pca_dataset':'nsd',
                 'max_pool':False,
-                'alphas':[0] + [10**i for i in range(4)]},
+                'alphas':[10**i for i in range(2,4)]},
     
-     
+    
 
-            'alexnet u wide 1000 pcs':{
-                'iden':'alexnet_u_wide',
-                'model':AlexnetUPCA(n_components=1000).Build(),
+            'model 1000 pcs':{
+                'iden':'model',
+                'model':EngineeredModel3LPCA(n_components=1000).Build(),
                 'layers': ['last'], 
-                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-                'num_layers':5,
+                'preprocess':Preprocess(im_size=96).PreprocessGS, 
+                'num_layers':3,
                 'num_features':10000,
                 'pca':True,
                 'num_pca_components':1000,
                 'pca_dataset':'nsd',
                 'max_pool':False,
-                'alphas':[0] + [10**i for i in range(4)]},
+                'alphas':[10**i for i in range(2,4)]},
                 
 
-
-    
-            'alexnet u wide 5000 pcs':{
-                'iden':'alexnet_u_wide',
-                'model':AlexnetUPCA(n_components=5000).Build(),
+            'model 5000 pcs':{
+                'iden':'model',
+                'model':EngineeredModel3LPCA(n_components=5000).Build(),
                 'layers': ['last'], 
-                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-                'num_layers':5,
+                'preprocess':Preprocess(im_size=96).PreprocessGS, 
+                'num_layers':3,
                 'num_features':10000,
                 'pca':True,
                 'num_pca_components':5000,
                 'pca_dataset':'nsd',
                 'max_pool':False,
-                'alphas':[0] + [10**i for i in range(3)]}  
+                'alphas':[10**i for i in range(2,4)]}  
 }
  
 

@@ -27,8 +27,6 @@ from sklearn.cross_decomposition import PLSRegression
 from sklearn.linear_model import Ridge
 from models.all_models.model_2L import EngineeredModel2L
 from models.all_models.model_3L import EngineeredModel3L
-from models.all_models.model_3L_pca import EngineeredModel3LPCA
-from models.all_models.model_3L_get_pcs import EngineeredModel3LPCs
 from models.all_models.alexnet_untrained_wide import AlexnetU
 from models.all_models.model_3L_vone import EngineeredModel3LVOne
 import pickle   
@@ -39,7 +37,7 @@ import pickle
     
 DATASET = 'naturalscenes'    
 MAX_POOL = False
-N_COMPONENTS =  10000
+N_COMPONENTS =  5000
 PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp') if MAX_POOL else os.path.join(ROOT_DATA,'pca')
 
 # models    
@@ -91,7 +89,10 @@ for model_name, model_info in MODEL_DICT.items():
        
     
     print(model_name)
-    activations_identifier = model_info['iden'] + '_' + 'pca' + '_' + str(N_COMPONENTS) + '_' + DATASET
+    activations_identifier = model_info['iden']
+    if MAX_POOL:
+        activations_identifier = activations_identifier + '_' + 'mp'
+    activations_identifier = activations_identifier + '_' + 'pca' + '_' + str(N_COMPONENTS) + '_' + DATASET
         
     if os.path.exists(os.path.join(os.path.join(PATH_TO_PCA,activations_identifier))):
         print(f'pcs are already saved in {PATH_TO_PCA} as {activations_identifier}')

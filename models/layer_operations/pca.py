@@ -76,8 +76,13 @@ class NormalPCA(nn.Module):
    
     def forward(self, X):
 
+        print(X.shape)
+        print(self._mean.shape)
+        
+        N = X.shape[0]
+        
         X = X.cpu()
-        #X = torch.clone(torch.Tensor(X))
+        X = X.view(N,-1)#X = torch.clone(torch.Tensor(X))
         X -= self._mean
 
         return X @ self._eig_vec[:, :self.n_components]
