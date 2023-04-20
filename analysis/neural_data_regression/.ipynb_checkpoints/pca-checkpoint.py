@@ -7,7 +7,6 @@ print(ROOT_DIR)
 sys.path.append(ROOT_DIR)
 # define paths
 ROOT_DATA = os.getenv('MB_DATA_PATH')
-PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
 ACTIVATIONS_PATH = os.path.join(ROOT_DATA,'activations')
 
 
@@ -39,8 +38,9 @@ import pickle
       
     
 DATASET = 'naturalscenes'    
-MAX_POOL = True
-N_COMPONENTS =  5000
+MAX_POOL = False
+N_COMPONENTS =  10000
+PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp') if MAX_POOL else os.path.join(ROOT_DATA,'pca')
 
 # models    
 MODEL_DICT = {
@@ -61,6 +61,12 @@ MODEL_DICT = {
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB,
 #             }
               
+            'engineered model':{
+                'iden':'model',
+                'model':EngineeredModel3L().Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=96).PreprocessGS, 
+                }, 
     
             'alexnet u wide':{
                 'iden':'alexnet_u_wide',
@@ -85,7 +91,7 @@ for model_name, model_info in MODEL_DICT.items():
        
     
     print(model_name)
-    activations_identifier = model_info['iden'] + '_' + 'mp' + '_' + 'pca' + '_' + str(N_COMPONENTS) + '_' + DATASET
+    activations_identifier = model_info['iden'] + '_' + 'pca' + '_' + str(N_COMPONENTS) + '_' + DATASET
         
     if os.path.exists(os.path.join(os.path.join(PATH_TO_PCA,activations_identifier))):
         print(f'pcs are already saved in {PATH_TO_PCA} as {activations_identifier}')

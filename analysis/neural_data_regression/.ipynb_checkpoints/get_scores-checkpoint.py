@@ -96,8 +96,7 @@ MODEL_DICT = {
 #                 'max_pool':True,
 #                 'alphas':[10**i for i in range(3,7)]},
     
-    
-    
+
 #             'model_vone_224':{
 #                 'model':EngineeredModel3LVOne(im_size=224).Build(),
 #                 'layers': ['last'], 
@@ -164,7 +163,7 @@ MODEL_DICT = {
                 'num_pca_components':5000,
                 'pca_dataset':'nsd',
                 'max_pool':False,
-                'alphas':[0] + [10**i for i in range(4)]}  
+                'alphas':[0] + [10**i for i in range(3)]}  
 }
  
 
