@@ -1,7 +1,7 @@
 import sys
 import torchvision
 from models.layer_operations.output import Output
-from models.layer_operations.pca import SpatialPCA, NormalPCA
+from models.layer_operations.pca import SpatialPCA
 import torch
 from torch import nn
 torch.manual_seed(0)
@@ -11,7 +11,8 @@ import pickle
 import os
 
 ROOT_DATA = os.getenv('MB_DATA_PATH')
-PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
+PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp')
+#IDEN = 'alexnet_u_wide_mp_10000_nsd_pca_5000_components'
 IDEN = 'alexnet_u_wide_pca_5000_naturalscenes'
 
 def load_pca_file(identifier):
@@ -116,7 +117,7 @@ class AlexnetUPCA:
         c5 = nn.Conv2d(256, self.filters_5, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
         r5 = nn.ReLU()
         mp5 = nn.MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=False)
-        pca5 = NormalPCA(_pca = self._pca5, n_components = self.n_components)
+        pca5 = SpatialPCA(_pca = self._pca5, n_components = self.n_components)
         
         last = Output()
 

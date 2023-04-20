@@ -73,7 +73,7 @@ def LoadNSDImages(shared_images=False,unshared_images=False,subset=False):
     print('subset images:',subset)
 
 
-    num_samples=30000
+    num_samples=10000
     all_images = []
            
     if subset: 

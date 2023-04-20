@@ -27,8 +27,6 @@ from sklearn.cross_decomposition import PLSRegression
 from sklearn.linear_model import Ridge
 from models.all_models.model_2L import EngineeredModel2L
 from models.all_models.model_3L import EngineeredModel3L
-from models.all_models.model_3L_pca import EngineeredModel3LPCA
-from models.all_models.model_3L_get_pcs import EngineeredModel3LPCs
 from models.all_models.alexnet_untrained_wide import AlexnetU
 from models.all_models.model_3L_vone import EngineeredModel3LVOne
 import pickle   

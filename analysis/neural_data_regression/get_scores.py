@@ -31,10 +31,13 @@ import random
 from sklearn.linear_model import Ridge
 from models.all_models.model_2L import EngineeredModel2L
 from models.all_models.model_3L import EngineeredModel3L
+from models.all_models.model_3L_spca import EngineeredModel3LSPCA
 from models.all_models.model_3L_pca import EngineeredModel3LPCA
 from models.all_models.model_4L import EngineeredModel4L
 from models.all_models.alexnet_untrained_wide import AlexnetU
+from models.all_models.alexnet_untrained_wide_spca import AlexnetUSPCA
 from models.all_models.alexnet_untrained_wide_pca import AlexnetUPCA
+
 from models.all_models.model_3L_vone import EngineeredModel3LVOne
 from models.all_models.model_2L_vone import EngineeredModel2LVOne
 

@@ -58,3 +58,26 @@ class SpatialPCA(nn.Module):
         
         
         return X_all_s.reshape(N,self.n_components,K,K).cuda()
+    
+
+
+
+class NormalPCA(nn.Module):
+
+    def __init__(self, _pca, n_components=1000):
+        
+        super().__init__()
+                
+        
+        self.n_components = n_components
+        self._mean = torch.Tensor(_pca.mean_)
+        self._eig_vec = torch.Tensor(_pca.components_.transpose())
+        
+   
+    def forward(self, X):
+
+        X = X.cpu()
+        #X = torch.clone(torch.Tensor(X))
+        X -= self._mean
+
+        return X @ self._eig_vec[:, :self.n_components]

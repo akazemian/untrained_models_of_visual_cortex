@@ -99,22 +99,18 @@ class PytorchWrapper:
 
     
 def batch_activations(model: nn.Module, 
-                      model_name: str, 
                       layer_names: list, 
                       images: torch.Tensor,
                       image_labels: list,
                       max_pool: bool,
                       random_proj: bool,
-                      pca: bool,
                       _pca,
                      n_components: int) -> xr.Dataset:
 
         
-#         rp = RandomProjections(1000)
         activations_dict = model.get_activations(images = images, layer_names = layer_names)
         activations_final = []
-        
-        
+    
         
         for layer in layer_names:
                              
@@ -122,22 +118,20 @@ def batch_activations(model: nn.Module,
             activations_b = activations_dict[layer]
             
             if max_pool :
-                #mp = nn.AvgPool2d(activations_dict[layer].shape[-1]) 
                 mp = nn.MaxPool2d(activations_dict[layer].shape[-1]) 
                 activations_b = mp(torch.Tensor(activations_b))
                 
             
-            print(activations_b.shape)
-            if pca:
+            if _pca is not None:
                 activations_b = _pca_transform(activations_b.reshape(activations_dict[layer].shape[0],-1), _pca, n_components)
                 activations_b = activations_b.cpu()
                 print(activations_b.shape)
             
             
-            elif random_proj:
+            # elif random_proj:
                 
-                activations_b = rp(activations_b)
-                print(activations_b.shape)
+            #     activations_b = rp(activations_b)
+            #     print(activations_b.shape)
                 
             
             activations_b = activations_b.reshape(activations_dict[layer].shape[0],-1)
@@ -187,24 +181,23 @@ class Activations:
      
         
     def get_array(self,path,identifier):
+        
         if os.path.exists(os.path.join(path,identifier)):
             print(f'array is already saved in {path} as {identifier}')
         
         else:
         
-            
             wrapped_model = PytorchWrapper(self.model)
             image_paths = LoadImagePaths(name = self.dataset, mode = self.mode)
             labels = get_image_labels(self.dataset, image_paths)  
             processed_images = self.preprocess(image_paths, self.dataset) 
-            model_name = identifier.split(f'_{self.dataset}')[0]
             
-
         
             if self.pca:
-                path_to_pcs = os.path.join(PATH_TO_PCA,model_name)
+                path_to_pcs = os.path.join(PATH_TO_PCA,identifier)
                 file = open(path_to_pcs, 'rb')
                 _pca = pickle.load(file)
+            
             else:
                 _pca = None
     
@@ -218,12 +211,10 @@ class Activations:
             while i < len(image_paths):
             
                 batch_data_final = batch_activations(wrapped_model,
-                                                     model_name,
                                                      self.layer_names,
                                                      processed_images[i:i+self.batch_size],
                                                      labels[i:i+self.batch_size],
                                                      max_pool = self.max_pool,
-                                                     pca = self.pca,
                                                      _pca = _pca,
                                                      n_components = self.n_components,
                                                     random_proj = self.random_proj)
@@ -237,64 +228,7 @@ class Activations:
             data = xr.concat(ds_list,dim='presentation')
             data.to_netcdf(os.path.join(path,identifier))
             print(f'array is now saved in {path} as {identifier}')
-            
-            
-            
-      
     
-    
-    
-            
-            
-class Activations3Layer(Activations):
-    
-    def __init__(self,model,layer_names,dataset,max_pool,preprocess,batch_size=100):
-        super().__init__(model,layer_names,dataset,max_pool,preprocess,batch_size=100)
-        
-     
-        
-    def get_array(self, path, identifier, regions, core_activations_iden, core_activations_alphas):
-        if os.path.exists(os.path.join(path,identifier)):
-            print(f'array is already saved in {path} as {identifier}')
-        
-        else:
-            
-            image_paths = LoadImagePaths(name=self.dataset)
-            wrapped_model = PytorchWrapper(self.model)
-            labels = get_image_labels(self.dataset,image_paths)              
-            best_alpha, activations_idx = get_best_channels(core_activations_iden=core_activations_iden, 
-                                                            regions=regions, 
-                                                            alphas=core_activations_alphas, 
-                                                            betas_path=PATH_TO_BETAS)
-            best_channels = load_best_channels(core_activations_iden,
-                                               activations_idx)
-            i = 0   
-            ds_list = []
-            pbar = tqdm(total = len(image_paths)//self.batch_size)
-            
-            
-            print('extracting activations...')
-            while i < len(image_paths):
-                    
-                batch_data_final = batch_activations(wrapped_model, 
-                                    identifier,
-                                    self.layer_names, 
-                                    best_channels[i:i+self.batch_size],
-                                    labels[i:i+self.batch_size],
-                                    max_pool=self.max_pool)
-
-                
-                ds_list.append(batch_data_final)    
-                i += self.batch_size
-                pbar.update(1)
-            
-            pbar.close()
-
-                        
-            data = xr.concat(ds_list,dim='presentation')
-            data.to_netcdf(os.path.join(path,identifier))
-            print(f'array is now saved in {path} as {identifier}')
-            return
             
         
         
@@ -325,89 +259,10 @@ def append_to_array(x, file_path):
     f.close()
     
     return
-
-
-
-
-
-
-def get_best_channels(core_activations_iden, regions, alphas, betas_path):
-    
-    
-    print('obtaining best alpha value for core activations...')
-    data_dict = {core_activations_iden:regions}
-    df_best_alpha = get_best_alpha(data_dict,alphas)
-    alpha = df_best_alpha.alpha[0]
-    print('best alpha value:', alpha)
-    
-    scores_iden = core_activations_iden + f'_Ridge(alpha={alpha})'
-    model_betas_path = os.path.join(PATH_TO_BETAS,scores_iden)
-    
-
-    mean_betas = get_mean_betas(model_betas_path)
-    idx = get_best_indices(mean_betas)    
-    
-    return alpha, idx
-
-
-
-
-def get_mean_betas(model_betas_path):                  
-    
-    l = []
-    n_folds = len(os.listdir(model_betas_path))
-
-    print('obtaining best channels...')
-    for i in range(n_folds):
-        with open(f'{model_betas_path}/betas_fold_{i}','rb') as fp:
-            l.append(pickle.load(fp))   
-    return sum(l)/len(l)
-      
-          
-                  
-                  
-def get_best_indices(mean_betas):
-                  
-    mean_channel_betas = (np.abs(mean_betas)).mean(axis=0)
-    p = np.percentile(mean_channel_betas,90)
-    idx = np.argwhere(mean_channel_betas > p)
-    
-    return idx.reshape(-1)  
-                  
-   
-                  
-                  
-def load_best_channels(identifier, idx):
-    
-
-    print('loading best channels...')
-    
-    core_activations_file = os.path.join(PATH_TO_CORE_ACTIVATIONS,f'{identifier}.h5')
-    best_channels_file = os.path.join(PATH_TO_BEST_CHANNELS,f'{identifier}.h5')
-
-        
-    if os.path.exists(best_channels_file):
-        f = tables.open_file(best_channels_file, mode='r')
-        return f.root.data[:]
-    
-    else:
-        f = tables.open_file(core_activations_file, mode='r')
-        selected_channels = f.root.data[:,idx,:,:]
-        write_to_array(selected_channels, best_channels_file)
-        return selected_channels
-    
-    
     
     
 
-def _pca_transform(X, _pca, n_components=1000):
 
-    X = torch.clone(torch.Tensor(X))
-    X -= _pca.mean_
-    eig_vec = torch.Tensor(_pca.components_.transpose()[:, :n_components])
-    
-    
-    return X @ eig_vec
 
 
 

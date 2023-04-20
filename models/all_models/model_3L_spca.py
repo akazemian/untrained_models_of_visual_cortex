@@ -1,7 +1,7 @@
 from models.engineered_model import Model
 from models.layer_operations.convolution import StandardConvolution,RandomProjections
 from models.layer_operations.output import Output
-from models.layer_operations.pca import SpatialPCA, NormalPCA
+from models.layer_operations.pca import SpatialPCA
 from models.layer_operations.convolution import *
 from models.layer_operations.output import Output
 import torch
@@ -9,11 +9,9 @@ from torch import nn
 import os
 import pickle
 
-
 ROOT_DATA = os.getenv('MB_DATA_PATH')
-PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
+PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp')
 IDEN = 'model_pca_5000_naturalscenes'
-
 
 def load_pca_file(identifier):
 
@@ -90,7 +88,7 @@ class Model(nn.Module):
 
 
   
-class EngineeredModel3LPCA:
+class EngineeredModel3LSPCA:
     
     """
     Used to Initialize the Engineered Model
@@ -128,7 +126,7 @@ class EngineeredModel3LPCA:
         mp2 = nn.MaxPool2d(kernel_size=2)
         
         c3 = nn.Conv2d(self.filters_2, self.filters_3, kernel_size=(7,7))
-        pca3 = NormalPCA(_pca = self._pca3, n_components = self.n_components)
+        pca3 = SpatialPCA(_pca = self._pca3, n_components = self.n_components)
         
         last = Output()
 
