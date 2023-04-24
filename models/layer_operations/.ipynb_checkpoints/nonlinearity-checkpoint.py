@@ -18,14 +18,14 @@ class nonlinearity(nn.Module):
             std = (np.std(x, axis=1, keepdims=True))
             mean = np.mean(x, axis=1, keepdims=True)
             x_norm = (x - mean)/std
-            return torch.Tensor(x_norm)
+            return torch.Tensor(x_norm).cuda()
 
         if self.operation == 'norm':
             x = x.data.cpu().numpy()
             std = 1
             mean = 0
             x_norm = (x - mean)/std
-            return torch.Tensor(x_norm)
+            return torch.Tensor(x_norm).cuda()
         
         if self.operation == 'relu': 
             nl = nn.ReLU()
@@ -36,4 +36,4 @@ class nonlinearity(nn.Module):
             return nl(x)
 
         if self.operation == 'abs': 
-            return x.abs()
+            return x.abs().cuda()

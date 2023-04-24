@@ -29,6 +29,8 @@ from models.all_models.model_2L import EngineeredModel2L
 from models.all_models.model_3L import EngineeredModel3L
 from models.all_models.alexnet_untrained_wide import AlexnetU
 from models.all_models.model_3L_vone import EngineeredModel3LVOne
+from models.all_models.model_3L_abs import EngineeredModel3LA
+
 import pickle   
     
     
@@ -36,7 +38,7 @@ import pickle
       
     
 DATASET = 'naturalscenes'    
-MAX_POOL = False
+MAX_POOL = True
 N_COMPONENTS =  5000
 PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp') if MAX_POOL else os.path.join(ROOT_DATA,'pca')
 
@@ -59,19 +61,13 @@ MODEL_DICT = {
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB,
 #             }
               
-            'engineered model':{
-                'iden':'model',
-                'model':EngineeredModel3L().Build(),
+            'model':{
+                'iden':'model_abs',
+                'model':EngineeredModel3LA().Build(),
                 'layers': ['last'], 
                 'preprocess':Preprocess(im_size=96).PreprocessGS, 
                 }, 
     
-            'alexnet u wide':{
-                'iden':'alexnet_u_wide',
-                'model':AlexnetU().Build(),
-                'layers': ['last'], 
-                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-                }, 
     
               # f'alexnet_u_wide_mp_10000_nsd_pca_5000_components':{'model':AlexnetU(filters_5 = 10000).Build(),
               # 'layers': ['mp5'], 'preprocess':PreprocessRGBLarge},
@@ -113,7 +109,7 @@ for model_name, model_info in MODEL_DICT.items():
                                 pca = False,
                                 random_proj=False
                                 )                   
-            activat5000ions.get_array(ACTIVATIONS_PATH,activations_identifier)     
+            activations.get_array(ACTIVATIONS_PATH,activations_identifier)     
 
 
             X = xr.open_dataset(os.path.join(ACTIVATIONS_PATH,activations_identifier)).x.values

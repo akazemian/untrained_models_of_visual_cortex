@@ -1,6 +1,7 @@
 from models.engineered_model import Model
 from models.layer_operations.convolution import StandardConvolution,RandomProjections
 from models.layer_operations.output import Output
+from models.layer_operations.nonlinearity import nonlinearity
 
 from models.layer_operations.convolution import *
 from models.layer_operations.output import Output
@@ -20,6 +21,7 @@ class Model(nn.Module):
                 c3: nn.Module,
                 mp3: nn.Module,
                 batches_3: int,
+                nl1: nn.Module,
                 last: nn.Module,
                 print_shape: bool = True
                 ):
@@ -34,6 +36,9 @@ class Model(nn.Module):
         self.c3 = c3
         self.mp3 = mp3
         self.batches_3 = batches_3
+        
+        self.nl1 = nl1
+        
         self.last = last
         self.print_shape = print_shape
         
@@ -46,20 +51,31 @@ class Model(nn.Module):
         if self.print_shape:
             print('conv1', x.shape)
     
+        x = self.nl1(x)
+        if self.print_shape:
+            print('non lin', x.shape)   
+            
         x = self.mp1(x)
         if self.print_shape:
             print('mp1', x.shape)
+    
+            
             
         #conv layer 2
         x = self.c2(x)
         if self.print_shape:
             print('conv2', x.shape)        
+            
+                
+        x = self.nl1(x)
         if self.print_shape:
-            print('mp3', x.shape)
+            print('non lin', x.shape)   
             
         x = self.mp2(x)
         if self.print_shape:
             print('mp2', x.shape)
+            
+
             
         #conv layer 3
         conv_3 = []
@@ -69,10 +85,18 @@ class Model(nn.Module):
         if self.print_shape:
             print('conv3', x.shape)
             
-        x = self.mp3(x)
+                
+        x = self.nl1(x)
         if self.print_shape:
-            print('mp3', x.shape)
+            print('non lin', x.shape)   
+            
+            
+#         x = self.mp3(x)
+#         if self.print_shape:
+#             print('mp3', x.shape)
         
+
+            
         x = self.last(x)
         if self.print_shape:
             print('output', x.shape)
@@ -82,7 +106,7 @@ class Model(nn.Module):
 
 
   
-class EngineeredModel3L:
+class EngineeredModel3LA:
     
     """
     Used to Initialize the Engineered Model
@@ -120,7 +144,9 @@ class EngineeredModel3L:
         c3 = nn.Conv2d(self.filters_2, self.filters_3, kernel_size=(7,7))
         mp3 = nn.MaxPool2d(kernel_size=2)
 
+        nl1 = nonlinearity('abs')
+        
         last = Output()
 
-        return Model(c1,mp1,c2,mp2,c3,mp3,self.batches_3,last)  
+        return Model(c1,mp1,c2,mp2,c3,mp3,self.batches_3,nl1,last)  
     

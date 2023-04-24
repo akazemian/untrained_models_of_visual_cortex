@@ -53,7 +53,9 @@ class Model(nn.Module):
         #conv layer 2
         x = self.c2(x)
         if self.print_shape:
-            print('conv2', x.shape)
+            print('conv2', x.shape)        
+        if self.print_shape:
+            print('mp3', x.shape)
             
         x = self.mp2(x)
         if self.print_shape:
@@ -67,9 +69,9 @@ class Model(nn.Module):
         if self.print_shape:
             print('conv3', x.shape)
             
-        # x = self.mp3(x)
-        # if self.print_shape:
-        #     print('mp3', x.shape)
+        x = self.mp3(x)
+        if self.print_shape:
+            print('mp3', x.shape)
         
         x = self.last(x)
         if self.print_shape:

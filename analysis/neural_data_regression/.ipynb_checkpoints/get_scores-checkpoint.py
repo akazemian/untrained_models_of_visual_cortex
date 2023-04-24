@@ -41,6 +41,10 @@ from models.all_models.alexnet_untrained_wide_pca import AlexnetUPCA
 from models.all_models.model_3L_vone import EngineeredModel3LVOne
 from models.all_models.model_2L_vone import EngineeredModel2LVOne
 
+from models.all_models.model_3L_abs import EngineeredModel3LA
+from models.all_models.model_3L_abs_spca import EngineeredModel3LASPCA
+
+
 
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
@@ -57,7 +61,7 @@ REGIONS = ['V4']
 # DATASET = 'majajhong'
 # REGIONS = ['V4','IT']
 
-MODE = 'train'
+MODE = 'cv'
 PCA = False
 RANDOM_PROJ = False
 
@@ -73,7 +77,7 @@ def get_activations_iden(model_info):
         activations_identifier = model_name + '_' + f'{model_info["num_layers"]}_layers' + '_' + f'{model_info["num_features"]}_features' 
 
         if model_info['pca']:
-            activations_identifier = activations_identifier + '_' + f'{model_info["num_pca_components"]}' + '_'  + f'{model_info["pca_dataset"]}' + '_' + 'pcs' 
+            activations_identifier = activations_identifier + '_' + f'{model_info["pca_type"]}' + '_' + f'{model_info["num_pca_components"]}' + '_'  + f'{model_info["pca_dataset"]}' + '_' + 'pcs' 
 
         return activations_identifier + '_' + DATASET
   
@@ -91,83 +95,54 @@ def get_scores_iden(activations_identifier, region, mode, alpha):
 
 
 MODEL_DICT = {
-                       
-#            'model_vone':{
-#                 'model':EngineeredModel2LVOne(im_size=96,filters_2=10000).Build(),
-#                 'layers': ['last'], 
-#                 'preprocess':Preprocess(im_size=96).PreprocessRGB, 
-#                 'num_layers':2,
-#                 'num_features':10000,
-#                 'pca':False,
-#                 'max_pool':True,
-#                 'alphas':[10**i for i in range(3,7)]},
    
-
-#             'model_vone_224':{
-#                 'model':EngineeredModel3LVOne(im_size=224).Build(),
-#                 'layers': ['last'], 
-#                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-#                 'num_layers':3,
-#                 'num_features':10000,
-#                 'pca':False,
-#                 'max_pool':True,
-#                 'alphas':[10**i for i in range(3,7)]},     
+ 
     
-            'model 100 pcs':{
-                'iden':'model',
-                'model':EngineeredModel3LPCA(n_components=100).Build(),
+            'model abs spca 100':{
+                'iden':'model_abs',
+                'model':EngineeredModel3LASPCA(n_components=100).Build(),
                 'layers': ['last'], 
                 'preprocess':Preprocess(im_size=96).PreprocessGS, 
                 'num_layers':3,
                 'num_features':10000,
                 'pca':True,
+                'pca_type':'spca',
                 'num_pca_components':100,
                 'pca_dataset':'nsd',
                 'max_pool':False,
-                'alphas': [10**i for i in range(2,4)]},
+                'alphas': [10**i for i in range(6)]},    
     
     
-            'model 256 pcs':{
-                'iden':'model',
-                'model':EngineeredModel3LPCA(n_components=256).Build(),
+            'model abs spca 100':{
+                'iden':'model_abs',
+                'model':EngineeredModel3LASPCA(n_components=256).Build(),
                 'layers': ['last'], 
                 'preprocess':Preprocess(im_size=96).PreprocessGS, 
                 'num_layers':3,
                 'num_features':10000,
                 'pca':True,
+                'pca_type':'spca',
                 'num_pca_components':256,
                 'pca_dataset':'nsd',
                 'max_pool':False,
-                'alphas':[10**i for i in range(2,4)]},
+                'alphas': [10**i for i in range(6)]},    
     
     
-
-            'model 1000 pcs':{
-                'iden':'model',
-                'model':EngineeredModel3LPCA(n_components=1000).Build(),
+            'model abs spca 100':{
+                'iden':'model_abs',
+                'model':EngineeredModel3LASPCA(n_components=1000).Build(),
                 'layers': ['last'], 
                 'preprocess':Preprocess(im_size=96).PreprocessGS, 
                 'num_layers':3,
                 'num_features':10000,
                 'pca':True,
+                'pca_type':'spca',
                 'num_pca_components':1000,
                 'pca_dataset':'nsd',
                 'max_pool':False,
-                'alphas':[10**i for i in range(2,4)]},
-                
+                'alphas': [10**i for i in range(6)]},     
+    
 
-            'model 5000 pcs':{
-                'iden':'model',
-                'model':EngineeredModel3LPCA(n_components=5000).Build(),
-                'layers': ['last'], 
-                'preprocess':Preprocess(im_size=96).PreprocessGS, 
-                'num_layers':3,
-                'num_features':10000,
-                'pca':True,
-                'num_pca_components':5000,
-                'pca_dataset':'nsd',
-                'max_pool':False,
-                'alphas':[10**i for i in range(2,4)]}  
 }
  
 
