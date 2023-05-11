@@ -3,7 +3,7 @@ from torch import nn
 import numpy as np
 
 
-class nonlinearity(nn.Module):
+class NonLinearity(nn.Module):
     
     def __init__(self,operation):
         super().__init__()
@@ -36,4 +36,4 @@ class nonlinearity(nn.Module):
             return nl(x)
 
         if self.operation == 'abs': 
-            return x.abs().cuda()
+            return x.abs()

@@ -69,9 +69,9 @@ class Model(nn.Module):
         if self.print_shape:
             print('conv3', x.shape)
             
-        x = self.mp3(x)
-        if self.print_shape:
-            print('mp3', x.shape)
+        # x = self.mp3(x)
+        # if self.print_shape:
+        #     print('mp3', x.shape)
         
         x = self.last(x)
         if self.print_shape:
@@ -82,7 +82,7 @@ class Model(nn.Module):
 
 
   
-class EngineeredModel3L:
+class EngModel3L:
     
     """
     Used to Initialize the Engineered Model

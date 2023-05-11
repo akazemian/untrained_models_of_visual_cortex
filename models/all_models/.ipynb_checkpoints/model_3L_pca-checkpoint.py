@@ -12,7 +12,7 @@ import pickle
 
 ROOT_DATA = os.getenv('MB_DATA_PATH')
 PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
-IDEN = 'model_pca_5000_naturalscenes'
+IDEN = 'model_6x6_pca_5000_naturalscenes'
 
 
 def load_pca_file(identifier):
@@ -90,7 +90,7 @@ class Model(nn.Module):
 
 
   
-class EngineeredModel3LPCA:
+class EngModel3LPCA:
     
     """
     Used to Initialize the Engineered Model

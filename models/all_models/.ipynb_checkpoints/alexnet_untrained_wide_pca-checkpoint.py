@@ -4,15 +4,16 @@ from models.layer_operations.output import Output
 from models.layer_operations.pca import SpatialPCA, NormalPCA
 import torch
 from torch import nn
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
-model = torchvision.models.alexnet(pretrained=False)
 import pickle
 import os
 
 ROOT_DATA = os.getenv('MB_DATA_PATH')
 PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
-IDEN = 'alexnet_u_wide_pca_5000_naturalscenes'
+
+
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
+model = torchvision.models.alexnet(pretrained=False)
 
 def load_pca_file(identifier):
 
@@ -28,6 +29,7 @@ class Model(nn.Module):
                 c5: nn.Module,
                 r5: nn.Module,
                 mp5: nn.Module,
+                global_mp: bool,
                 pca5: nn.Module,
                 last: nn.Module,
                 batches_5: int,
@@ -39,6 +41,7 @@ class Model(nn.Module):
         self.c5 = c5
         self.r5 = r5
         self.mp5 = mp5
+        self.global_mp = global_mp
         self.pca5 = pca5
         self.last = last
         self.batches_5 = batches_5
@@ -83,6 +86,12 @@ class Model(nn.Module):
         if self.print_shape:
             print('maxpool5', x.shape)
         
+        if self.global_mp:
+            H = x.shape[-1]
+            gmp = nn.MaxPool2d(H)
+            x = gmp(x)
+            print('gmp', x.shape)
+            
         x = self.pca5(x)    
         if self.print_shape:
             print('pca5', x.shape)       
@@ -104,10 +113,13 @@ class Model(nn.Module):
 class AlexnetUPCA:
 
     
-    def __init__(self, filters_5 = 10000, batches_5=1, n_components=5000):
+    def __init__(self, filters_5 = 10000, batches_5=1, n_components=5000, global_mp = False):
     
         self.filters_5 = filters_5 
         self.batches_5 = batches_5
+        self.global_mp = global_mp
+        
+        IDEN = 'alexnet_u_wide_mp_pca_5000_naturalscenes' if self.global_mp else 'alexnet_u_wide_pca_5000_naturalscenes'
         self._pca5 = load_pca_file(IDEN)
         self.n_components = n_components
     
@@ -120,4 +132,10 @@ class AlexnetUPCA:
         
         last = Output()
 
-        return Model(c5,r5,mp5,pca5,last,self.batches_5)  
+        return Model(c5,
+                     r5,
+                     mp5,
+                     self.global_mp, 
+                     pca5,
+                     last,
+                     self.batches_5)  

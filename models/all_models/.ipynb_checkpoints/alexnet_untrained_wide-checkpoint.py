@@ -5,6 +5,9 @@ import torch
 from torch import nn
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
+from models.layer_operations.output import Output
+from models.layer_operations.random_proj import RandomProjection
+
 model = torchvision.models.alexnet(pretrained=False)
 
 
@@ -17,7 +20,9 @@ class Model(nn.Module):
                 c5: nn.Module,
                 r5: nn.Module,
                 mp5: nn.Module,
-                last: nn.Module,
+                global_mp: bool,
+                rp: nn.Module,
+                 last: nn.Module,
                 batches_5: int,
                 print_shape: bool = True
                 ):
@@ -27,6 +32,8 @@ class Model(nn.Module):
         self.c5 = c5
         self.r5 = r5
         self.mp5 = mp5
+        self.global_mp = global_mp
+        self.rp = rp
         self.last = last
         self.batches_5 = batches_5
         self.print_shape = print_shape
@@ -71,6 +78,17 @@ class Model(nn.Module):
             print('maxpool5', x.shape)
         
         
+        if self.global_mp:
+            H = x.shape[-1]
+            gmp = nn.MaxPool2d(H)
+            x = gmp(x)
+            print('gmp', x.shape)
+            
+        
+        if self.rp is not None:
+            x = self.rp(x)
+            print('rp', x.shape)
+        
         x = self.last(x)
         if self.print_shape:
             print('output', x.shape)
@@ -85,20 +103,31 @@ class Model(nn.Module):
     
     
     
-class AlexnetU1:
+class AlexnetUWide:
 
     
-    def __init__(self, filters_5 = 10000, batches_5=1):
+    def __init__(self, filters_5:int = 10000, batches_5:int = 1, global_mp:bool = False, num_projections:int = None):
     
         self.filters_5 = filters_5 
         self.batches_5 = batches_5
+        self.num_projections = num_projections
+        self.global_mp = global_mp
 
     
     def Build(self):
         
         c5 = nn.Conv2d(256, self.filters_5, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
         r5 = nn.ReLU()
-        mp5 = nn.MaxPool2d(kernel_size=4)
+        mp5 = nn.MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=False)
+        rp = None
+        if self.num_projections is not None:
+            rp = RandomProjection(out_channels=self.num_projections)
         last = Output()
 
-        return Model(c5,r5,mp5,last,self.batches_5)  
+        return Model(c5=c5,
+                     r5=r5,
+                     mp5 = mp5,
+                     global_mp = self.global_mp,
+                     rp = rp,
+                     last =last,
+                     batches_5=self.batches_5)  

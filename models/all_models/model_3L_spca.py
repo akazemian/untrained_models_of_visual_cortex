@@ -88,7 +88,7 @@ class Model(nn.Module):
 
 
   
-class EngineeredModel3LSPCA:
+class EngModel3LSPCA:
     
     """
     Used to Initialize the Engineered Model

@@ -21,9 +21,8 @@ ROOT_SHARED = os.getenv('MB_SHARED_DATA_PATH')
 PATH_TO_NSD_SHARED_IDS = os.path.join(ROOT,'neural_data/nsd_shared_ids')
 PATH_TO_NSD_SAMPLE_IDS = os.path.join(ROOT,'neural_data')
 NSD_PATH = os.path.join(ROOT_SHARED,'datasets/allen2021.natural_scenes/images')
-MAJAJHONG_PATH = os.path.join(ROOT_SHARED,'datasets/dicarlo.hvm-public')
+MAJAJHONG_PATH = os.path.join(ROOT_SHARED,'brainio/brain-score/dicarlo.hvm-public')
 IMAGENET_21K_PATH = os.path.join(ROOT_SHARED,'datasets/ilsvrc2012/train')
-
 
 
 
@@ -82,6 +81,7 @@ def LoadNSDImages(shared_images=False,unshared_images=False,subset=False):
             generate_nsd_sample(num_samples=num_samples,file_name=file_name)
         return pickle.load(open(os.path.join(PATH_TO_NSD_SAMPLE_IDS,file_name),'rb'))
 
+    
     else:
         
         shared_ids = pickle.load(open(PATH_TO_NSD_SHARED_IDS, 'rb'))   

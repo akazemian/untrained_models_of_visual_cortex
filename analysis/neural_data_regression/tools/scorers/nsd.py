@@ -28,8 +28,30 @@ warnings.filterwarnings('ignore')
 import scipy
 from sklearn.preprocessing import scale
 from tools.scorers.function_types import Regression
+import random    
+random.seed(0)
     
 
+    
+def get_subset(X, dim_reduction_type, n_dims):
+    
+    if dim_reduction_type == None:
+        return X
+    
+    elif dim_reduction_type in ['pca','spca']:
+        N = X.shape[0]
+        X = X[:,:n_dims,...]
+        X_subset = X.reshape(N,-1)
+        print(X_subset.shape)
+        return X_subset
+
+    elif dim_reduction_type == 'rp':
+        idx = random.sample(range(X.shape[1]),n_dims)
+        X = X[:,idx,...]
+        X = X.reshape(X.shape[0],-1)
+        print(X.shape)
+        return X
+    
     
     
     
@@ -38,7 +60,8 @@ def nsd_scorer_unshared_cv(model_name: str,
                            scores_identifier: str, 
                            regression_model: Regression, 
                            regions: list = ['V1','V2','V3','V4'], 
-                           n_components:int = None) -> xr.Dataset:
+                           dim_reduction_type:str = None,
+                           n_dims:int = None) -> xr.Dataset:
     
         """
         
@@ -94,9 +117,10 @@ def nsd_scorer_unshared_cv(model_name: str,
 
                 X = filter_activations(data = activations_data,
                                        ids = ids)
-                if n_components is not None:
-                    X = X[:,:n_components]
-
+                
+                
+                X = get_subset(X,dim_reduction_type,n_dims)
+                
                 y_true, y_predicted = regression_cv(x=X,
                                                     y=y,
                                                     model=regression_model,
@@ -128,7 +152,8 @@ def nsd_scorer_shared_cv(model_name: str,
                          scores_identifier:str, 
                          regression_model: Regression, 
                          regions : list = ['V1','V2','V3','V4'], 
-                         n_components:int = None) -> xr.Dataset:
+                         dim_reduction_type:str = None,
+                         n_dims:int = None) -> xr.Dataset:
     
         """
         
@@ -140,9 +165,8 @@ def nsd_scorer_shared_cv(model_name: str,
         activations_data = xr.open_dataarray(os.path.join(ACTIVATIONS_PATH,activations_identifier))         
         X = filter_activations(ids = SHARED_IDS,  data = activations_data)
         
-        if n_components is not None:
-            X = X[:,:n_components]        
-                
+        X = get_subset(X,dim_reduction_type,n_dims)
+        
         ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
                                     coords={'subject': (['r_values'], []),
                                             'region': (['r_values'], [])
@@ -190,7 +214,8 @@ def nsd_scorer_all(model_name: str,
                    scores_identifier: str, 
                    regression_model: Regression,
                    regions: list,
-                   n_components:int = None) -> xr.Dataset:
+                   dim_reduction_type:str = None,
+                   n_dims:int = None) -> xr.Dataset:
     
         """
 
@@ -220,12 +245,8 @@ def nsd_scorer_all(model_name: str,
                 X_train = filter_activations(ids = ids,  data = activations_data)
                 X_test = filter_activations(ids = SHARED_IDS,  data = activations_data)
                 
-                if n_components is not None:
-                        X_train = X_train[:,:n_components]
-                        X_test = X_test[:,:n_components]
-                
-                print(X_train.shape)
-                print(X_test.shape)
+                X_train = get_subset(X_train, dim_reduction_type, n_dims)
+                X_test = get_subset(X_test, dim_reduction_type, n_dims)
 
 
                 y_true, y_predicted = regression_shared_unshared(x_train=X_train,

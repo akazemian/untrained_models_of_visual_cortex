@@ -12,8 +12,7 @@ import os
 
 ROOT_DATA = os.getenv('MB_DATA_PATH')
 PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp')
-#IDEN = 'alexnet_u_wide_mp_10000_nsd_pca_5000_components'
-IDEN = 'alexnet_u_wide_pca_5000_naturalscenes'
+IDEN = 'alexnet_u_wide_mp_pca_20000_naturalscenes'
 
 def load_pca_file(identifier):
 

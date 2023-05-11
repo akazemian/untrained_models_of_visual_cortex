@@ -1,7 +1,7 @@
 from models.engineered_model import Model
 from models.layer_operations.convolution import StandardConvolution,RandomProjections
 from models.layer_operations.output import Output
-from models.layer_operations.nonlinearity import nonlinearity
+from models.layer_operations.nonlinearity import NonLinearity
 
 from models.layer_operations.convolution import *
 from models.layer_operations.output import Output
@@ -93,8 +93,7 @@ class Model(nn.Module):
 
             
         #conv layer 3
-        conv_3.append(self.c3(x)) 
-        x = torch.cat(conv_3,dim=1)
+        x = self.c3(x)
         if self.print_shape:
             print('conv3', x.shape)
             
@@ -117,7 +116,7 @@ class Model(nn.Module):
 
 
   
-class EngineeredModel3LASPCA:
+class EngModel3LAbsSPCA:
     
 
     

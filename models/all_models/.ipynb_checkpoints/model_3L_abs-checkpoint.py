@@ -1,7 +1,7 @@
 from models.engineered_model import Model
 from models.layer_operations.convolution import StandardConvolution,RandomProjections
 from models.layer_operations.output import Output
-from models.layer_operations.nonlinearity import nonlinearity
+from models.layer_operations.nonlinearity import NonLinearity
 
 from models.layer_operations.convolution import *
 from models.layer_operations.output import Output
@@ -91,9 +91,9 @@ class Model(nn.Module):
             print('non lin', x.shape)   
             
             
-#         x = self.mp3(x)
-#         if self.print_shape:
-#             print('mp3', x.shape)
+        # x = self.mp3(x)
+        # if self.print_shape:
+        #     print('mp3', x.shape)
         
 
             
@@ -106,7 +106,7 @@ class Model(nn.Module):
 
 
   
-class EngineeredModel3LA:
+class EngModel3LAbs:
     
     """
     Used to Initialize the Engineered Model
@@ -123,7 +123,7 @@ class EngineeredModel3LA:
         the number of batches used to apply conv layer 2 filters. Can be used for larger number of filters to avoid memory issues 
     """
     
-    def __init__(self, curv_params = {'n_ories':8,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
+    def __init__(self, curv_params = {'n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
                  filters_2=2000,filters_3=10000,batches_3 = 1):
     
         
@@ -138,8 +138,8 @@ class EngineeredModel3LA:
     def Build(self):
     
         c1 = StandardConvolution(filter_size=15,filter_type='curvature',curv_params=self.curv_params)     
-        mp1 = nn.MaxPool2d(kernel_size=3)
-        c2 = nn.Conv2d(24, self.filters_2, kernel_size=(9, 9))
+        mp1 = nn.MaxPool2d(kernel_size=4)
+        c2 = nn.Conv2d(36, self.filters_2, kernel_size=(9, 9))
         mp2 = nn.MaxPool2d(kernel_size=2)
         c3 = nn.Conv2d(self.filters_2, self.filters_3, kernel_size=(7,7))
         mp3 = nn.MaxPool2d(kernel_size=2)

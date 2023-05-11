@@ -1,5 +1,5 @@
 from models.layer_operations.filters import filters
-from models.layer_operations.nonlinearity import nonlinearity
+from models.layer_operations.nonlinearity import NonLinearity
 from torch import nn
 from torch.nn import functional as F
 import math

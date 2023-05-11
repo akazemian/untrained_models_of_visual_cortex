@@ -10,7 +10,6 @@ ROOT_DATA = os.getenv('MB_DATA_PATH')
 ACTIVATIONS_PATH = os.path.join(ROOT_DATA,'activations')
 
 
-
 import xarray as xr
 from tools.processing import *
 from models.call_model import *
@@ -25,22 +24,22 @@ import warnings
 warnings.filterwarnings('ignore')
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.linear_model import Ridge
-from models.all_models.model_2L import EngineeredModel2L
-from models.all_models.model_3L import EngineeredModel3L
-from models.all_models.alexnet_untrained_wide import AlexnetU
-from models.all_models.model_3L_vone import EngineeredModel3LVOne
-from models.all_models.model_3L_abs import EngineeredModel3LA
+from models.all_models.model_2L import EngModel2L
+from models.all_models.model_3L import EngModel3L
+# from models.all_models.alexnet_untrained_wide import AlexnetU
+# from models.all_models.model_3L_abs import EngModel3LAbs
+# from models.all_models.model_3L_abs_blurpool import EngModel3LAbsBP
+from models.all_models.model_3L_abs_blurpool_avgpool import EngModel3LAbsBPAP
 
-import pickle   
-    
-    
-
+import pickle
+alexnet =  torchvision.models.alexnet(pretrained=True)
       
     
 DATASET = 'naturalscenes'    
 MAX_POOL = True
 N_COMPONENTS =  5000
-PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp') if MAX_POOL else os.path.join(ROOT_DATA,'pca')
+#PATH_TO_PCA = os.path.join(ROOT_DATA,'pca_mp') if MAX_POOL else os.path.join(ROOT_DATA,'pca')
+PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
 
 # models    
 MODEL_DICT = {
@@ -51,7 +50,7 @@ MODEL_DICT = {
     
             #   f'model_RGB_3L_10000_nsd_pca_{N_COMPONENTS}_components':{'model':EngineeredModel3L(filters_3=10000).Build(),
             #   'layers': ['last'], 'preprocess':PreprocessRGBSmall,'n_components':N_COMPONENTS},  
-    
+
               # f'model_3L_mp_10000_nsd_pca_{N_COMPONENTS_L3}_components':{'model':EngineeredModel3LPCs(filters_2=5000,filters_3=10000).Build(),
               # 'layers': ['last'], 'preprocess':PreprocessGS,'n_components':N_COMPONENTS_L3}, 
     
@@ -60,17 +59,47 @@ MODEL_DICT = {
 #                 'layers': ['last'], 
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB,
 #             }
-              
-            'model':{
-                'iden':'model_abs',
-                'model':EngineeredModel3LA().Build(),
+#                 'model abs 3x3 bp 224':{
+#                 'iden':'model_abs_3x3_bp_224',
+#                 'model':EngModel3LAbsBP(filters_3=10000).Build(),
+#                 'layers': ['last'], 
+#                 'preprocess':Preprocess(im_size=224).PreprocessGS, 
+#                 'num_layers':3,
+#                 'num_features':10000,
+#                 'pca':True,
+#                 'pca_dataset':'nsd',
+#                 'num_pca_components':None,
+#                 'max_pca_components':5000,
+#                 'pca_type':None,
+#                 'max_pool':True,
+#                 'alphas': [10**i for i in range(2,5)]}, 
+    
+    
+    'model abs 3x3 bp 224 ap 10000 filters':{
+                'iden':'model_abs_3x3_bp_224_ap',
+                'model':EngModel3LAbsBPAP(filters_3 = 10000, global_mp = MAX_POOL).Build(),
                 'layers': ['last'], 
-                'preprocess':Preprocess(im_size=96).PreprocessGS, 
-                }, 
+                'preprocess':Preprocess(im_size=224).PreprocessGS, 
+                'num_layers':3,
+                'num_features':10000,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': [10**i for i in range(1,5)]},  
     
-    
-              # f'alexnet_u_wide_mp_10000_nsd_pca_5000_components':{'model':AlexnetU(filters_5 = 10000).Build(),
-              # 'layers': ['mp5'], 'preprocess':PreprocessRGBLarge},
+                # 'alexnet':{
+                # 'iden':'alexnet',
+                # 'model':alexnet,
+                # 'layers': ['features.12'], 
+                # 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                # 'num_layers':5,
+                # 'num_features':256,
+                # 'pca':True,
+                # 'pca_dataset':'nsd',
+                # 'num_pca_components':None,
+                # 'max_pca_components':5000,
+                # 'pca_type':None,
+                # 'max_pool':True,
+                # 'alphas': [10**i for i in range(2,5)]}, 
               
 }
 
@@ -100,14 +129,12 @@ for model_name, model_info in MODEL_DICT.items():
         for layer in model_info['layers']:
 
 
-            activations = Activations(model = model_info['model'],
+            activations = Activations(model= model_info['model'],
                                 layer_names = [layer],
                                 dataset = DATASET,
                                 preprocess = model_info['preprocess'],
                                 mode = 'pca',
                                 max_pool = MAX_POOL,
-                                pca = False,
-                                random_proj=False
                                 )                   
             activations.get_array(ACTIVATIONS_PATH,activations_identifier)     
 

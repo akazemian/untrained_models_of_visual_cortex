@@ -62,7 +62,7 @@ class Model(nn.Module):
         return x 
     
     
-class EngineeredModel2L:
+class EngModel2L:
     
     """
     Used to Initialize the Engineered Model
