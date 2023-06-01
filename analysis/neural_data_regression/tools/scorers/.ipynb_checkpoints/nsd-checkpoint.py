@@ -33,7 +33,7 @@ random.seed(0)
     
 
     
-def get_subset(X, dim_reduction_type, n_dims):
+def process_activations(X, dim_reduction_type, n_dims):
     
     if dim_reduction_type == None:
         return X
@@ -119,7 +119,7 @@ def nsd_scorer_unshared_cv(model_name: str,
                                        ids = ids)
                 
                 
-                X = get_subset(X,dim_reduction_type,n_dims)
+                X = process_activations(X,dim_reduction_type,n_dims)
                 
                 y_true, y_predicted = regression_cv(x=X,
                                                     y=y,
@@ -165,7 +165,7 @@ def nsd_scorer_shared_cv(model_name: str,
         activations_data = xr.open_dataarray(os.path.join(ACTIVATIONS_PATH,activations_identifier))         
         X = filter_activations(ids = SHARED_IDS,  data = activations_data)
         
-        X = get_subset(X,dim_reduction_type,n_dims)
+        X = process_activations(X,dim_reduction_type,n_dims)
         
         ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
                                     coords={'subject': (['r_values'], []),
@@ -245,8 +245,8 @@ def nsd_scorer_all(model_name: str,
                 X_train = filter_activations(ids = ids,  data = activations_data)
                 X_test = filter_activations(ids = SHARED_IDS,  data = activations_data)
                 
-                X_train = get_subset(X_train, dim_reduction_type, n_dims)
-                X_test = get_subset(X_test, dim_reduction_type, n_dims)
+                X_train = process_activations(X_train, dim_reduction_type, n_dims)
+                X_test = process_activations(X_test, dim_reduction_type, n_dims)
 
 
                 y_true, y_predicted = regression_shared_unshared(x_train=X_train,
@@ -350,17 +350,3 @@ def filter_activations(data: xr.DataArray, ids: list) -> torch.Tensor:
         return torch.Tensor(activations.values)
             
 
-#NEURAL_DATA_PATH = '/data/rgautha1/cache/bonner-caching/neural-dimensionality/data/dataset=allen2021.natural_scenes/resolution=1pt8mm.preprocessing=fithrf_GLMdenoise_RR/roi=general/preprocessed/z_score=session.average_across_reps=True'
-
-#             p = f'/data/rgautha1/cache/bonner-caching/neural-dimensionality/data/dataset=allen2021.natural_scenes/resolution=1pt8mm.preprocessing=fithrf_GLMdenoise_RR/roi={region}/preprocessed/z_score=session.average_across_reps=True/subject={subject}.nc'
-            
-#             neural_data = xr.open_dataarray(p)
-            
-#             y_train = neural_data.where(~neural_data.stimulus_id.isin(SHARED_IDS),drop=True)
-#             print(y_train.values.shape)
-            
-#             y_test = neural_data.where(neural_data.stimulus_id.isin(SHARED_IDS),drop=True) 
-#             print(y_test.values.shape)
-            
-            # unshared_ids = list(y_train.stimulus_id.values)
-            # y_train, y_test = torch.Tensor(y_train.values), torch.Tensor(y_test.values)

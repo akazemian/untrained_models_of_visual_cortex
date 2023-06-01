@@ -24,6 +24,7 @@ class Model(nn.Module):
     
     
     def __init__(self,
+                features_layer: str,
                 global_mp: bool,
                 rp: nn.Module,
                 last:nn.Module,
@@ -33,6 +34,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         
 
+        self.features_layer = features_layer
         self.global_mp = global_mp
         self.rp = rp
         self.last = last
@@ -49,11 +51,11 @@ class Model(nn.Module):
                 activation[name] = output.detach().cuda()
             return hook
 
-        model.features[12].register_forward_hook(get_activation('features.12'))
+        model.features[self.features_layer].register_forward_hook(get_activation(f'features.{self.features_layer}'))
         model.to('cuda')
         output = model(x.cuda())
         
-        x = activation['features.12']   
+        x = activation[f'features.{self.features_layer}']   
                     
         if self.global_mp:
             H = x.shape[-1]
@@ -79,8 +81,10 @@ class Model(nn.Module):
 class Alexnet:
 
     
-    def __init__(self, global_mp:int = False, num_projections:int = None):
+    def __init__(self, features_layer:str = 12,
+                 global_mp:int = False, num_projections:int = None):
     
+        self.features_layer = features_layer
         self.num_projections = num_projections
         self.global_mp = global_mp
     
@@ -93,6 +97,7 @@ class Alexnet:
         last = Output()
         
         return Model(    
+                features_layer = self.features_layer,
                 global_mp = self.global_mp,
                 rp =rp,
                 last = last)
