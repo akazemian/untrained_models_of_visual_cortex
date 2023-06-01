@@ -8,18 +8,14 @@ from .regression import *
 from .scorers.majajhong import *
 from .scorers.nsd import *
 
-sys.path.append("/home/akazemi3/MB_Lab_Project") 
 import warnings
 warnings.filterwarnings('ignore')
 from tools.scorers.function_types import Regression
 
-
-MODEL_SCORES_PATH = '/data/atlas/model_scores'
-
-
-
-        
-        
+ROOT_DIR = os.getenv('MB_ROOT_PATH')
+sys.path.append(ROOT_DIR)
+DATA_DIR = os.getenv('MB_DATA_PATH')
+MODEL_SCORES_PATH = os.path.join(DATA_DIR,'model_scores')
         
         
     
@@ -59,15 +55,16 @@ def scorer(model_name: str,
         
         """
 
+        if not os.path.exists(MODEL_SCORES_PATH):
+                os.mkdir(MODEL_SCORES_PATH)
 
-
+                
         if os.path.exists(os.path.join(MODEL_SCORES_PATH,activations_identifier,f'{scores_identifier}')):
             print(f'model scores are already saved in {MODEL_SCORES_PATH} as {scores_identifier}')
 
 
         else:
             print('obtaining model scores...')        
-
 
             if dataset == 'naturalscenes':
                 

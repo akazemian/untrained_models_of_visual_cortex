@@ -33,7 +33,7 @@ ACTIVATIONS_PATH = '/data/atlas/activations'
 
 # define constants
 DATASET = 'naturalscenes'
-REGIONS = ['V4']
+REGIONS = ['V1','V2','V3','V4']
 # DATASET = 'majajhong'
 # REGIONS = ['V4','IT']
 
@@ -47,7 +47,117 @@ MODE = 'test'
 
 
 MODEL_DICT= {
+    
+       'alexnet conv1':{
+                'iden':'alexnet_conv1',
+                #'model':Alexnet(features_layer =2, global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':1,
+                'num_features':64,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_mp'},            
+    
+       'alexnet conv2':{
+                'iden':'alexnet_conv2',
+                #'model':Alexnet(features_layer =5, global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':2,
+                'num_features':192,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_mp'},      
+    
+       'alexnet conv3':{
+                'iden':'alexnet_conv3',
+                #'model':Alexnet(features_layer =7, global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':3,
+                'num_features':384,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_mp'},    
+    
+       'alexnet conv4':{
+                'iden':'alexnet_conv4',
+               #'model':Alexnet(features_layer =9, global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':4,
+                'num_features':256,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_mp'},     
         
+       'alexnet':{
+                'iden':'alexnet',
+               #'model':Alexnet(global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':5,
+                'num_features':256,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_mp'},    
+    
+       'alexnet u conv1':{
+                'iden':'alexnet_u_conv1',
+                #'model':AlexnetU(features_layer =2, global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':1,
+                'num_features':64,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_u_mp'},   
+       
+        'alexnet u conv2':{
+                'iden':'alexnet_u_conv2',
+                #'model':AlexnetU(features_layer =5, global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':2,
+                'num_features':192,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_u_mp'},   
+       
+        'alexnet u conv3':{
+                'iden':'alexnet_u_conv3',
+                #'model':AlexnetU(features_layer =7, global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':3,
+                'num_features':384,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_u_mp'},   
+       
+        'alexnet u conv4':{
+                'iden':'alexnet_u_conv4',
+                #'model':AlexnetU(features_layer =9, global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':4,
+                'num_features':256,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_u_mp'},       
+        
+        'alexnet u':{
+                'iden':'alexnet_u',
+                #'model':AlexnetU(global_mp = MAX_POOL).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':5,
+                'num_features':256,
+                'dim_reduction_type':None,
+                'max_pool':MAX_POOL,
+                'alphas': 'alexnet_u_mp'},     
+    
     # 'scattering transform kymatio':{
     #             'iden':'scat_transform_kymatio_J3_L4',
     #             #'model':ScatTransformKymatio(J = 3, L = 8, M = 32, N = 32, flatten = True, global_mp= False).Build(),
@@ -60,16 +170,16 @@ MODEL_DICT= {
     #             'alphas': 'scat_transform_kymatio_J3_L4'},
     
     
-    'scattering transform kymatio':{
-                'iden':'scat_transform_kymatio_J3_L4_rgb',
-                #'model':ScatTransformKymatio(J = 3, L = 8, M = 32, N = 32, flatten = True, global_mp= False).Build(),
-                'layers': ['last'], 
-                'preprocess':Preprocess(im_size=32).PreprocessRGB, 
-                'num_layers':2,
-                'num_features':'x',
-                'dim_reduction_type':None,
-                'max_pool':False,
-                'alphas': 'scat_transform_kymatio_J3_L4_rgb'},
+#     'scattering transform kymatio':{
+#                 'iden':'scat_transform_kymatio_J3_L4_rgb',
+#                 #'model':ScatTransformKymatio(J = 3, L = 8, M = 32, N = 32, flatten = True, global_mp= False).Build(),
+#                 'layers': ['last'], 
+#                 'preprocess':Preprocess(im_size=32).PreprocessRGB, 
+#                 'num_layers':2,
+#                 'num_features':'x',
+#                 'dim_reduction_type':None,
+#                 'max_pool':False,
+#                 'alphas': 'scat_transform_kymatio_J3_L4_rgb'},
     
     
 #         'model abs 3x3 bp 224 10 filters':{
