@@ -1,13 +1,11 @@
-from models.layer_operations.filters import filters
-from models.layer_operations.nonlinearity import NonLinearity
+from models.layer_operations.preset_filters import filters
 from torch import nn
 from torch.nn import functional as F
 import math
 import torch
 
 
-
-class StandardConvolution(nn.Module):
+class Convolution(nn.Module):
     
     """
     Attributes
@@ -16,39 +14,34 @@ class StandardConvolution(nn.Module):
         The type of filter used for convolution. One of : random, curvature, 1x1
     
     curv_params
-        the parametrs used to create the filters. applicable for curvature filters
+        the parametrs used to create the filters, applicable for curvature filters
         
     filter_size 
         The kernel size used in layer. 
     
-    out_channels
-        the number of filters used for convolution 
-    pooling
-        the type of pooling used. must be a tuple with the first element being the pooling type (max or avg) and the second the pooling size. Ex: pooling = (max,6)
-"""
+
+    """
     
     
     def __init__(self, filter_type:str,
                  curv_params:dict=None,
-                 filter_size:int=None,
-                 out_channels:int=None,
-                 pooling:tuple=None,
-                 nonlinearities:list=None):
-        
+                 filter_size:int=None
+                ):
+                
         super().__init__()
         
-        self.out_channels = out_channels
+
         self.filter_type = filter_type
         self.filter_size = filter_size
         self.curv_params = curv_params
-        self.pooling = pooling
-        self.nonlinearities = nonlinearities
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     
 
     
     
     def extra_repr(self) -> str:
-        return 'out_channels={out_channels}, kernel_size={filter_size}, filter_type:{filter_type},pooling={pooling},curv_params:{curv_params}'.format(**self.__dict__)
+        return 'kernel_size={filter_size}, filter_type:{filter_type},curv_params:{curv_params}'.format(**self.__dict__)
     
     
     
@@ -56,81 +49,38 @@ class StandardConvolution(nn.Module):
             
         
         in_channels = x.shape[1]
-
-        # for RGB input
-        if in_channels == 3:
-            w = filters(filter_type=self.filter_type,out_channels=self.out_channels,in_channels=1,
-                         kernel_size=self.filter_size,curv_params=self.curv_params)
-            weight = w.repeat(1,3,1,1)
-
+        
+        weights = filters(filter_type=self.filter_type,in_channels=1,
+                     kernel_size=self.filter_size,curv_params=self.curv_params)
+        weights = weights.to(self.device)
+        print('weight',weights.shape)
+        x =  x.to(self.device)
+        
+        # for RGB input (the preset L1 filters are repeated across the 3 channels)
+        if in_channels == 3: 
             
-        # grayscale input
-        else:
-            weight = filters(filter_type=self.filter_type,out_channels=self.out_channels,in_channels=in_channels,
-                         kernel_size=self.filter_size,curv_params=self.curv_params)
-        
-        weight = weight.cuda()
-        x =  x.cuda()
-        x = F.conv2d(x,weight=weight,padding=math.floor(weight.shape[-1] / 2))
+            convolved_tensor = []
+            for i in range(3):
+                channel_image = x[:, i:i+1, :, :]
+                channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2))
+                convolved_tensor.append(channel_convolved)
 
-        if self.nonlinearities is not None:
-            for operation in self.nonlinearities:
-                assert operation in ['zscore', 'norm','relu','gelu','abs'], "nonlinearity doesnt match any available operation"
-                nl = nonlinearity(operation=operation)
-                x = nl(x)
-                print(operation)
-                
-         
-        if self.pooling is not None:
-            assert self.pooling[0] in ['max','avg'], "pooling operation should be max or avg"
-            if self.pooling[0] == 'max':
-                mp = nn.MaxPool2d(self.pooling[1])
-                x = mp(x)
-            else:
-                mp = nn.AvgPool2d(self.pooling[1])
-                x = mp(x)   
+            # Combine the convolved channels
+            x = torch.cat(convolved_tensor, dim=1)
+    
+    
+        # for grayscale input
+        else: 
+            print('image shape:',x.shape)
+            x = F.conv2d(x,weight=weights,padding=math.floor(weights.shape[-1] / 2))
 
         return x
-        
+    
 
-    
-    
-    
-class RandomProjections(nn.Module): 
-    
-    def __init__(self, out_channels,max_pool=None):
-        super().__init__()
 
-        self.out_channels = out_channels
-        self.pooling = max_pool
-    
-    def extra_repr(self) -> str:
-        return 'out_channels={out_channels},max_pool={max_pool}'.format(**self.__dict__)
-    
-    
-    def forward(self, x):
+
+
         
-        in_channels = x.shape[1] 
-        weight = filters(filter_type='1x1',out_channels=self.out_channels,in_channels=in_channels)
- 
-        weight = weight.cuda()
-        x = torch.Tensor(x)
-        x =  x.cuda()
-        
-        x = F.conv2d(x,weight=weight,padding=0)
-        
-         
-        if self.pooling == None:
-            pass
-        else:
-            assert self.pooling[0] in ['max','avg'], "pooling operation should be one of max or avg"
-            if self.pooling[0] == 'max':
-                mp = nn.MaxPool2d(self.pooling[1])
-                x = mp(x)
-            else:
-                mp = nn.AvgPool2d(self.pooling[1])
-                x = mp(x)  
-        return x
         
         
         

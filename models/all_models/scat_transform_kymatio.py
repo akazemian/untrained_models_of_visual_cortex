@@ -21,9 +21,7 @@ class Model(nn.Module):
                 L: int,
                 M: int,
                 N: int,
-                flatten: bool,
                 global_mp: bool,
-                rp: nn.Module,
                 last: nn.Module,
                 print_shape: bool = True
                 ):
@@ -37,8 +35,6 @@ class Model(nn.Module):
         self.N = N
         
         
-        self.rp = rp
-        self.flatten = flatten 
         self.global_mp = global_mp
         self.last = last
         self.print_shape = print_shape
@@ -46,6 +42,7 @@ class Model(nn.Module):
         
     def forward(self, x:nn.Module):
                 
+        x = x.to('cuda')
         N = x.shape[0]
         S = Scattering2D(J = self.J, shape=(self.M, self.N), L=self.L).cuda()
 
@@ -55,20 +52,14 @@ class Model(nn.Module):
             
         if self.global_mp:
             H = x.shape[-1]
-            gmp = nn.MaxPool2d(2)
-            x = gmp(x)
+            gmp = nn.MaxPool2d(H)
+            x = gmp(x.flatten(start_dim=1,end_dim=2))
             print('gmp', x.shape)
             
             
-        if self.flatten:
-            x = x.reshape(N,-1)
             
-            
-        if self.rp is not None:
-            x = self.rp(x)
-            print('rp', x.shape)
-            
-            
+        x = x.reshape(N,-1)
+        
         x = self.last(x)
         if self.print_shape:
             print('output', x.shape)
@@ -82,36 +73,28 @@ class Model(nn.Module):
 class ScatTransformKymatio():
         
         
-    def __init__(self, J, L, M, N, global_mp = False, flatten = False, num_projections=None):
+    def __init__(self, J, L, M, N, global_mp = False):
     
         
         self.J = J
         self.L = L
         self.M = M
         self.N = N
-        self.flatten = flatten
         self.global_mp = global_mp
-        self.num_projections = num_projections
     
     
     
     def Build(self):
 
-        rp = None
-        if self.num_projections is not None:
-            rp = RandomProjection(out_channels=self.num_projections)
+
         last = Output()
-
-
 
         return Model(
                 J = self.J,
                 L = self.L,
                 M = self.M,
                 N = self.N,
-                flatten = self.flatten,
                 global_mp = self.global_mp,
-                rp = rp,
                 last = last,
         )
 

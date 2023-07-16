@@ -83,7 +83,7 @@ class Model(nn.Module):
 class AlexnetU:
 
     
-    def __init__(self, features_layer:int = 12, global_mp:int = False, num_projections:int = None):
+    def __init__(self, features_layer:int = 12, global_mp:int = True, num_projections:int = None):
     
         self.features_layer = features_layer
         self.num_projections = num_projections
