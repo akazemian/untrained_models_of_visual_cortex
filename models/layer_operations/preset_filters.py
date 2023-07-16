@@ -1,37 +1,26 @@
 import torch
 from torch import nn
-from torch.nn import functional as F
 import numpy as np
-import math
-from scipy.ndimage import gaussian_filter
-import random
 
-
-
-
-
-def make_random_filters(out_channels,in_channels,kernel_size):
-    """
-    Creates random filters from a uniform distribution  
-    """
-    torch.manual_seed(27)
-    w = torch.rand(out_channels,in_channels,kernel_size,kernel_size)
-    w -= w.mean(dim = [2,3],keepdim=True) # mean centering
-        
-    return w
-
-
-
+import numpy as np
+import cv2
 
     
-class CurvatureModel(nn.Module):
-  
-    
+class CurvatureFilters(nn.Module):
+
+
     def __init__(self,
                  n_ories=16,
                  in_channels=1,
                  curves=np.logspace(-2, -0.1, 5),
-                 gau_sizes=(5,), filt_size=9, fre=[1.2], gamma=1, sigx=1, sigy=1):
+                 gau_sizes=(5,), 
+                 filt_size=9, 
+                 fre=[1.2], 
+                 gamma=1, 
+                 sigx=1, 
+                 sigy=1):
+        
+        
         super().__init__()
 
         self.n_ories = n_ories
@@ -93,46 +82,83 @@ def banana_filter(s, fre, theta, cur, gamma, sigx, sigy, sz):
 
 
 
-def make_onebyone_filters(out_channels,in_channels):
+class GaborFilters(nn.Module):
+    
+    def __init__(self,
+                 n_ories=12,
+                 in_channels=1,
+                 filt_size=9,
+                 num_scales=1, 
+                 min_scale=5,
+                 max_scale=5,
+                 ):
+        
+        
+        super().__init__()
+
+        self.n_ories = n_ories
+        self.filt_size = filt_size
+        self.in_channels = in_channels
+        self.num_scales = num_scales
+        self.min_scale = min_scale
+        self.max_scale = max_scale
+
+        
+    def forward(self):    
+        
+        orientations = np.linspace(0, np.pi, self.n_ories, endpoint=False)
+        scales = np.linspace(self.min_scale, self.max_scale, self.num_scales)
+        w = torch.zeros(size=(self.n_ories * self.num_scales, self.in_channels, self.filt_size, self.filt_size))
+
+        i = 0
+        for scale in scales:
+            for orientation in orientations:
+                sigma = scale
+                theta = orientation
+                lambda_ = scale * 2 / np.pi
+                psi = 0
+                gamma = 1
+
+                w[i, 0, :, :] = torch.Tensor(cv2.getGaborKernel((self.filt_size, self.filt_size), sigma, theta, lambda_, gamma, psi))
+                i += 1
+    
+        return w
+
+
+
+    
+    
+def filters(filter_type:str,
+            in_channels:int = None,
+            curv_params:dict = None,
+            kernel_size:int = None):
+
     """
-    Creates 1x1 convolution filters used for random projection
-    """
-    torch.manual_seed(27)
-    w = torch.randn(out_channels,in_channels, 1, 1) 
-    w = w/np.sqrt(out_channels)
-    return w
-
-
-
-
-
-def filters(filter_type,out_channels=None,in_channels=None,curv_params = None,kernel_size=None):
-
-    """
-    Returns the filters based on filter type
+    Returns the filters given the filter type
     
     Arguments
     ----------  
     
-    filter_type:
-    out_channels:
+    filter_type: 
+        The type of filters to use. There is currently only one type (curvature) but others, such as gabor filters can be added.
+    
+
     in_channels:
+        number of input channels
+
     curv_params:
+        parameters for the curvature model
+
     kernel_size:
+        size of the kernels
  
     """
         
-    assert filter_type in ['random','1x1','curvature'], "filter should be one of 'random', '1x1' or 'curvature'"
-    
-    if filter_type == 'random':
-        return make_random_filters(out_channels,in_channels,kernel_size)
+    assert filter_type in ['curvature', 'gabor'], "the only available filter type is curvature"
 
-    elif filter_type == '1x1':
-        return make_onebyone_filters(out_channels,in_channels)
+    if filter_type == 'curvature':
 
-    elif filter_type == 'curvature':
-
-        curve = CurvatureModel(
+        curve = CurvatureFilters(
             in_channels=in_channels,
             n_ories=curv_params['n_ories'],
             gau_sizes=curv_params['gau_sizes'],
@@ -140,3 +166,11 @@ def filters(filter_type,out_channels=None,in_channels=None,curv_params = None,ke
             fre = curv_params['spatial_fre'],
             filt_size=kernel_size)
         return curve()
+    
+    elif filter_type == 'gabor':
+        gabor = GaborFilters(
+                 in_channels=in_channels,
+                 n_ories=curv_params['n_ories'],
+                 filt_size=kernel_size)
+        return gabor()
+        

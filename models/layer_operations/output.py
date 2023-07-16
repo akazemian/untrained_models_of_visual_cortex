@@ -1,4 +1,3 @@
-import torch
 from torch import nn
 
 class Output(nn.Module):
@@ -7,4 +6,5 @@ class Output(nn.Module):
         super().__init__()
                 
     def forward(self,x):
-        return x#.view(x.shape[0], -1)
+        N = x.shape[0]
+        return x.reshape(N,-1)

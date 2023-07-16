@@ -1,30 +1,39 @@
-from models.layer_operations.convolution import StandardConvolution
+from models.layer_operations.convolution import Convolution
 from models.layer_operations.output import Output
 from models.layer_operations.blurpool import BlurPool
 from models.layer_operations.nonlinearity import NonLinearity
-from models.layer_operations.random_proj import RandomProjection
 import torch
 from torch import nn
                          
 
+class Conv3Module(nn.Module):
+    def __init__(self, conv_layer, non_linear_activation):
+        super(Conv3Module, self).__init__()
+        self.conv_layer = conv_layer
+        self.non_linear_activation = non_linear_activation
 
+    def forward(self, x):
+        x = self.non_linear_activation(self.conv_layer(x))
+        return x
+            
+
+        
 class Model(nn.Module):
     
     
     def __init__(self,
-                c1: nn.Module,
-                c1_bp: nn.Module,
-                mp1: nn.Module,
-                c2: nn.Module,
-                c2_bp: nn.Module,
-                mp2: nn.Module,
-                c3: nn.Module,
-                c3_bp: nn.Module,
-                mp3: nn.Module,
+                conv1: nn.Module,
+                bpool1: nn.Module,
+                pool1: nn.Module,
+                conv2: nn.Module,
+                bpool2: nn.Module,
+                pool2: nn.Module,
+                conv3: nn.Module,
+                bpool3: nn.Module,
+                pool3: nn.Module,
                 batches_3: int,
-                nl1: nn.Module,
-                global_mp: bool,
-                rp: nn.Module,
+                nl: nn.Module,
+                gpool: bool,
                 last: nn.Module,
                 print_shape: bool = True
                 ):
@@ -32,101 +41,69 @@ class Model(nn.Module):
         super(Model, self).__init__()
         
         
-        self.c1 = c1 
-        self.c1_bp = c1_bp 
-        self.mp1 = mp1
+        self.conv1 = conv1 
+        self.bpool1 = bpool1 
+        self.pool1 = pool1
         
-        self.c2 = c2
-        self.c2_bp = c2_bp
-        self.mp2 = mp2
+        self.conv2 = conv2
+        self.bpool2 = bpool2
+        self.pool2 = pool2
         
-        self.c3 = c3
-        self.c3_bp = c3_bp
-        self.mp3 = mp3
+        self.conv3 = conv3
+        self.bpool3 = bpool3
+        self.pool3 = pool3
         self.batches_3 = batches_3
         
-        self.nl1 = nl1
-        self.global_mp = global_mp
-        self.rp = rp
+        self.nl = nl
+        self.gpool = gpool
         self.last = last
         self.print_shape = print_shape
         
         
-    def forward(self, x:nn.Module):
-                
+    def forward(self, x:nn.Module): 
         
-        #conv layer 1
-        x = self.c1(x)
-        if self.print_shape:
-            print('conv1', x.shape)
-    
-        x = self.nl1(x)
         
-        x = self.c1_bp(x)
-        if self.print_shape:
-            print('c1 bp', x.shape)
-             
-                
-        x = self.mp1(x)
-        if self.print_shape:
-            print('mp1', x.shape)
-            
-            
-        #conv layer 2
-        x = self.c2(x)
-        if self.print_shape:
-            print('conv2', x.shape)        
-            
-        x = self.nl1(x)
+        x = x.to('cuda')
+        print(x.shape)
         
-        x = self.c2_bp(x)
-        if self.print_shape:
-            print('c2 bp', x.shape)
-        
-        x = self.mp2(x)
-        if self.print_shape:
-            print('mp2', x.shape)
-            
-            
-        #device = torch.device('cuda:0') if torch.cuda.is_available() else 'cpu'
-        #conv layer 3
-        conv_3 = []
-        for i in range(self.batches_3):
-            conv_3.append(self.c3(x)) 
-        x = torch.cat(conv_3,dim=1)
-        if self.print_shape:
-            print('conv3', x.shape)
+        #layer 1 
+        x = self.conv1(x)  # conv 
+        print('c1',x.shape)  
+        x = self.nl(x) # non linearity 
+        x = self.bpool1(x) # anti-aliasing blurpool                
+        x = self.pool1(x) # pool
+        print('p1',x.shape)  
 
             
+        #layer 2
+        x = self.conv2(x)  
+        print('c2',x.shape)  
+        x = self.nl(x) 
+        x = self.bpool2(x) 
+        x = self.pool2(x)    
+        print('p2',x.shape)   
+         
+
+        x_repeated = x.repeat(self.batches_3, 1, 1, 1)
+        conv_3 = self.nl(self.conv3(x_repeated))
+        x = torch.cat(torch.chunk(conv_3, self.batches_3, dim=0), dim=1)
+        print('c3',x.shape)  
+
+
+        x = self.bpool3(x)
+        x = self.pool3(x)
+        print('p3',x.shape)
+
         
-        x = self.nl1(x)
-        
-        x = self.c3_bp(x)
-        if self.print_shape:
-            print('c3 bp', x.shape)
-        
-        x = self.mp3(x)
-        if self.print_shape:
-            print('mp3', x.shape)
-        
-        # x = self.mp3_bp(x)
-        # if self.print_shape:
-        #     print('mp3 bp', x.shape)
-        
-        if self.global_mp:
+        if self.gpool: # global pool
             H = x.shape[-1]
-            gmp = nn.AvgPool2d(H)
+            gmp = nn.AvgPool2d(H) 
             x = gmp(x)
-            print('gmp', x.shape)
-            
+
         
-        if self.rp is not None:
-            x = self.rp(x)
-            print('rp', x.shape)
-        
-        x = self.last(x)
-        if self.print_shape:
-            print('output', x.shape)
+        x = self.last(x) # final layer
+        print('final',x.shape)
+
         
         return x    
 
@@ -136,61 +113,119 @@ class Model(nn.Module):
   
 
     
-class EngModel3LAbsBPAP:
+class ExpansionModel:
         
-        
-    def __init__(self, curv_params = {'n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
-                 filters_2=2000,filters_3=10000,batches_3 = 1,bp_filter_size=4,global_mp=False,num_projections=None):
     
+    """
+    Attributes
+    ----------
+    curv_params  
+        pre-set curvature filter parameters 
+    
+    filters_2
+        number of random filters in layer 2
+
+        
+    filters_3 
+        number of random filters in layer 3
+    
+    batches_3
+        number of batches used for layer 3 convolution. Used in case of memory issues 
+        to perform convolution in batches. The number of output channles is equal to 
+        filters_3 x batches_3
+    
+    bpool_filter_size
+        kernel size for the anti aliasing operation (blurpool)
+
+    gpool:
+        whether global pooling is performed on the output of layer 3 
+    """
+    
+
+
+
+    def __init__(self, 
+                 curv_params:dict = {'n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
+                 filters_2:int=1000,
+                 filters_3:int=10000,
+                 batches_3:int = 1,
+                 init_type:str = 'kaiming_uniform',
+                 bpool_filter_size:int=4,
+                 gpool:bool=True):    
         
         self.curv_params = curv_params
         self.filters_1 = self.curv_params['n_ories']*self.curv_params['n_curves']*len(self.curv_params['gau_sizes']*len(self.curv_params['spatial_fre']))
         self.filters_2 = filters_2
         self.filters_3 = filters_3
         self.batches_3 = batches_3
-        self.bp_filter_size = bp_filter_size
-        self.num_projections = num_projections
-        self.global_mp = global_mp
+        self.init_type = init_type
+        self.bpool_filter_size = bpool_filter_size
+        self.gpool = gpool
     
     
     
-    def Build(self):
-    
-        c1 = StandardConvolution(filter_size=15,filter_type='curvature',curv_params=self.curv_params)     
-        c1_bp = BlurPool(36, filt_size=self.bp_filter_size, stride=2)
-        mp1 = nn.AvgPool2d(kernel_size=3)
+    def Build(self):        
+        
+        # layer 1
+        conv1 = Convolution(filter_size=15,filter_type='curvature',curv_params=self.curv_params)     
+        bpool1 = BlurPool(self.filters_1*3, filt_size=self.bpool_filter_size, stride=2)
+        pool1 = nn.AvgPool2d(kernel_size=3)
 
         
-        c2 = nn.Conv2d(36, self.filters_2, kernel_size=(9, 9))
-        c2_bp = BlurPool(self.filters_2, filt_size=self.bp_filter_size, stride=2)
-        mp2 = nn.AvgPool2d(kernel_size=2,stride=1)
+        # layer 2
+        conv2 = nn.Conv2d(self.filters_1*3, self.filters_2, kernel_size=(9, 9), bias=False)
+        initialize_conv_layer(conv2, self.init_type)
+        bpool2 = BlurPool(self.filters_2, filt_size=self.bpool_filter_size, stride=2)
+        pool2 = nn.AvgPool2d(kernel_size=2, stride=1)
         
         
-        c3 = nn.Conv2d(self.filters_2, self.filters_3, kernel_size=(7,7))
-        c3_bp = BlurPool(self.filters_3*self.batches_3, filt_size=self.bp_filter_size, stride=2)
-        mp3 = nn.AvgPool2d(kernel_size=2,stride=1)
+        # layer 3
+        conv3 = nn.Conv2d(self.filters_2, self.filters_3, kernel_size=(7,7), bias=False)
+        initialize_conv_layer(conv3, self.init_type)
+        bpool3 = BlurPool(self.filters_3*self.batches_3, filt_size=self.bpool_filter_size, stride=2)
+        pool3 = nn.AvgPool2d(kernel_size=2, stride=1)
 
-        nl1 = NonLinearity('abs')
-        rp = None
-        if self.num_projections is not None:
-            rp = RandomProjection(out_channels=self.num_projections)
+        # non lineairy function
+        nl = NonLinearity('abs')
+        
+        #readout layer
         last = Output()
         
 
         
         return Model(
-                c1 = c1,
-                c1_bp = c1_bp,
-                mp1 = mp1,
-                c2 = c2,
-                c2_bp = c2_bp,
-                mp2 = mp2,
-                c3 = c3,
-                c3_bp = c3_bp,
-                mp3 = mp3,
+                conv1 = conv1,
+                bpool1 = bpool1,
+                pool1 = pool1,
+                conv2 = conv2,
+                bpool2 = bpool2,
+                pool2 = pool2,
+                conv3 = conv3,
+                bpool3 = bpool3,
+                pool3 = pool3,
                 batches_3 = self.batches_3,
-                nl1 = nl1,
-                global_mp = self.global_mp,
-                rp = rp,
+                nl = nl,
+                gpool = self.gpool,
                 last = last
         )
+    
+
+
+
+def initialize_conv_layer(conv_layer, initialization):
+    if initialization == 'kaiming_uniform':
+        nn.init.kaiming_uniform_(conv_layer.weight)
+    elif initialization == 'kaiming_normal':
+        nn.init.kaiming_normal_(conv_layer.weight)
+    elif initialization == 'orthogonal':
+        nn.init.orthogonal_(conv_layer.weight) 
+    elif initialization == 'xavier_uniform':
+        nn.init.xavier_uniform_(conv_layer.weight)      
+    elif initialization == 'xavier_normal':
+        nn.init.xavier_normal_(conv_layer.weight)     
+    elif initialization == 'uniform':
+        nn.init.uniform_(conv_layer.weight)      
+    elif initialization == 'normal':
+        nn.init.normal_(conv_layer.weight)      
+    else:
+        raise ValueError(f"Unsupported initialization type: {initialization}.")
