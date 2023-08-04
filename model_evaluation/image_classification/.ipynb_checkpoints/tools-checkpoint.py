@@ -23,7 +23,7 @@ import sys
 import os
 
 # local vars
-sys.path.append(os.getenv('MB_ROOT_PATH'))
+sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from config import CAT_SUBSET
 from data_tools.loading import load_places_cat_labels
 

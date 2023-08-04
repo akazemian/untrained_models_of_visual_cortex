@@ -10,7 +10,7 @@ import xarray as xr
 
 # local libraries
 from config import VAL_IMAGES_SUBSET, RESULTS_PATH
-sys.path.append(os.getenv('MB_ROOT_PATH'))
+sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from data_tools.config import ACTIVATIONS_PATH
 from model_evaluation.image_classification.tools import get_pairwise_performance, normalize
 from model_evaluation.utils import get_activations_iden
