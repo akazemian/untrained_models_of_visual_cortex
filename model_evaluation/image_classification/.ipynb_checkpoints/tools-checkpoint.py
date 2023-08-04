@@ -127,3 +127,4 @@ def get_pairwise_performance(data):
 def normalize(X):
     X = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     return X
+
