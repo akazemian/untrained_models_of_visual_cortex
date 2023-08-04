@@ -6,7 +6,7 @@ import pickle
 import xarray as xr
 
 # local libraries
-from config import RESULTS_PATH, VAL_IMAGES_SUBSET
+from config import VAL_IMAGES_SUBSET, RESULTS_PATH
 sys.path.append(os.getenv('MB_ROOT_PATH'))
 from data_tools.config import ACTIVATIONS_PATH
 from model_evaluation.image_classification.tools import get_pairwise_performance, normalize
@@ -50,6 +50,8 @@ for model_info in model_dict.values():
     
     activations_iden = get_activations_iden(model_info=model_info, dataset=DATASET, mode=None)
 
+    print({os.path.join(RESULTS_PATH,"classification",activations_iden)})
+    
     activations = Activations(model=model_info['model'],
                             layer_names=model_info['layers'],
                             dataset=DATASET,
@@ -61,6 +63,7 @@ for model_info in model_dict.values():
     # extract model activations
     activations.get_array(ACTIVATIONS_PATH,activations_iden) 
     data = xr.open_dataset(os.path.join(ACTIVATIONS_PATH,activations_iden))
+    
     # normalize activations for image classification
     data.x.values = normalize(data.x.values)
     
@@ -69,11 +72,10 @@ for model_info in model_dict.values():
     data_subset = data.sel(stimulus_id = VAL_IMAGES_SUBSET)
 
 
-    
     # get pairwise classification performance
     performance_dict = get_pairwise_performance(data_subset)
 
-    with open(os.path.join(RESULTS_PATH,activations_iden),'wb') as f:
+    with open(os.path.join(RESULTS_PATH,'classification',activations_iden),'wb') as f:
         pickle.dump(performance_dict,f)
 
-    print(f'pairwaise performance is saved in {os.path.join(RESULTS_PATH,activations_iden)}')
+    print(f'pairwaise performance is saved in {os.path.join(RESULTS_PATH,"classification",activations_iden)}')

@@ -6,9 +6,7 @@ from data_tools.loading import load_places_cat_names, load_places_cat_labels
 from data_tools.config import PLACES_PATH
 import random
 random.seed(42)
-
-# where image files will be downloaded
-RESULTS_PATH = os.path.join('/home/akazemi3/MB_Lab_Project/model_evaluation/results')
+RESULTS_PATH = os.path.join(os.getenv('MB_ROOT_PATH'),'model_evaluation','results')
 
 
 CAT_SUBSET_PATH = os.path.join(PLACES_PATH,'categories_subset_100')

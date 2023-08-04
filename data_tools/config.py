@@ -16,3 +16,7 @@ PROCESSED_IMAGES_PATH = '/data/atlas/processed_images'
 
 # where model activations will be saved
 ACTIVATIONS_PATH = '/data/atlas/activations'
+
+
+
+
