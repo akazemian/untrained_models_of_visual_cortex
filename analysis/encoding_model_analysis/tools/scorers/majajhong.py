@@ -5,7 +5,8 @@ import numpy as np
 import torch
 import os
 from ..regression import *
-sys.path.append("/home/akazemi3/MB_Lab_Project") 
+from ..regression_cv_mod import RidgeCVMod
+from ..scorers.function_types import Regression
 from tools.loading import get_image_labels
 import random 
 from sklearn.decomposition import PCA
@@ -17,12 +18,22 @@ import scipy
 from sklearn.preprocessing import scale
 from tools.scorers.function_types import Regression
 
-ACTIVATIONS_PATH = '/data/atlas/activations'
-NEURAL_DATA_PATH = '/data/atlas/neural_data'
-MODEL_SCORES_PATH = '/data/atlas/model_scores'
-TRAIN_IDS = "/home/akazemi3/Desktop/MB_Lab_Project/analysis/neural_data_regression/train_ids_majajhong"
-TEST_IDS = "/home/akazemi3/Desktop/MB_Lab_Project/analysis/neural_data_regression/test_ids_majajhong"
+import warnings
+warnings.filterwarnings('ignore')
 
+import scipy
+from sklearn.preprocessing import scale
+import random    
+random.seed(0)
+import scipy.stats as st
+
+
+DATA = os.getenv('MB_DATA_PATH')
+ACTIVATIONS_PATH = os.path.join(DATA,'activations')
+NEURAL_DATA_PATH = os.path.join(DATA,'neural_data')
+MODEL_SCORES_PATH = os.path.join(DATA,'model_scores_final')
+TRAIN_IDS = os.path.join(NEURAL_DATA_PATH,'train_ids_majajhong')
+TEST_IDS = os.path.join(NEURAL_DATA_PATH,'test_ids_majajhong')
 DATASET = 'majajhong'
 SUBJECTS = ['Chabo','Tito']
 
@@ -30,6 +41,63 @@ SUBJECTS = ['Chabo','Tito']
     
     
     
+    
+    
+def majajhong_scorer_end_to_end(model_name: str, 
+                           activations_identifier: str, 
+                           scores_identifier: str, 
+                           region: str,
+                           alpha_values: list):
+    
+
+        
+        ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
+                                coords={'subject': (['r_values'], []),
+                                        'region': (['r_values'], [])
+                                         })
+
+        
+        X_train = load_activations(activations_identifier, mode = 'train')
+        X_test = load_activations(activations_identifier, mode = 'test')
+        
+
+        pbar = tqdm(total = 2)
+        for subject in SUBJECTS:
+
+
+            y_train = load_mjh_data(subject= subject, region= region, mode = 'train')
+            y_test = load_mjh_data(subject= subject, region= region, mode = 'test')
+
+
+            regression = RidgeCVMod(alphas=alpha_values, store_cv_values = False,
+                                  alpha_per_target = True, scoring = 'pearson_r')
+            regression.fit(X_train, y_train)
+            best_alpha = st.mode(regression.alpha_)[0]
+            print('best alpha:',best_alpha)
+
+
+            y_true, y_predicted = regression_shared_unshared(x_train=X_train,
+                                                         x_test=X_test,
+                                                         y_train=y_train,
+                                                         y_test=y_test,
+                                                         model= Ridge(alpha=best_alpha))
+            r = pearson_r(y_true,y_predicted)
+
+            ds_tmp = xr.Dataset(data_vars=dict(r_value=(["r_values"], r)),
+                            coords={'subject': (['r_values'], [subject for i in range(len(r))]),
+                                    'region': (['r_values'], [region for i in range(len(r))])
+                                     })
+                
+            ds = xr.concat([ds,ds_tmp],dim='r_values')   
+            pbar.update(1)
+
+        ds['name'] = scores_identifier
+        return ds           
+        
+        
+        
+        
+        
 def majajhong_scorer_all_cv(model_name: str, 
                             activations_identifier: str, 
                             scores_identifier:str, 

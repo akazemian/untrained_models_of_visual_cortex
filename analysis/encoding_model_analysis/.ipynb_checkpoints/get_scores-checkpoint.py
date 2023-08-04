@@ -13,11 +13,7 @@ warnings.filterwarnings('ignore')
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.linear_model import Ridge
 import random
-from models.all_models.model_3L_abs_blurpool_avgpool_gabor import ExpansionModelGabor
-from models.all_models.model_2L_abs_blurpool_avgpool import ExpansionModel2L
 from models.all_models.model_3L_abs_blurpool_avgpool import ExpansionModel
-from models.all_models.model_4L_abs_blurpool_avgpool import ExpansionModel4L
-from models.all_models.scat_transform_kymatio import ScatTransformKymatio
 from models.all_models.model_3L_abs_avgpool import ModelAbsAP
 from models.all_models.alexnet import Alexnet
 from models.all_models.alexnet_u import AlexnetU
@@ -41,88 +37,58 @@ alexnet_pytorch =  torchvision.models.alexnet(pretrained=True)
 ROOT = os.getenv('MB_DATA_PATH')
 ACTIVATIONS_PATH = os.path.join(ROOT,'activations')   
 
-
-
 DATASET = 'naturalscenes'
 REGIONS = ['general']
 
+# DATASET = 'majajhong'
+# REGIONS = ['V4','IT']
+
 MAX_POOL = True
 MODE = 'ridgecv'
-HOOK = 'pca'
+HOOK = None
 
-# 'model name':{
-# 'iden':str,
-# 'model':nn.Module,
-# 'layers': int, 
-# 'preprocess':'function', 
-# 'num_layers':int,
-# 'num_features':int,
-# 'dim_reduction_type':str,
-# 'n_dims':int,
-# 'max_dims':int,
-# 'pca_dataset':str,
-# 'max_pool':bool,
-# 'alphas': list}
+
 
 alphas = [10**i for i in range(1,10)]
 
-MODEL_DICT = {          
+MODEL_DICT = {               
+    
     
 
+#     'fully_random':{
+#                 'iden':'expansion_model_final_random',
+#                 'model':FRModel(filters_1=36).Build(),
+#                 'layers': ['last'], 
+#                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+#                 'num_layers':3,
+#                 'num_features':10000,
+#                 'dim_reduction_type':None,
+#                 'n_dims': None,
+#                 'max_pool':MAX_POOL,
+#                 'alphas':alphas
+#                 }, 
     
-#     'expansion model 10':{
-#                 'iden':'expansion_model_final',
-#                 'model':ExpansionModel(filters_3=10).Build(),
+#     'gabor model':{
+#                 'iden':'expansion_model_final_gabor_corrected_3_scales',
+#                 'model':ExpansionModel(filter_params={'type':'gabor','n_ories':12,'num_scales':3}).Build(),
 #                 'layers': ['last'], 
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
 #                 'n_dims': None,
 #                 'num_layers':3,
-#                 'num_features':10,
+#                 'num_features':10000,
 #                 'max_pool':MAX_POOL,
-#                 'alphas':alphas},
+#                 'alphas':alphas
+#                 },  
     
+ 
     
-#     'expansion model 100':{
-#                 'iden':'expansion_model_final',
-#                 'model':ExpansionModel(filters_3=100).Build(),
-#                 'layers': ['last'], 
-#                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-#                 'n_dims': None,
-#                 'num_layers':3,
-#                 'num_features':100,
-#                 'max_pool':MAX_POOL,
-#                 'alphas':alphas},
-    
-    
-#     'expansion model 1000':{
-#                 'iden':'expansion_model_final',
-#                 'model':ExpansionModel(filters_3=1000).Build(),
-#                 'layers': ['last'], 
-#                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-#                 'n_dims': None,
-#                 'num_layers':3,
-#                 'num_features':1000,
-#                 'max_pool':MAX_POOL,
-#                 'alphas':alphas},
-    
-    
-    'model linear 10000':{
-                'iden':'expansion_model_final_pca',
-                'model':ExpansionModel(filters_3=10000).Build(),
-                'layers': ['last'], 
-                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-                'n_dims': None,
-                'num_layers':3,
-                'num_features':10000,
-                'max_pool':MAX_POOL,
-                'alphas':alphas},
     
 
    
     
 #################################################################################
 #     'expansion model 3L 10':{
-#                 'iden':'expansion_model_rgb',
+#                 'iden':'expansion_model_final',
 #                 'model':ExpansionModel(filters_3=10).Build(),
 #                 'layers': ['last'], 
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
@@ -133,7 +99,7 @@ MODEL_DICT = {
 
     
 #     'expansion model 3L 100':{
-#                 'iden':'expansion_model_rgb',
+#                 'iden':'expansion_model_final',
 #                 'model':ExpansionModel(filters_3=100).Build(),
 #                 'layers': ['last'], 
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
@@ -144,37 +110,37 @@ MODEL_DICT = {
     
     
     
-    # 'expansion model 3L 1000':{
-    #             'iden':'expansion_model',
-    #             'model':ExpansionModel(filters_3=1000, gpool=MAX_POOL).Build(),
-    #             'layers': ['last'], 
-    #             'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-    #             'num_layers':3,
-    #             'num_features':1000,
-    #             'max_pool':MAX_POOL,
-    #             'alphas':alphas}, 
-    
-    
-    # 'expansion model 3L 10000':{
-    #             'iden':'expansion_model_rgb',
-    #             'model':ExpansionModel(filters_3=10000).Build(),
-    #             'layers': ['last'], 
-    #             'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-    #             'num_layers':3,
-    #             'num_features':10000,
-    #             'max_pool':MAX_POOL,
-    #             'alphas':alphas}, 
-        
-    
-#     'expansion model 3L 100000':{
-#                 'iden':'expansion_model_rgb',
-#                 'model':ExpansionModel(batches_3=10,filters_3=10000).Build(),
+#     'expansion model 3L 1000':{
+#                 'iden':'expansion_model_final',
+#                 'model':ExpansionModel(filters_3=1000, gpool=MAX_POOL).Build(),
 #                 'layers': ['last'], 
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
 #                 'num_layers':3,
-#                 'num_features':100000,
+#                 'num_features':1000,
 #                 'max_pool':MAX_POOL,
 #                 'alphas':alphas}, 
+    
+    
+    'expansion model 3L 10000':{
+                'iden':'expansion_model_final',
+                'model':ExpansionModel(filters_3=10000).Build(),
+                'layers': ['last'], 
+                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+                'num_layers':3,
+                'num_features':10000,
+                'max_pool':MAX_POOL,
+                'alphas':alphas}, 
+        
+    
+    # 'expansion model 3L 100000':{
+    #             'iden':'expansion_model_final',
+    #             'model':ExpansionModel(batches_3=10,filters_3=10000).Build(),
+    #             'layers': ['last'], 
+    #             'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+    #             'num_layers':3,
+    #             'num_features':100000,
+    #             'max_pool':MAX_POOL,
+    #             'alphas':alphas}, 
     
     
     
@@ -199,7 +165,7 @@ MODEL_DICT = {
 #                 'layers': ['last'], 
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
 #                 'num_layers':2,
-#                 'num_features':192,
+#                 'num_features':192,44676
 #                 'dim_reduction_type':None,
 #                 'max_pool':MAX_POOL,
 #                 'alphas':alphas},      
@@ -222,20 +188,20 @@ MODEL_DICT = {
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
 #                 'num_layers':4,
 #                 'num_features':256,
-#                 'dim_reduction_type':None,
+#                 'dim_reduction_type':None,44676
 #                 'max_pool':MAX_POOL,
 #                 'alphas':alphas},     
         
-#        'alexnet conv5':{
-#                 'iden':'alexnet_conv5',
-#                 'model':Alexnet().Build(),
-#                 'layers': ['last'], 
-#                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-#                 'num_layers':5,
-#                 'num_features':256,
-#                 'dim_reduction_type':None,
-#                 'max_pool':MAX_POOL,
-#                 'alphas':alphas},    
+       # 'alexnet conv5':{
+       #          'iden':'alexnet_conv5',
+       #          'model':Alexnet().Build(),
+       #          'layers': ['last'], 
+       #          'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+       #          'num_layers':5,
+       #          'num_features':256,
+       #          'dim_reduction_type':None,
+       #          'max_pool':MAX_POOL,
+       #          'alphas':alphas},    
     
     
     
@@ -247,7 +213,7 @@ MODEL_DICT = {
 #                 'model':AlexnetU(features_layer =2).Build(),
 #                 'layers': ['last'], 
 #                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-#                 'num_layers':1,
+#                 'num_layers':1,44676
 #                 'num_features':64,
 #                 'dim_reduction_type':None,
 #                 'max_pool':MAX_POOL,
@@ -286,16 +252,16 @@ MODEL_DICT = {
 #                 'max_pool':MAX_POOL,
 #                 'alphas':alphas},       
         
-#         'alexnet u conv5':{
-#                 'iden':'alexnet_u_conv5',
-#                 'model':AlexnetU().Build(),
-#                 'layers': ['last'], 
-#                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-#                 'num_layers':5,
-#                 'num_features':256,
-#                 'dim_reduction_type':None,
-#                 'max_pool':MAX_POOL,
-#                 'alphas':alphas},   
+        # 'alexnet u conv5':{
+        #         'iden':'alexnet_u_conv5',
+        #         'model':AlexnetU().Build(),
+        #         'layers': ['last'], 
+        #         'preprocess':Preprocess(im_size=224).PreprocessRGB, 
+        #         'num_layers':5,
+        #         'num_features':256,
+        #         'dim_reduction_type':None,
+        #         'max_pool':MAX_POOL,
+        #         'alphas':alphas},   44676
     
     
 ###################################################################    
@@ -324,7 +290,6 @@ MODEL_DICT = {
 #                 'max_pool':MAX_POOL,
 #                 'alphas':[10**i for i in range(10)]},   
 
-    
 #        'scattering kymatio j4':{
 #                 'iden':'st_kymatio_j4',
 #                 'model':ScatTransformKymatio(J=4, L=8, M=32, N=32, global_mp = MAX_POOL).Build(),
@@ -355,13 +320,13 @@ for region in REGIONS:
                                 preprocess=model_info['preprocess'],
                                 mode = MODE,
                                 _hook = HOOK,
-                                batch_size = 50
+                                batch_size = 100
                             )           
         
         activations.get_array(ACTIVATIONS_PATH,activations_identifier)   
     
         scores_identifier = get_scores_iden(model_info, activations_identifier, region, DATASET, MODE)
-
+        scores_identifier = scores_identifier + '_normalized_features'
         scorer(model_name=model_info['iden'],
                activations_identifier=activations_identifier,
                scores_identifier=scores_identifier,

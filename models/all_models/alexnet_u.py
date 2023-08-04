@@ -1,7 +1,6 @@
 import sys
 import torchvision
 from models.layer_operations.output import Output
-from models.layer_operations.pca import SpatialPCA, NormalPCA
 import torch
 from torch import nn
 import pickle

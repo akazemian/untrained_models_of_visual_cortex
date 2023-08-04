@@ -62,14 +62,14 @@ class FCModel3L:
 
     def __init__(self, 
                  image_size:int = 224,
-                 features_1:int = 36,
-                 features_2:int = 2000,
+                 features_1:int = 108,
+                 features_2:int = 1000,
                  features_3:int = 10000):    
         
         self.features_1 = features_1
         self.features_2 = features_2
         self.features_3 = features_3
-        self.input_dim = image_size**2
+        self.input_dim = image_size**2*3
     
     
     def Build(self):        

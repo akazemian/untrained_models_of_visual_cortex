@@ -15,13 +15,12 @@ import pickle
 
 ROOT = os.getenv('MB_DATA_PATH')
 PATH_TO_PCA = os.path.join(ROOT,'pca')
-PCA_FILE_NAME = '/data/atlas/pca/expansion_model_final_mp_3_layers_10000_features_naturalscenes_pca'
 
 
 
 
 
-def register_pca_hook(x, n_components=256, device='cuda'):
+def register_pca_hook(x, PCA_FILE_NAME, n_components=256, device='cuda'):
     
     with open(PCA_FILE_NAME, 'rb') as file:
         _pca = pickle.load(file)
@@ -37,12 +36,13 @@ def register_pca_hook(x, n_components=256, device='cuda'):
 
 
 class PytorchWrapper:
-    def __init__(self, model,forward_kwargs=None): 
+    def __init__(self, model, identifier, forward_kwargs=None): 
         
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model = model
         self._model = self._model.to(self._device)
         self._forward_kwargs = forward_kwargs or {}
+        self.identifier = identifier
 
 
     def get_activations(self, images, layer_names, _hook):
@@ -96,7 +96,7 @@ class PytorchWrapper:
                 target_dict[name] = output
                 
             elif _hook == 'pca':
-                target_dict[name] = register_pca_hook(output)
+                target_dict[name] = register_pca_hook(output, os.path.join(PATH_TO_PCA, f'{self.identifier}_pca'))
 
         hook = layer.register_forward_hook(hook_function)
         return hook
@@ -122,7 +122,6 @@ def batch_activations(model: nn.Module,
         for layer in layer_names:
                              
             activations_b = activations_dict[layer]
-            print('batch shape',activations_b.shape)
             activations_b = activations_b.reshape(activations_dict[layer].shape[0],-1)
             ds = xr.Dataset(
             data_vars=dict(x=(["presentation", "features"], np.array(activations_b.cpu()))),
@@ -162,19 +161,19 @@ class Activations:
         self._hook = _hook
      
         
-    def get_array(self,path,identifier):
+    def get_array(self, path, identifier):
         
 
         if not os.path.exists(path):
                 os.mkdir(path)
         
         
-        if os.path.exists(os.path.join(path,identifier)):
+        if os.path.exists(os.path.join(path, identifier)):
             print(f'array is already saved in {path} as {identifier}')
         
         else:
         
-            wrapped_model = PytorchWrapper(self.model)
+            wrapped_model = PytorchWrapper(model = self.model, identifier = identifier)
             image_paths = LoadImagePaths(name = self.dataset, mode = self.mode)
             labels = get_image_labels(self.dataset, image_paths)  
             processed_images = self.preprocess(image_paths, self.dataset) 

@@ -1,4 +1,8 @@
 
+"The follwoing is taken from DiCarlo Lab's VOneNet git repository (https://github.com/dicarlolab/vonenet.git)"
+
+
+
 import scipy.stats as stats
 import numpy as np
 import torch

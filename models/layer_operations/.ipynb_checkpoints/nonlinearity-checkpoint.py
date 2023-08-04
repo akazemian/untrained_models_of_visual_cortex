@@ -13,27 +13,29 @@ class NonLinearity(nn.Module):
     
     def forward(self,x):
 
-        if self.operation == 'zscore':
-            x = x.data.cpu().numpy()
-            std = (np.std(x, axis=1, keepdims=True))
-            mean = np.mean(x, axis=1, keepdims=True)
-            x_norm = (x - mean)/std
-            return torch.Tensor(x_norm)
+        match self.operation:
 
-        if self.operation == 'norm':
-            x = x.data.cpu().numpy()
-            std = 1
-            mean = 0
-            x_norm = (x - mean)/std
-            return torch.Tensor(x_norm)
-        
-        if self.operation == 'relu': 
-            nl = nn.ReLU()
-            return nl(x)
+            case 'zscore':
+                std = x.std(dim=1, keepdims=True)
+                mean = x.mean(dim=1, keepdims=True)
+                x_norm = (x - mean)/std
+                return x_norm
 
-        if self.operation == 'gelu': 
-            nl = nn.GELU()
-            return nl(x)
 
-        if self.operation == 'abs': 
-            return x.abs()
+            case 'leaky_relu': 
+                nl = nn.LeakyReLU()
+                return nl(x)
+
+
+            case 'relu': 
+                nl = nn.ReLU()
+                return nl(x)
+
+            
+            case 'gelu': 
+                nl = nn.GELU()
+                return nl(x)
+
+            
+            case 'abs': 
+                return x.abs()

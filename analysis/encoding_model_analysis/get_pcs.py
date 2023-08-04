@@ -26,9 +26,9 @@ from models.all_models.alexnet import Alexnet
 from models.all_models.alexnet_u import AlexnetU    
     
 #DATASET = 'imagenet21k'    
-DATASET = 'naturalscenes'
+DATASET = 'places'
 MAX_POOL = True
-N_COMPONENTS =  256
+N_COMPONENTS =  1000
 MODE = 'pca'
 PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
 
@@ -36,15 +36,14 @@ PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
 MODEL_DICT = {
 
 
-    'expansion model 10000':{
+    'expansion model 3L 10000':{
                 'iden':'expansion_model_final',
                 'model':ExpansionModel(filters_3=10000).Build(),
                 'layers': ['last'], 
                 'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-                'n_dims': None,
                 'num_layers':3,
                 'num_features':10000,
-                'max_pool':MAX_POOL},
+                'max_pool':MAX_POOL}
 }
 
 
@@ -75,7 +74,8 @@ for model_name, model_info in MODEL_DICT.items():
                                     dataset=DATASET,
                                     preprocess=model_info['preprocess'],
                                     mode = MODE,
-                                    batch_size = 20
+                                    batch_size = 100,
+                                      
                                 )           
 
             activations.get_array(ACTIVATIONS_PATH,activations_identifier)   

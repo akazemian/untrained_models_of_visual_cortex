@@ -1,6 +1,5 @@
 import sys
 import torchvision
-from models.layer_operations.pca import SpatialPCA, NormalPCA
 import torch
 from torch import nn
 import pickle
@@ -8,15 +7,6 @@ import os
 from models.layer_operations.output import Output
 
 model = torchvision.models.alexnet(pretrained=True)
-
-
-def load_pca_file(identifier):
-
-    file = open(os.path.join(PATH_TO_PCA,identifier), 'rb')
-    _pca = pickle.load(file)  
-    file.close()
-    return _pca
-
 
 
 

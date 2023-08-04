@@ -1,8 +1,6 @@
 import torch
 from torch import nn
 import numpy as np
-
-import numpy as np
 import cv2
 
     
@@ -87,10 +85,10 @@ class GaborFilters(nn.Module):
     def __init__(self,
                  n_ories=12,
                  in_channels=1,
-                 filt_size=9,
-                 num_scales=1, 
+                 filt_size=5,
+                 num_scales=3, 
                  min_scale=5,
-                 max_scale=5,
+                 max_scale=15,
                  ):
         
         
@@ -113,11 +111,11 @@ class GaborFilters(nn.Module):
         i = 0
         for scale in scales:
             for orientation in orientations:
-                sigma = scale
+                sigma = 1
                 theta = orientation
-                lambda_ = scale * 2 / np.pi
+                lambda_ = scale / np.pi
                 psi = 0
-                gamma = 1
+                gamma = 0.5
 
                 w[i, 0, :, :] = torch.Tensor(cv2.getGaborKernel((self.filt_size, self.filt_size), sigma, theta, lambda_, gamma, psi))
                 i += 1
@@ -128,9 +126,8 @@ class GaborFilters(nn.Module):
 
     
     
-def filters(filter_type:str,
-            in_channels:int = None,
-            curv_params:dict = None,
+def filters(in_channels:int = None,
+            filter_params:dict = None,
             kernel_size:int = None):
 
     """
@@ -154,23 +151,25 @@ def filters(filter_type:str,
  
     """
         
-    assert filter_type in ['curvature', 'gabor'], "the only available filter type is curvature"
+    assert filter_params['type'] in ['curvature', 'gabor'], "the only available filter type is curvature"
 
-    if filter_type == 'curvature':
+    if filter_params['type'] == 'curvature':
 
         curve = CurvatureFilters(
             in_channels=in_channels,
-            n_ories=curv_params['n_ories'],
-            gau_sizes=curv_params['gau_sizes'],
-            curves=np.logspace(-2, -0.1, curv_params['n_curves']),
-            fre = curv_params['spatial_fre'],
+            n_ories=filter_params['n_ories'],
+            gau_sizes=filter_params['gau_sizes'],
+            curves=np.logspace(-2, -0.1, filter_params['n_curves']),
+            fre = filter_params['spatial_fre'],
             filt_size=kernel_size)
         return curve()
     
-    elif filter_type == 'gabor':
+    
+    elif filter_params['type'] == 'gabor':
         gabor = GaborFilters(
                  in_channels=in_channels,
-                 n_ories=curv_params['n_ories'],
+                 n_ories=filter_params['n_ories'],
+                 num_scales = filter_params['num_scales'],
                  filt_size=kernel_size)
         return gabor()
         

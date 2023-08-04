@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-"The follwoing blurpool function is from Adobe's anti-aliasing repository (https://github.com/adobe/antialiased-cnns/blob/master/antialiased_cnns)"
+"The follwoing blurpool function is taken from Adobe's anti-aliasing repository (https://github.com/adobe/antialiased-cnns/blob/master/antialiased_cnns)"
 
 class BlurPool(nn.Module):
     def __init__(self, channels, pad_type='reflect', filt_size=4, stride=2, pad_off=0):
