@@ -1,15 +1,23 @@
-import numpy as np
-import xarray as xr
-import os
-import torch
-from sklearn.linear_model._ridge import LinearModel, MultiOutputMixin, RegressorMixin
-from sklearn.linear_model._ridge import _RidgeGCV, _BaseRidgeCV, RidgeCV
-from sklearn.linear_model._ridge import is_classifier, check_scoring, _check_gcv_mode
-from sklearn.linear_model._ridge import _IdentityRegressor, safe_sparse_dot
 
-from sklearn.metrics import r2_score, explained_variance_score
-from scipy.stats import pearsonr, spearmanr
+"""
+The following is a modification of sklearn's ridge_gcv and is taken from Collin Conwell's DeepDive repository (https://github.com/ColinConwell/DeepDive.git)"
+"""
+
+
+
+
+
+
 from scipy import sparse
+import numpy as np
+from sklearn.linear_model._ridge import  MultiOutputMixin, RegressorMixin
+from sklearn.linear_model._ridge import _RidgeGCV, _BaseRidgeCV
+from sklearn.linear_model._ridge import is_classifier, _check_gcv_mode
+from sklearn.linear_model._ridge import _IdentityRegressor, safe_sparse_dot
+from sklearn.linear_model._base import _preprocess_data
+
+from sklearn.metrics import explained_variance_score
+from scipy.stats import pearsonr
 
 pearsonr_vec = np.vectorize(pearsonr, signature='(n),(n)->(),()')
 
@@ -17,7 +25,6 @@ def pearson_r_score(y_true, y_pred, multioutput=None):
     y_true_ = y_true.transpose()
     y_pred_ = y_pred.transpose()
     return(pearsonr_vec(y_true_, y_pred_)[0])
-
 
 class _RidgeGCVMod(_RidgeGCV):
     """Ridge regression with built-in Leave-one-out Cross-Validation."""
@@ -27,7 +34,6 @@ class _RidgeGCVMod(_RidgeGCV):
         alphas=(0.1, 1.0, 10.0),
         *,
         fit_intercept=True,
-        normalize="deprecated",
         scoring=None,
         copy_X=True,
         gcv_mode=None,
@@ -37,7 +43,6 @@ class _RidgeGCVMod(_RidgeGCV):
     ):
         self.alphas = np.asarray(alphas)
         self.fit_intercept = fit_intercept
-        self.normalize = normalize
         self.scoring = scoring
         self.copy_X = copy_X
         self.gcv_mode = gcv_mode
@@ -46,13 +51,12 @@ class _RidgeGCVMod(_RidgeGCV):
         self.alpha_per_target = alpha_per_target
 
     def fit(self, X, y, sample_weight=None):
-        _normalize = False
 
         X, y = self._validate_data(
             X,
             y,
             accept_sparse=["csr", "csc", "coo"],
-            dtype=[np.float32],
+            dtype=[np.float64],
             multi_output=True,
             y_numeric=True,
         )
@@ -71,11 +75,10 @@ class _RidgeGCVMod(_RidgeGCV):
                 "negative or null value instead.".format(self.alphas)
             )
 
-        X, y, X_offset, y_offset, X_scale = LinearModel._preprocess_data(
+        X, y, X_offset, y_offset, X_scale = _preprocess_data(
             X,
             y,
             self.fit_intercept,
-            _normalize,
             self.copy_X,
             sample_weight=sample_weight,
         )
@@ -120,7 +123,6 @@ class _RidgeGCVMod(_RidgeGCV):
             if self.store_cv_values:
                 self.cv_values_[:, i] = predictions.ravel()
 
-            identity_estimator = _IdentityRegressor()
             if self.alpha_per_target:
                 if self.scoring == 'pearson_r':
                     alpha_score = pearson_r_score(y, predictions)
@@ -176,7 +178,6 @@ class _BaseRidgeCVMod(_BaseRidgeCV):
             estimator = _RidgeGCVMod(
                 self.alphas,
                 fit_intercept=self.fit_intercept,
-                normalize=self.normalize,
                 scoring=self.scoring,
                 gcv_mode=self.gcv_mode,
                 store_cv_values=self.store_cv_values,
@@ -199,7 +200,6 @@ class _BaseRidgeCVMod(_BaseRidgeCV):
             gs = GridSearchCV(
                 model(
                     fit_intercept=self.fit_intercept,
-                    normalize=self.normalize,
                     solver=solver,
                 ),
                 parameters,
@@ -222,3 +222,7 @@ class _BaseRidgeCVMod(_BaseRidgeCV):
 
 class RidgeCVMod(MultiOutputMixin, RegressorMixin, _BaseRidgeCVMod):
     """Ridge regression with built-in cross-validation."""
+    
+    
+    
+    

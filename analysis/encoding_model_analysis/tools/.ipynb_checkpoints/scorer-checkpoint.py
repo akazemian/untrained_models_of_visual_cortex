@@ -68,32 +68,42 @@ def scorer(model_name: str,
 
             if dataset == 'naturalscenes':
                 
-                if mode == 'train': 
-                    ds = nsd_scorer_unshared_cv(model_name,activations_identifier, 
+                match mode:
+                    
+                    case 'train': 
+                        ds = nsd_scorer_unshared_cv(model_name,activations_identifier, 
                                                 scores_identifier, regression_model,*args,**kwargs)
-                elif mode == 'test': 
-                    ds = nsd_scorer_all(model_name,activations_identifier, 
+                    case 'test': 
+                        ds = nsd_scorer_all(model_name,activations_identifier, 
                                                  scores_identifier, regression_model,*args,**kwargs)
-                elif mode == 'cv': 
-                    ds = nsd_scorer_shared_cv(model_name,activations_identifier, 
+                    case 'cv': 
+                        ds = nsd_scorer_shared_cv(model_name,activations_identifier, 
                                                  scores_identifier, regression_model,*args,**kwargs)
                     
-                elif mode == 'ridgecv':
-                    ds = nsd_scorer_end_to_end(model_name,activations_identifier, 
+                    case 'ridgecv':
+                        ds = nsd_scorer_end_to_end(model_name,activations_identifier, 
                                                  scores_identifier, *args,**kwargs)
 
+                    
             elif dataset == 'majajhong':
 
-                if mode == 'train': 
-                    ds = majajhong_scorer_subset_cv(model_name,activations_identifier, 
+                match mode:
+                    case 'train': 
+                        ds = majajhong_scorer_subset_cv(model_name,activations_identifier, 
                                                    scores_identifier, regression_model,*args,**kwargs)
-                elif mode == 'test':
-                    ds = majajhong_scorer_all(model_name,activations_identifier, 
+                    case 'test':
+                        ds = majajhong_scorer_all(model_name,activations_identifier, 
                                                    scores_identifier, regression_model,*args,**kwargs)
-                elif mode == 'cv':
-                    ds = majajhong_scorer_all_cv(model_name,activations_identifier, 
-                                                   scores_identifier, regression_model,*args,**kwargs)
+                    case 'cv':
+                        ds = majajhong_scorer_all_cv(model_name,activations_identifier, 
+                                                     scores_identifier, regression_model,*args,**kwargs)
+                                             
+                    case 'ridgecv':
+                        ds = majajhong_scorer_end_to_end(model_name,activations_identifier, 
+                                                 scores_identifier, *args,**kwargs)
+                                                   
 
+            
             if not os.path.exists(os.path.join(MODEL_SCORES_PATH,activations_identifier)):
                 os.mkdir(os.path.join(MODEL_SCORES_PATH,activations_identifier))
             ds.to_netcdf(os.path.join(MODEL_SCORES_PATH,activations_identifier,f'{ds.name.values}'))

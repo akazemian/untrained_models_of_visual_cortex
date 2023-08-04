@@ -24,11 +24,11 @@ ROOT_SHARED = os.getenv('MB_SHARED_DATA_PATH')
 
 
 PATH_TO_NSD_SHARED_IDS = os.path.join(ROOT,'neural_data/nsd_shared_ids')
-PATH_TO_NSD_SAMPLE_IDS = os.path.join(ROOT,'neural_data')
+PATH_TO_NSD_SUBSET_IDS = os.path.join(ROOT,'neural_data')
 NSD_PATH = os.path.join(ROOT_SHARED,'datasets/allen2021.natural_scenes/images')
 MAJAJHONG_PATH = os.path.join(ROOT_SHARED,'brainio/brain-score/dicarlo.hvm-public')
 IMAGENET_21K_PATH = os.path.join(ROOT_SHARED,'datasets/ilsvrc2012/train')
-
+PATH_TO_PLACES = os.path.join(ROOT,'datasets/places')
 NUM_CLASSES = 100
 NUM_PER_CLASS = 50
     
@@ -48,6 +48,31 @@ def LoadObject2VecImages():
     
     
     
+def LoadPlacesImages(subset=False):
+                    
+    if subset: 
+        
+        file_name = 'test_images_ids_subset'
+        
+        if not os.path.exists(os.path.join(PATH_TO_PLACES,file_name)):
+            test_images = os.listdir(os.path.join(PATH_TO_PLACES,'test_images/test_256'))
+            test_images_subset = random.sample(test_images,10000)
+            test_images_subset_paths = [f'{PATH_TO_PLACES}/test_images/test_256/{i}' for i in test_images_subset]
+            with open(os.path.join(PATH_TO_PLACES,file_name),'wb') as f:
+                pickle.dump(test_images_subset_paths,f)
+        
+        test_images_subset_paths = pickle.load(open(os.path.join(PATH_TO_PLACES,file_name),'rb'))
+        return sorted(test_images_subset_paths)
+    
+    
+    else:
+        val_images = os.listdir(os.path.join(PATH_TO_PLACES,'val_images/val_256'))
+        val_images_paths = [f'{PATH_TO_PLACES}/val_images/val_256/{i}' for i in val_images]
+        return sorted(val_images_paths)
+
+    
+
+
 def LoadNSDImages(shared_images=False,unshared_images=False,subset=False):
      
     print('shared images:',shared_images)
@@ -60,9 +85,9 @@ def LoadNSDImages(shared_images=False,unshared_images=False,subset=False):
            
     if subset: 
         file_name = f'nsd_sample_ids_{num_samples}'
-        if not os.path.exists(os.path.join(PATH_TO_NSD_SAMPLE_IDS,file_name)):
+        if not os.path.exists(os.path.join(PATH_TO_NSD_SUBSET_IDS,file_name)):
             generate_nsd_sample(num_samples=num_samples,file_name=file_name)
-        return pickle.load(open(os.path.join(PATH_TO_NSD_SAMPLE_IDS,file_name),'rb'))
+        return pickle.load(open(os.path.join(PATH_TO_NSD_SUBSET_IDS,file_name),'rb'))
 
     
     else:
@@ -121,7 +146,7 @@ def LoadImagenet21kVal(num_classes=NUM_CLASSES, num_per_class=NUM_PER_CLASS):
     for i in range(num_classes):
         indices.extend(50 * i + base_indices)
 
-    framework_home = os.path.expanduser(os.getenv('MT_HOME', '~/.model-tools'))
+    framework_home = os.path.expanduser(os.getenv('MT_HOME', '~/model-tools'))
     imagenet_filepath = os.getenv('MT_IMAGENET_PATH', os.path.join(framework_home, 'imagenet2012.hdf5'))
     imagenet_dir = f"{imagenet_filepath}-files"
     os.makedirs(imagenet_dir, exist_ok=True)
@@ -147,61 +172,109 @@ def LoadImagenet21kVal(num_classes=NUM_CLASSES, num_per_class=NUM_PER_CLASS):
 
 
 
+
 def LoadLocalizerImages():
     
     all_images = []
     for image in sorted(os.listdir(path)):
         all_images.append(f'{path}/{image}')
-    return all_images    
-    
+    return all_images  
+                                                
 
     
     
     
 def LoadImagePaths(name, mode, *args, **kwargs): 
     
-    if name == 'object2vec':
-        return LoadObject2VecImages()
+    match name:
         
-    elif name == 'imagenet21k':
-        return LoadImagenet21kImages(*args, **kwargs)
+        case 'object2vec':
+            return LoadObject2VecImages()
 
-    elif name == 'imagenet21kval':
-        return LoadImagenet21kVal(*args, **kwargs)
-    
-    elif 'naturalscenes' in name:
-        
-        if mode == 'cv':
-            return LoadNSDImages(shared_images=True)
-        
-        elif mode == 'pca':
-            return LoadNSDImages(subset=True)
-        
-        else: 
+        case 'imagenet21k':
+            return LoadImagenet21kImages(*args, **kwargs)
+
+        case 'imagenet21kval':
+            return LoadImagenet21kVal(*args, **kwargs)
+
+        case 'naturalscenes':
+            
+            if mode == 'cv':
+                return LoadNSDImages(shared_images=True)
+            
+            elif mode == 'pca':
+                return LoadNSDImages(subset=True)
+            
             return LoadNSDImages()
-    
-    elif name == 'majajhong':
-        return LoadMajajHongImages()
-    
-    elif name == 'localizers':
-        return LoadLocalizerImages()
+
+        case 'majajhong':
+            return LoadMajajHongImages()
+
+        case 'localizers':
+            return LoadLocalizerImages()
+
+        case 'places':
+            
+            if mode == 'pca':
+                return LoadPlacesImages(subset=True)
+            
+            return LoadPlacesImages()
     
 
     
     
 def get_image_labels(dataset,images,*args,**kwargs):
     
-    if 'majajhong' in dataset:
-        name_dict = pd.read_csv('/data/shared/brainio/brain-score/image_dicarlo_hvm-public.csv').set_index('image_file_name')['image_id'].to_dict()
-        return [name_dict[os.path.basename(i)] for i in images]
-    
+    match dataset:
+        
+        case 'majajhong':
+            name_dict = pd.read_csv('/data/shared/brainio/brain-score/image_dicarlo_hvm-public.csv').set_index('image_file_name')['image_id'].to_dict()
+            return [name_dict[os.path.basename(i)] for i in images]
 
-    if 'naturalscenes' in dataset:
-        return [os.path.basename(i).strip('.png') for i in images]
+
+        case 'naturalscenes':
+            return [os.path.basename(i).strip('.png') for i in images]
+
+
+        case 'imagenet21k':
+            return [os.path.basename(i).strip('.JPEG') for i in images]
+
+        case 'imagenet21kval':
+            return [j for j in range(NUM_CLASSES) for i in range(NUM_PER_CLASS)]
+        
+        case 'places':
+            return [os.path.basename(i) for i in images]
+
+
+        
+                                                  
+            
+            
+def load_places_cat_labels():
+    
+    with open(os.path.join(PATH_TO_PLACES,'places365_val.txt'), "r") as file:
+        content = file.read()
+    annotations = content.split('\n')
+    cat_dict = {}
+    cats = []
+    for annotation in annotations:
+        image = annotation.split(' ')[0]
+        cat = annotation.split(' ')[1]
+        cat_dict[image] = int(cat)
+    return cat_dict
     
     
-    if dataset == 'imagenet21k':
-        return [os.path.basename(i).strip('.JPEG') for i in images]
     
-    if dataset == 'imagenet21kval':
-        return [j for j in range(NUM_CLASSES) for i in range(NUM_PER_CLASS)]
+    
+    
+def load_places_cat_names():
+    
+    val_image_paths = LoadPlacesImages()
+    val_image_names = [os.path.basename(i) for i in val_image_paths]
+    cat_dict = load_places_cat_labels()
+
+    return [cat_dict[i] for i in val_image_names]  
+
+
+
+

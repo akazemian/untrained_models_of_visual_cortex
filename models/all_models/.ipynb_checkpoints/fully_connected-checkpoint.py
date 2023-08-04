@@ -46,7 +46,7 @@ class FCModel:
                  num_features:int = 10000):    
         
         self.num_features = num_features
-        self.input_dim = image_size**2
+        self.input_dim = image_size**2*3
     
     
     def Build(self):        

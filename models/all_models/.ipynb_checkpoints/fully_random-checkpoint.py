@@ -68,8 +68,7 @@ class Model(nn.Module):
         x = self.nl(x) # non linearity 
         x = self.bpool1(x) # anti-aliasing blurpool         
         x = self.pool1(x) # pool
-        if self.print_shape:
-            print('layer 1', x.shape)
+        print('layer 1', x.shape)
             
         #layer 2
         x = x.to(torch.device('cuda'))
@@ -77,18 +76,16 @@ class Model(nn.Module):
         x = self.nl(x) 
         x = self.bpool2(x) 
         x = self.pool2(x)             
-        if self.print_shape:
-            print('layer 2', x.shape)            
+        print('layer 2', x.shape)            
             
         #layer 3
-        conv_3 = []
-        for i in range(self.batches_3):
-            conv_3.append(self.conv3(x))  
-        x = torch.cat(conv_3) 
-        x = self.bpool3(x) 
-        x = self.pool3(x) 
-        if self.print_shape:
-            print('layer 3', x.shape)
+        x_repeated = x.repeat(self.batches_3, 1, 1, 1)
+        conv_3 = self.nl(self.conv3(x_repeated))
+        x = torch.cat(torch.chunk(conv_3, self.batches_3, dim=0), dim=1)
+        x = self.bpool3(x)
+        x = self.pool3(x)
+        print('layer 3',x.shape)
+        
         
         if self.gpool: # global pool
             H = x.shape[-1]
@@ -165,7 +162,7 @@ class FRModel:
     def Build(self):        
         
         # layer 1
-        conv1 = nn.Conv2d(1, self.filters_1, kernel_size=(15, 15)) 
+        conv1 = nn.Conv2d(3, self.filters_1, kernel_size=(15, 15)) 
         initialize_conv_layer(conv1, self.init_type)
         bpool1 = BlurPool(self.filters_1, filt_size=self.bpool_filter_size, stride=2)
         pool1 = nn.AvgPool2d(kernel_size=3)

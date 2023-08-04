@@ -36,6 +36,12 @@ import scipy.stats as st
 
     
     
+def normalize(X):
+    return (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+    
+    
+    
+    
 def nsd_scorer_end_to_end(model_name: str, 
                            activations_identifier: str, 
                            scores_identifier: str, 
@@ -45,6 +51,7 @@ def nsd_scorer_end_to_end(model_name: str,
 
 
         activations_data = xr.open_dataarray(os.path.join(ACTIVATIONS_PATH,activations_identifier))  
+        activations_data.values = normalize(activations_data.values)
         
         ds = xr.Dataset(data_vars=dict(r_value=(["neuroid"], [])),
                                 coords={'x':(['neuroid'], []), 
@@ -70,7 +77,7 @@ def nsd_scorer_end_to_end(model_name: str,
             regression = RidgeCVMod(alphas=alpha_values, store_cv_values = False,
                                   alpha_per_target = True, scoring = 'pearson_r')
             regression.fit(X_train, y_train)
-            best_alpha = st.mode(regression.alpha_)[0][0]
+            best_alpha = st.mode(regression.alpha_)[0]
             print('best alpha:',best_alpha)
 
             ids_test, neural_data_test, var_name_test = load_nsd_data(mode ='shared',

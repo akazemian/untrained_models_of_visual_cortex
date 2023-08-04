@@ -11,6 +11,7 @@ import os
 ROOT = os.getenv('MB_ROOT_PATH')
 sys.path.append(ROOT)
 DATA = os.getenv('MB_DATA_PATH')
+MODEL_SCORES_PATH = os.path.join(DATA,'model_scores_final')
 from tools.processing import *
 from tools.loading import *
 from analysis.encoding_model_analysis.tools.utils import get_activations_iden, get_scores_iden
@@ -23,7 +24,6 @@ def get_data(data_dict, dataset, regions, mode, subjects):
     
     df = pd.DataFrame()
     index = 0
-    root_path = '/data/atlas/model_scores_final'
     
     for model_name, model_info in data_dict.items():
         
@@ -32,7 +32,7 @@ def get_data(data_dict, dataset, regions, mode, subjects):
             for region in regions:
 
                 scores_iden = get_scores_iden(model_info, activations_iden, region, dataset, mode)
-                data = xr.open_dataset(os.path.join(root_path,activations_iden,scores_iden))
+                data = xr.open_dataset(os.path.join(MODEL_SCORES_PATH,activations_iden,scores_iden), engine='netcdf4')
 
                 for subject in subjects:
                     subject_data = data.where(data.subject == subject, drop=True)
@@ -94,27 +94,6 @@ def plot_subject_means(data_dict, dataset, regions, mode, palette, model_nums, o
 
         
         
-        
-        
-        
-
-
-def plot_data_means_by_model(data_dict, dataset, region, mode, file_name, aspect = 1.5, show_legend=False):
-
-    rcParams['figure.figsize'] = 6, 4
-    
-    index = 0
-  
-    df = get_data(data_dict, dataset, region, mode, file_name, show_legend=False)    
-    
-    ax = sns.relplot(data=df,x='model',y='score',hue='alpha',height=5,aspect=aspect)#,palette=palette) #,
-    plt.rc('xtick', labelsize=16) 
-    plt.rc('ytick', labelsize=16) 
-    plt.ylabel('Correlation (Pearson r)', fontsize=18)
-    ax.set(xlabel=None)    
-    plt.ylabel(ylabel='Correlation (Pearson r)')        
-    if file_name is not None:
-        plt.savefig(f'{file_name}.png')
     
 
     
@@ -141,8 +120,10 @@ def plot_data_means_vs_features(data_dict, dataset, regions, mode, x_axis,  pale
         
     
     df = get_data(data_dict, dataset, regions, mode, subjects)
-    # if name_dict is not None:
-    #     df['iden'] = df['iden'].map(name_dict)
+    
+    if name_dict is not None:
+        df['iden'] = df['iden'].map(name_dict)
+    
     df[x_axis] = df[x_axis].apply(lambda x: str(x))
 
 
@@ -285,7 +266,7 @@ def plot_diff_models(data_dict, dataset, regions, mode, x_axis, ylim,
     if show_legend:
         ax1.legend(fontsize=20,loc='upper center',ncol=3)
     else:
-        ax1.get_legend().remove()
+        ax1.legend().remove()
     
     if xlog:
         plt.xscale("log")
@@ -366,52 +347,5 @@ def plot_diff_layers(data_dict, dataset, region, mode, x_axis, ylim,
 
     
     
-    
 
-# figure size in inches
-
-def plot_baselines(dataset, regions, mode,  aspect, height, ylim, width, show_legend= True, 
-                                params = (6,4), baseline_dict = None, baseline_palette = None,
-                                name_dict= None, file_name=None):
-
-
-    plt.clf()
-    if dataset == 'naturalscenes':
-        subjects = [i for i in range(8)]
-    elif dataset == 'majajhong':
-        subjects = ['Tito','Chabo']
-        
-
-    sns.set_context(context='talk')    
-    
-    rcParams['figure.figsize'] = params
-        
-        
-    if baseline_dict is not None:
-        df_baseline = get_data(baseline_dict, dataset, regions, mode, subjects)#.groupby(['iden']).agg({'score':['mean','std']}).reset_index()
-        df_baseline = pd.DataFrame(df_baseline.to_records())    
-    
-    if name_dict is not None:
-        df_baseline['iden'] = df_baseline['iden'].map(name_dict)
-     
-    ax = sns.barplot(x = df_baseline['iden'], y = df_baseline['score'], hue = df_baseline['iden'],
-                    palette = baseline_palette, errorbar="sd", dodge=False, width=width)
-    
-    
-    if show_legend:
-        plt.legend(fontsize=15, loc='upper left')
-    else:
-        plt.legend().remove()
-
-        
-    plt.rc('xtick', labelsize=14) 
-    plt.rc('ytick', labelsize=16) 
-    plt.ylabel('Correlation (Pearson r)', fontsize=18)
-    ax.set(xlabel=None)
-    plt.ylabel(ylabel='Correlation (Pearson r)')    
-    plt.ylim(ylim)
-         
-    
-    if file_name is not None:
-        plt.savefig(f'{file_name}.png', dpi=300)
     

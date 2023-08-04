@@ -11,7 +11,7 @@ class Convolution(nn.Module):
     Attributes
     ----------
     filter_type  
-        The type of filter used for convolution. One of : random, curvature, 1x1
+        The type of filter used for convolution. One of [curvature, gabor]
     
     curv_params
         the parametrs used to create the filters, applicable for curvature filters
@@ -23,56 +23,44 @@ class Convolution(nn.Module):
     """
     
     
-    def __init__(self, filter_type:str,
-                 curv_params:dict=None,
-                 filter_size:int=None
+    def __init__(self, 
+                 filter_params:dict=None,
+                 filter_size:int=None,
+                 device: str = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+   
                 ):
                 
         super().__init__()
         
 
-        self.filter_type = filter_type
         self.filter_size = filter_size
-        self.curv_params = curv_params
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    
-
-    
+        self.filter_params = filter_params
+        self.device = device
     
     def extra_repr(self) -> str:
-        return 'kernel_size={filter_size}, filter_type:{filter_type},curv_params:{curv_params}'.format(**self.__dict__)
+        return 'kernel_size={filter_size}, filter_params:{filter_params}'.format(**self.__dict__)
     
     
     
     def forward(self,x):
             
         
+        x =  x.to(self.device)
         in_channels = x.shape[1]
         
-        weights = filters(filter_type=self.filter_type,in_channels=1,
-                     kernel_size=self.filter_size,curv_params=self.curv_params)
+        weights = filters(in_channels=1, kernel_size=self.filter_size, filter_params=self.filter_params)
         weights = weights.to(self.device)
-        print('weight',weights.shape)
-        x =  x.to(self.device)
+        
         
         # for RGB input (the preset L1 filters are repeated across the 3 channels)
-        if in_channels == 3: 
             
-            convolved_tensor = []
-            for i in range(3):
-                channel_image = x[:, i:i+1, :, :]
-                channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2))
-                convolved_tensor.append(channel_convolved)
-
-            # Combine the convolved channels
-            x = torch.cat(convolved_tensor, dim=1)
+        convolved_tensor = []
+        for i in range(in_channels):
+            channel_image = x[:, i:i+1, :, :]
+            channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2))
+            convolved_tensor.append(channel_convolved)
+        x = torch.cat(convolved_tensor, dim=1)    
     
-    
-        # for grayscale input
-        else: 
-            print('image shape:',x.shape)
-            x = F.conv2d(x,weight=weights,padding=math.floor(weights.shape[-1] / 2))
 
         return x
     
@@ -81,6 +69,32 @@ class Convolution(nn.Module):
 
 
         
+def initialize_conv_layer(conv_layer, initialization):
+    
+    match initialization:
         
+        case 'kaiming_uniform':
+            nn.init.kaiming_uniform_(conv_layer.weight)
+            
+        case 'kaiming_normal':
+            nn.init.kaiming_normal_(conv_layer.weight)
+            
+        case 'orthogonal':
+            nn.init.orthogonal_(conv_layer.weight) 
+            
+        case 'xavier_uniform':
+            nn.init.xavier_uniform_(conv_layer.weight) 
+            
+        case 'xavier_normal':
+            nn.init.xavier_normal_(conv_layer.weight)  
+            
+        case 'uniform':
+            nn.init.uniform_(conv_layer.weight)     
+            
+        case 'normal':
+            nn.init.normal_(conv_layer.weight)     
+            
+        case _:
+            raise ValueError(f"Unsupported initialization type: {initialization}.")      
         
         
