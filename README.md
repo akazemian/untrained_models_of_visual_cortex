@@ -12,10 +12,10 @@ export BONNER_ROOT_PATH='<local path to this repo>'
 - navigate to ```/data_tools```, in the config.py file, set all the paths
 
 # Image Classification 
-- navigate to ```/model_evaluation/image_classification```
+- navigate to the local repo directory 
 - run the following code:
 ```
-python classification.py
+python model_evaluation/image_classification/classification.py
 ```
 - view the results in ```model_evaluation/results/classification```
   
