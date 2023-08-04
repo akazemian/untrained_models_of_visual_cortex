@@ -13,7 +13,7 @@ import pandas as pd
 import pickle 
 import random
 import sys
-sys.path.append(os.getenv('MB_ROOT_PATH'))
+sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from data_tools.config import PLACES_PATH #,NSD_PATH, NSD_SHARED_IDS, NSD_SUBSET_IDS, MAJAJHONG_PATH, 
     
 
