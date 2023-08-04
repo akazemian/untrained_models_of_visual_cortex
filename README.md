@@ -13,7 +13,10 @@ export BONNER_ROOT_PATH='<local path to this repo>'
 
 # Image Classification 
 - navigate to ```/model_evaluation/image_classification```
-- run the following code: ``` python classification.py```
+- run the following code:
+```
+python classification.py
+```
 - view the results in ```model_evaluation/results/classification```
   
   
