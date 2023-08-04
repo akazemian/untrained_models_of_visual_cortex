@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings('ignore')
+
 # libraries
 import sys
 import os
@@ -36,21 +39,19 @@ model_dict = {
                 'num_features':10000,
     },
     
-#     'alexnet':{  
-#                 'iden':'alexnet_conv5',
-#                 'model':Alexnet().Build(),
-#                 'layers': ['last'], 
-#                 'num_layers':5,
-#                 'num_features':256,
-#     }
+    'alexnet':{  
+                'iden':'alexnet_conv5',
+                'model':Alexnet().Build(),
+                'layers': ['last'], 
+                'num_layers':5,
+                'num_features':256,
+    }
 }
 
 
 for model_info in model_dict.values():
     
     activations_iden = get_activations_iden(model_info=model_info, dataset=DATASET, mode=None)
-
-    print({os.path.join(RESULTS_PATH,"classification",activations_iden)})
     
     activations = Activations(model=model_info['model'],
                             layer_names=model_info['layers'],
