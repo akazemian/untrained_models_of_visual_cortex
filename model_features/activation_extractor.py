@@ -3,7 +3,6 @@ warnings.warn('my warning')
 from collections import OrderedDict
 import xarray as xr
 import numpy as np
-import tables
 SUBMODULE_SEPARATOR = '.'
 import os
 import torch
@@ -100,7 +99,7 @@ class PytorchWrapper:
                 target_dict[name] = register_pca_hook(output, os.path.join(PATH_TO_PCA, f'{self.identifier}_pca'))
 
         hook = layer.register_forward_hook(hook_function)
-        return hook#                 'preprocess':PREPROCESS, 
+        return hook 
 
 
     
@@ -113,12 +112,13 @@ class PytorchWrapper:
     
 def batch_activations(model: nn.Module, 
                       layer_names: list, 
-                      images: torch.Tensor,
+                      image_paths: torch.Tensor,
                       image_labels: list,
                       _hook: str) -> xr.Dataset:
 
         
-        activations_dict = model.get_activations(images = images, layer_names = layer_names, _hook = _hook)
+        processed_images = preprocess(image_paths) 
+        activations_dict = model.get_activations(images = processed_images, layer_names = layer_names, _hook = _hook)
         activations_final = []
     
         
@@ -177,7 +177,7 @@ class Activations:
             wrapped_model = PytorchWrapper(model = self.model, identifier = identifier)
             image_paths = load_image_paths(name = self.dataset, mode = self.mode)
             labels = get_image_labels(self.dataset, image_paths)  
-            processed_images = preprocess(image_paths, self.dataset) 
+            
             
     
             print('extracting activations')
@@ -190,7 +190,7 @@ class Activations:
             
                 batch_data_final = batch_activations(wrapped_model,
                                                      self.layer_names,
-                                                     processed_images[i:i+self.batch_size],
+                                                     image_paths[i:i+self.batch_size],
                                                      labels[i:i+self.batch_size],
                                                      _hook = self.hook)
                     
