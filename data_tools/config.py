@@ -9,13 +9,10 @@ import os
 
 
 # image dataset path 
-PLACES_PATH = os.path.join('/data/atlas/datasets/places') # places 
-
-# where processed images will be saved
-PROCESSED_IMAGES_PATH = '/data/atlas/processed_images' 
+PLACES_PATH = os.path.join('/home/atlask/data/atlas/datasets/places') # places 
 
 # where model activations will be saved
-ACTIVATIONS_PATH = '/data/atlas/activations'
+ACTIVATIONS_PATH = '/home/atlask/data/atlas/activations'
 
 
 

@@ -1,47 +1,57 @@
-import os
 import torch
-import numpy as np
 from PIL import Image
 from torchvision import transforms
 import torch
-from random import sample,seed
-from .config import PROCESSED_IMAGES_PATH
+import torch
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+from PIL import Image
+from tqdm import tqdm
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
     
 
-def preprocess(images, dataset, size=224):
+def preprocess(images, size=224):
                 
-        if not os.path.exists(PROCESSED_IMAGES_PATH):
-            os.mkdir(PROCESSED_IMAGES_PATH)
-            
-        file_ext = f'preproces_rgb_{size}'
-        processed_img_path = f"{PROCESSED_IMAGES_PATH}/{file_ext}_{dataset}_{len(images)}.npy"
-
-        if os.path.exists(processed_img_path) and processed_img_path is not None:
-            print('loading processed images...')
-            return torch.Tensor(np.load(processed_img_path,mmap_mode='r+')) 
-
-        print('processing images...')
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         transform = transforms.Compose([
-            transforms.Resize((self.im_size,self.im_size)),
+            transforms.Resize((size,size)),
             transforms.ToTensor(),
             transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)])
 
-        try:
-            processed_images = np.stack([transform(Image.open(i).convert('RGB')) for i in images])
-        except: 
-            processed_images = torch.stack([transform(Image.open(i).convert('RGB')) for i in images])
+        dataset = CustomImageDataset(images, transform=transform)
+        dataloader = DataLoader(dataset, shuffle=False, num_workers=1)
 
+        processed_images_list = []
 
-        np.save(processed_img_path,processed_images)
-        return torch.Tensor(processed_images)
+        for batch in dataloader:
+            batch = batch.to(device) 
+            processed_images_list.append(batch)
+     
+        return torch.cat(processed_images_list, 0)
     
 
 
-    
+class CustomImageDataset(Dataset):
+    def __init__(self, image_paths, transform=None):
+        self.image_paths = image_paths
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        img_path = self.image_paths[idx]
+        img = Image.open(img_path).convert('RGB')
+        if self.transform:
+            img = self.transform(img)
+        return img
+
+
+
+
 
 
         
