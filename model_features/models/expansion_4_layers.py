@@ -27,7 +27,6 @@ class Model(nn.Module):
                 nl: nn.Module,
                 gpool: bool,
                 last: nn.Module,
-                print_shape: bool = True
                 ):
         
         super(Model, self).__init__()
@@ -54,7 +53,6 @@ class Model(nn.Module):
         self.nl = nl
         self.gpool = gpool
         self.last = last
-        self.print_shape = print_shape
         
         
     def forward(self, x:nn.Module): 
@@ -62,29 +60,23 @@ class Model(nn.Module):
         
         #layer 1 
         x = self.conv1(x)  # conv 
-        print('c1',x.shape)
         x = self.nl(x) # non linearity 
         x = self.bpool1(x) # anti-aliasing blurpool                
-        print('bp1',x.shape)
         x = self.pool1(x) # pool
 
             
         #layer 2
         x = self.conv2(x)  
-        print('c2',x.shape)
         x = self.nl(x) 
         x = self.bpool2(x) 
         x = self.pool2(x)   
-        print('bp2',x.shape)
             
             
         #layer 3
         x = self.conv3(x)  
-        print('c3',x.shape)
         x = self.nl(x) 
         x = self.bpool3(x) 
         #x = self.pool3(x)    
-        print('bp3',x.shape)
         
         #layer 4
         conv_4 = []
@@ -92,10 +84,8 @@ class Model(nn.Module):
             conv_4.append(self.conv4(x))  
         x = torch.cat(conv_4) 
         x = self.nl(x)
-        print('c4',x.shape)
         x = self.bpool4(x) 
         #x = self.pool4(x) 
-        print('bp4',x.shape)
 
         
         if self.gpool: # global pool

@@ -4,29 +4,62 @@ import xarray as xr
 import numpy as np
 import torch
 import os
-from .regression import *
-from .scorers.majajhong import *
-# from .scorers.nsd_2 import *
-from .scorers.nsd import *
-
+from ..benchmarks.nsd import *
 import warnings
 warnings.filterwarnings('ignore')
-from tools.scorers.function_types import Regression
+sys.path.append(os.getenv('BONNER_ROOT_PATH'))
+from config import CACHE       
+import functools
 
-ROOT_DIR = os.getenv('MB_ROOT_PATH')
-sys.path.append(ROOT_DIR)
-DATA_DIR = os.getenv('MB_DATA_PATH')
-MODEL_SCORES_PATH = os.path.join(DATA_DIR,'model_scores_final')
-        
-        
     
-def scorer(model_name: str, 
-           activations_identifier: str,
-           scores_identifier: str,
-           dataset: str,
-           mode: str,
-           *args,**kwargs) -> None: 
+def cache(file_name_func):
+
+    def decorator(func):
         
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+
+            file_name = file_name_func(*args, **kwargs) 
+            cache_path = os.path.join(CACHE, file_name)
+            
+            if os.path.exists(cache_path + '.nc'):
+                return xr.open_dataset(cache_path + '.nc')
+            
+            result = func(self, *args, **kwargs)
+            result.to_netcdf(cache_path)
+            return result
+
+        return wrapper
+    return decorator
+
+
+
+class EncodingScore():
+    def __init__(self,
+                 model_name: str, 
+                 activations_identifier: str,
+                 dataset: str,
+                 region:str):
+        
+        self.model_name = model_name
+        self.activations_identifier = activations_identifier
+        self.dataset = dataset
+        self.region = region
+        
+        if not os.path.exists(os.path.join(CACHE,'encoding_scores')):
+            os.mkdir(os.path.join(CACHE,'encoding_scores'))
+
+
+        
+    @staticmethod
+    def cache_file(scores_identifier):
+        return os.path.join('encoding_scores',scores_identifier)
+
+    
+    @cache(cache_file)
+    def get_scores(self, scores_identifier):       
+
+         
         """
     
         Obtain and save the encoding score (unit-wise pearson r values) of a particular model for a particular dataset 
@@ -41,71 +74,30 @@ def scorer(model_name: str,
         activations_identifier:
                 Name of the file containing the model activations  
         
-        scores_identifier:
-                Name of the file to save scores in
-        
-        regression_model:
-                Model used for regression
-        
         dataset:
                 Name of neural dataset (majajhong, naturalscenes)
         
-        mode:
-                The mode with which regression is carried out (train, test, cv)
-        
         """
 
-        if not os.path.exists(MODEL_SCORES_PATH):
-                os.mkdir(MODEL_SCORES_PATH)
+        print('obtaining model scores...')        
 
-                
-        if os.path.exists(os.path.join(MODEL_SCORES_PATH,activations_identifier,f'{scores_identifier}')):
-            print(f'model scores are already saved in {os.path.join(MODEL_SCORES_PATH,activations_identifier)} as {scores_identifier}')
-
-
-        else:
-            print('obtaining model scores...')        
-
-            if dataset == 'naturalscenes':
-                
-                match mode:
-                    
-                    case 'train': 
-                        ds = nsd_scorer_unshared_cv(model_name,activations_identifier, 
-                                                scores_identifier, regression_model,*args,**kwargs)
-                    case 'test': 
-                        ds = nsd_scorer_all(model_name,activations_identifier, 
-                                                 scores_identifier, regression_model,*args,**kwargs)
-                    case 'cv': 
-                        ds = nsd_scorer_shared_cv(model_name,activations_identifier, 
-                                                 scores_identifier, regression_model,*args,**kwargs)
-                    
-                    case 'ridgecv':
-                        ds = nsd_scorer_end_to_end(model_name,activations_identifier, 
-                                                 scores_identifier, *args,**kwargs)
-
-                    
-            elif dataset == 'majajhong':
-
-                match mode:
-                    case 'train': 
-                        ds = majajhong_scorer_subset_cv(model_name,activations_identifier, 
-                                                   scores_identifier, regression_model,*args,**kwargs)
-                    case 'test':
-                        ds = majajhong_scorer_all(model_name,activations_identifier, 
-                                                   scores_identifier, regression_model,*args,**kwargs)
-                    case 'cv':
-                        ds = majajhong_scorer_all_cv(model_name,activations_identifier, 
-                                                     scores_identifier, regression_model,*args,**kwargs)
-                                             
-                    case 'ridgecv':
-                        ds = majajhong_scorer_end_to_end(model_name,activations_identifier, 
-                                                 scores_identifier, *args,**kwargs)
-                                                   
-
+        match self.dataset:
             
-            if not os.path.exists(os.path.join(MODEL_SCORES_PATH,activations_identifier)):
-                os.mkdir(os.path.join(MODEL_SCORES_PATH,activations_identifier))
-            ds.to_netcdf(os.path.join(MODEL_SCORES_PATH,activations_identifier,f'{ds.name.values}'))
-            print(f'model scores are now saved in {os.path.join(MODEL_SCORES_PATH,activations_identifier)} as {ds.name.values}')
-            return
+            case 'naturalscenes':
+
+                ds = nsd_scorer(scores_identifier = scores_identifier, 
+                                model_name = self.model_name,
+                                activations_identifier = self.activations_identifier, 
+                                region = self.region
+                                )
+
+
+            case 'majajhong':
+
+                ds = majajhong_scorer(scores_identifier = scores_identifier, 
+                                model_name = self.model_name,
+                                activations_identifier = self.activations_identifier, 
+                                region = self.region)
+        
+        print('model scores are saved in cache')
+        return ds

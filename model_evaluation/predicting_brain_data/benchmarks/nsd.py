@@ -1,55 +1,41 @@
 
-from ..regression import *
-from ..regression_cv_mod import RidgeCVMod
-from ..scorers.function_types import Regression
+from ..regression.regression import regression_shared_unshared, pearson_r
+from ..regression.regression_cv_mod import RidgeCVMod
+from sklearn.linear_model import Ridge
 
 import sys
 import xarray as xr
 import numpy as np
 import torch
 import os
-from tools.loading import get_image_labels
 import random 
 from tqdm import tqdm 
 import pickle 
 import warnings
 warnings.filterwarnings('ignore')
-import scipy
-from sklearn.preprocessing import scale
 import random    
 random.seed(0)
 import scipy.stats as st
 
+ROOT = os.getenv('BONNER_ROOT_PATH')
+sys.path.append(ROOT)
+from config import CACHE, NSD_NEURAL_DATA      
 
-ROOT = os.getenv('MB_DATA_PATH')
-ACTIVATIONS_PATH = os.path.join(ROOT,'activations')
-NEURAL_DATA_PATH = os.path.join(ROOT,'neural_data')
-DATASET = 'naturalscenes'
-PATH_TO_NSD_SHARED_IDS = os.path.join(NEURAL_DATA_PATH,'nsd_shared_ids')
-file = open(PATH_TO_NSD_SHARED_IDS, 'rb')
-SHARED_IDS = pickle.load(file)
-
-
-
-
-    
-    
-def normalize(X):
-    return (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+SHARED_IDS_PATH = os.path.join(ROOT, 'image_tools','nsd_ids_shared')
+SHARED_IDS = pickle.load(open(SHARED_IDS_PATH, 'rb'))
+SHARED_IDS = [image_id.strip('.png') for image_id in SHARED_IDS]
+ALPHA_RANGE = [10**i for i in range(1,10)]
     
     
     
-    
-def nsd_scorer_end_to_end(model_name: str, 
-                           activations_identifier: str, 
-                           scores_identifier: str, 
-                           region: str,
-                           alpha_values: list):
+def nsd_scorer(model_name: str, 
+               activations_identifier: str, 
+               scores_identifier: str, 
+               region: str):
     
 
 
-        activations_data = xr.open_dataarray(os.path.join(ACTIVATIONS_PATH,activations_identifier))  
-        activations_data.values = normalize(activations_data.values)
+        activations_data = xr.open_dataarray(os.path.join(CACHE,'activations',activations_identifier), engine='netcdf4')  
         
         ds = xr.Dataset(data_vars=dict(r_value=(["neuroid"], [])),
                                 coords={'x':(['neuroid'], []), 
@@ -60,8 +46,8 @@ def nsd_scorer_end_to_end(model_name: str,
                                          })
 
 
-        pbar = tqdm(total = 8)
-        for subject in range(8):
+        
+        for subject in tqdm(range(8)):
 
 
             ids_train, neural_data_train, var_name_train = load_nsd_data(mode ='unshared',
@@ -72,11 +58,11 @@ def nsd_scorer_end_to_end(model_name: str,
             X_train = filter_activations(data = activations_data, ids = ids_train)       
             y_train = neural_data_train[var_name_train].values
 
-            regression = RidgeCVMod(alphas=alpha_values, store_cv_values = False,
+            regression = RidgeCVMod(alphas=ALPHA_RANGE, store_cv_values = False,
                                   alpha_per_target = True, scoring = 'pearson_r')
+            
             regression.fit(X_train, y_train)
             best_alpha = st.mode(regression.alpha_)[0]
-            print('best alpha:',best_alpha)
 
             ids_test, neural_data_test, var_name_test = load_nsd_data(mode ='shared',
                                    subject = subject,
@@ -103,7 +89,6 @@ def nsd_scorer_end_to_end(model_name: str,
                                                  })
 
             ds = xr.concat([ds,ds_tmp],dim='neuroid')   
-            pbar.update(1)
 
         ds['name'] = scores_identifier
         return ds            

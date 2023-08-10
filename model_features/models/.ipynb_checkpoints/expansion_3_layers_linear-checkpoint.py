@@ -34,7 +34,6 @@ class Model(nn.Module):
                 batches_3: int,
                 gpool: bool,
                 last: nn.Module,
-                print_shape: bool = True
                 ):
         
         super(Model, self).__init__()
@@ -55,40 +54,32 @@ class Model(nn.Module):
         
         self.gpool = gpool
         self.last = last
-        self.print_shape = print_shape
         
         
     def forward(self, x:nn.Module): 
         
         
         x = x.to('cuda')
-        print(x.shape)
         
         #layer 1 
         x = self.conv1(x)  # conv 
-        print('c1',x.shape)  
         x = self.bpool1(x) # anti-aliasing blurpool                
         x = self.pool1(x) # pool
-        print('p1',x.shape)  
 
             
         #layer 2
         x = self.conv2(x)  
-        print('c2',x.shape)  
         x = self.bpool2(x) 
         x = self.pool2(x)    
-        print('p2',x.shape)   
          
 
         x_repeated = x.repeat(self.batches_3, 1, 1, 1)
         conv_3 = self.conv3(x_repeated)
         x = torch.cat(torch.chunk(conv_3, self.batches_3, dim=0), dim=1)
-        print('c3',x.shape)  
 
 
         x = self.bpool3(x)
         x = self.pool3(x)
-        print('p3',x.shape)
 
         
         if self.gpool: # global pool
@@ -98,7 +89,6 @@ class Model(nn.Module):
 
         
         x = self.last(x) # final layer
-        print('final',x.shape)
 
         
         return x    
@@ -109,7 +99,7 @@ class Model(nn.Module):
   
 
     
-class LinearModel:
+class ExpansionLinear:
         
     
     """

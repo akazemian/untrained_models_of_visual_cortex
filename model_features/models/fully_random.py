@@ -25,7 +25,6 @@ class Model(nn.Module):
                 gpool: bool,
                 last: nn.Module,
                 device:str,
-                print_shape: bool = True,
                 ):
         
         super(Model, self).__init__()
@@ -50,9 +49,7 @@ class Model(nn.Module):
         self.gpool = gpool
         self.last = last
         
-        
-        self.print_shape = print_shape
-        
+            
         
     def forward(self, x:nn.Module): 
         
@@ -68,15 +65,14 @@ class Model(nn.Module):
         x = self.nl(x) # non linearity 
         x = self.bpool1(x) # anti-aliasing blurpool         
         x = self.pool1(x) # pool
-        print('layer 1', x.shape)
-            
+
+        
         #layer 2
         x = x.to(torch.device('cuda'))
         x = self.conv2(x)  
         x = self.nl(x) 
         x = self.bpool2(x) 
         x = self.pool2(x)             
-        print('layer 2', x.shape)            
             
         #layer 3
         x_repeated = x.repeat(self.batches_3, 1, 1, 1)
@@ -84,7 +80,6 @@ class Model(nn.Module):
         x = torch.cat(torch.chunk(conv_3, self.batches_3, dim=0), dim=1)
         x = self.bpool3(x)
         x = self.pool3(x)
-        print('layer 3',x.shape)
         
         
         if self.gpool: # global pool
@@ -104,7 +99,7 @@ class Model(nn.Module):
   
 
     
-class FRModel:
+class FullyRandom:
         
     
     """

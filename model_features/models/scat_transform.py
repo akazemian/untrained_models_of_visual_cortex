@@ -23,7 +23,6 @@ class Model(nn.Module):
                 N: int,
                 global_mp: bool,
                 last: nn.Module,
-                print_shape: bool = True
                 ):
         
         super(Model, self).__init__()
@@ -37,7 +36,6 @@ class Model(nn.Module):
         
         self.global_mp = global_mp
         self.last = last
-        self.print_shape = print_shape
         
         
     def forward(self, x:nn.Module):
@@ -47,22 +45,18 @@ class Model(nn.Module):
         S = Scattering2D(J = self.J, shape=(self.M, self.N), L=self.L).cuda()
 
         x = S.scattering(x).squeeze()
-        print('st', x.shape)
         
             
         if self.global_mp:
             H = x.shape[-1]
             gmp = nn.MaxPool2d(H)
             x = gmp(x.flatten(start_dim=1,end_dim=2))
-            print('gmp', x.shape)
-            
+
             
             
         x = x.reshape(N,-1)
         
         x = self.last(x)
-        if self.print_shape:
-            print('output', x.shape)
         
         return x    
 

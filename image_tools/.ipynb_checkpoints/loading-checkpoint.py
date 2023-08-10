@@ -1,54 +1,33 @@
-from torchvision import transforms
-from PIL import Image
-import numpy as np
-import torch
-from random import sample,seed
 import os
-#import logging
-import numpy as np
-import h5py
-from PIL import Image
-import xarray as xr
 import pandas as pd
-import pickle 
-import random
 import sys
-sys.path.append(os.getenv('BONNER_ROOT_PATH'))
-from data_tools.config import PLACES_PATH #,NSD_PATH, NSD_SHARED_IDS, NSD_SUBSET_IDS, MAJAJHONG_PATH, 
-    
+import pickle
+ROOT = os.getenv('BONNER_ROOT_PATH')
+sys.path.append(ROOT)
+from config import PLACES_IMAGES, NSD_IMAGES  
 
-# def load_nsd_images(shared_images=False,unshared_images=False,subset=False):
+
+def load_nsd_images(mode:str='all'):
      
-#     print('shared images:',shared_images)
-#     print('unshared images:',unshared_images)
-#     print('subset images:',subset)
-
-
-#     all_images = []
-           
-#     if subset: 
-#         #file_name = 
-#         return pickle.load(open(os.path.join(PATH_TO_NSD_SUBSET_IDS,file_name),'rb'))
-
+    modes = ['all', 'unshared', 'unshared_subset', 'shared']
+    assert mode in modes, f'unsupported mode. please choose one of {modes}'
     
-#     else:
+    shared_ids = pickle.load(open(os.path.join(ROOT,'image_tools','nsd_ids_shared'), 'rb'))
+    
+    match mode:
         
-#         shared_ids = pickle.load(open(PATH_TO_NSD_SHARED_IDS, 'rb'))   
-        
-#         for image in sorted(os.listdir(NSD_PATH)):
-                
-#             if shared_images:
-#                 if image.strip('.png') in shared_ids:
-#                     all_images.append(f'{NSD_PATH}/{image}')
-            
-#             elif unshared_images:
-#                 if image.strip('.png') not in shared_ids:
-#                     all_images.append(f'{NSD_PATH}/{image}')            
-            
-#             else:
-#                 all_images.append(f'{NSD_PATH}/{image}')
+        case 'shared': 
+            return sorted([os.path.join(NSD_IMAGES,image) for image in shared_ids])
+    
+        case 'unshared_subset': 
+            image_ids = pickle.load(open(os.path.join(ROOT,'image_tools','nsd_ids_unshared_sample=30000'),'rb')) 
+            return sorted([os.path.join(NSD_IMAGES,image) for image in image_ids])
+   
+        case 'unshared':
+            return sorted([os.path.join(NSD_IMAGES,image) for image in os.listdir(NSD_IMAGES) if image not in shared_ids]) 
 
-#     return all_images 
+        case 'all':
+            return sorted([os.path.join(NSD_IMAGES,image) for image in os.listdir(NSD_IMAGES)])
     
 
         
@@ -75,14 +54,11 @@ def load_image_paths(name, mode, *args, **kwargs):
     match name:
         
         case 'naturalscenes':
-            
-            if mode == 'cv':
-                return load_nsd_images(shared_images=True)
-            
-            elif mode == 'pca':
-                return load_nsd_images(subset=True)
-            
-            return load_nsd_images()
+                        
+            if mode == 'pca':
+                return load_nsd_images(mode='unshared_subset')
+            else:
+                return load_nsd_images()
 
         case 'majajhong':
             return load_majajhong_images()
@@ -97,21 +73,24 @@ def get_image_labels(dataset,images,*args,**kwargs):
     
     match dataset:
         
+        case 'naturalscenes':
+            return [os.path.basename(i).strip('.png') for i in images]
+
+        
         case 'majajhong':
             name_dict = pd.read_csv('/data/shared/brainio/brain-score/image_dicarlo_hvm-public.csv').set_index('image_file_name')['image_id'].to_dict()
             return [name_dict[os.path.basename(i)] for i in images]
 
-        case 'naturalscenes':
-            return [os.path.basename(i).strip('.png') for i in images]
 
         case 'places':
             return [os.path.basename(i) for i in images]
                                                   
     
     
+
 def load_places_cat_labels():
     
-    with open(os.path.join(PLACES_PATH,'places365_val.txt'), "r") as file:
+    with open(os.path.join(PLACES_IMAGES,'places365_val.txt'), "r") as file:
         content = file.read()
     annotations = content.split('\n')
     cat_dict = {}
