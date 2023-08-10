@@ -3,16 +3,21 @@ warnings.warn('my warning')
 from collections import OrderedDict
 import xarray as xr
 import numpy as np
-import tables
 SUBMODULE_SEPARATOR = '.'
 import os
 import torch
 from torch.autograd import Variable
 from tqdm import tqdm
-from data_tools.loading import load_image_paths, get_image_labels
 from torch import nn
 import pickle
-from data_tools.processing import preprocess
+import sys
+import functools
+
+from image_tools.loading import load_image_paths, get_image_labels
+from image_tools.processing import ImageProcessor
+
+sys.path.append(os.getenv('BONNER_ROOT_PATH'))
+from config import CACHE 
 
 ROOT = os.getenv('MB_DATA_PATH')
 PATH_TO_PCA = os.path.join(ROOT,'pca')
@@ -37,9 +42,9 @@ def register_pca_hook(x, PCA_FILE_NAME, n_components=256, device='cuda'):
 
 
 class PytorchWrapper:
-    def __init__(self, model, identifier, forward_kwargs=None): 
+    def __init__(self, model, identifier, device, forward_kwargs=None): 
         
-        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._device = device
         self._model = model
         self._model = self._model.to(self._device)
         self._forward_kwargs = forward_kwargs or {}
@@ -100,7 +105,7 @@ class PytorchWrapper:
                 target_dict[name] = register_pca_hook(output, os.path.join(PATH_TO_PCA, f'{self.identifier}_pca'))
 
         hook = layer.register_forward_hook(hook_function)
-        return hook#                 'preprocess':PREPROCESS, 
+        return hook 
 
 
     
@@ -111,11 +116,35 @@ class PytorchWrapper:
     
 
     
+def cache(file_name_func):
+
+    def decorator(func):
+        
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+
+            file_name = file_name_func(*args, **kwargs) 
+            cache_path = os.path.join(CACHE, file_name)
+            
+            if os.path.exists(cache_path):
+                return xr.open_dataset(cache_path)
+            
+            result = func(self, *args, **kwargs)
+            result.to_netcdf(cache_path)
+            return result
+
+        return wrapper
+    return decorator
+
+
+
+
 def batch_activations(model: nn.Module, 
                       layer_names: list, 
                       images: torch.Tensor,
                       image_labels: list,
-                      _hook: str) -> xr.Dataset:
+                      _hook: str,
+                      device:str) -> xr.Dataset:
 
         
         activations_dict = model.get_activations(images = images, layer_names = layer_names, _hook = _hook)
@@ -127,7 +156,7 @@ def batch_activations(model: nn.Module,
             activations_b = activations_dict[layer]
             activations_b = activations_b.reshape(activations_dict[layer].shape[0],-1)
             ds = xr.Dataset(
-            data_vars=dict(x=(["presentation", "features"], np.array(activations_b.cpu()))),
+            data_vars=dict(x=(["presentation", "features"], activations_b.cpu())),
             coords={'stimulus_id': (['presentation'], image_labels)})
             
             activations_final.append(ds)     
@@ -152,7 +181,9 @@ class Activations:
                  dataset: str,
                  mode: str,
                  hook:str = None,
-                 batch_size: int = 100):
+                 device:str= 'cuda',
+                 batch_size: int = 64):
+        
         
         self.model = model
         self.layer_names = layer_names
@@ -160,47 +191,54 @@ class Activations:
         self.batch_size = batch_size
         self.mode = mode
         self.hook = hook
+        self.device = device
+        
+        if not os.path.exists(os.path.join(CACHE,'activations')):
+            os.mkdir(os.path.join(CACHE,'activations'))
      
         
-    def get_array(self, path, identifier):
-        
+    @staticmethod
+    def cache_file(iden):
+        return os.path.join('activations',iden)
 
-        if not os.path.exists(path):
-                os.mkdir(path)
-        
-        
-        if os.path.exists(os.path.join(path, identifier)):
-            print(f'array is already saved in {path} as {identifier}')
-        
-        else:
-        
-            wrapped_model = PytorchWrapper(model = self.model, identifier = identifier)
-            image_paths = load_image_paths(name = self.dataset, mode = self.mode)
-            labels = get_image_labels(self.dataset, image_paths)  
-            processed_images = preprocess(image_paths, self.dataset) 
-            
     
-            print('extracting activations')
-            
-            i = 0   
-            ds_list = []
-            pbar = tqdm(total = len(image_paths)//self.batch_size)
-            
-            while i < len(image_paths):
-            
-                batch_data_final = batch_activations(wrapped_model,
-                                                     self.layer_names,
-                                                     processed_images[i:i+self.batch_size],
-                                                     labels[i:i+self.batch_size],
-                                                     _hook = self.hook)
-                    
-                ds_list.append(batch_data_final)    
-                i += self.batch_size
-                pbar.update(1)
+    @cache(cache_file)
+    def get_array(self,iden):       
+
         
-            pbar.close()
-            
-            data = xr.concat(ds_list,dim='presentation')
-            data.to_netcdf(os.path.join(path,identifier))
-            print(f'array is now saved in {path} as {identifier}')
+        
+        wrapped_model = PytorchWrapper(model = self.model, identifier = iden, device=self.device)
+        image_paths = load_image_paths(name = self.dataset, mode = self.mode)
+        processed_images = ImageProcessor(image_paths=image_paths, 
+                                          dataset = self.dataset, 
+                                          device = self.device,
+                                          image_size=224,
+                                          batch_size = 100).preprocess()
+        labels = get_image_labels(self.dataset, image_paths)  
+
+        print('extracting activations...')
+        
+        i = 0   
+        ds_list = []
+        pbar = tqdm(total = len(image_paths)//self.batch_size)
+        
+        while i < len(image_paths):
+
+            batch_data_final = batch_activations(wrapped_model,
+                                                 self.layer_names,
+                                                 processed_images[i:i+self.batch_size,:],
+                                                 labels[i:i+self.batch_size],
+                                                 _hook = self.hook,
+                                                 device=self.device)
+
+            ds_list.append(batch_data_final)    
+            i += self.batch_size
+            pbar.update(1)
+
+        pbar.close()
+
+        data = xr.concat(ds_list,dim='presentation')
+        
+        print('model activations are saved in cache')
+        return data
     

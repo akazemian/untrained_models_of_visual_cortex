@@ -346,10 +346,9 @@ class LinearRegression(Regression):
                 x, y, rcond=self.rcond, driver=self.driver
             )
         else:
-            if isinstance(self.l2_penalty, float or int) or 
-            (isinstance(self.l2_penalty, torch.Tensor) and self.l2_penalty.numel() == 1):
+            if isinstance(self.l2_penalty, float or int) or (isinstance(self.l2_penalty, torch.Tensor) and self.l2_penalty.numel() == 1):
                 
-            l2_penalty = self.l2_penalty * torch.ones(y.shape[-1], device=x.device)
+                l2_penalty = self.l2_penalty * torch.ones(y.shape[-1], device=x.device)
            
             elif isinstance(self.l2_penalty, torch.Tensor):
                 l2_penalty = self.l2_penalty.to(x.device)

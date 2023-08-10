@@ -1,11 +1,9 @@
 import sys
 import torchvision
-from models.layer_operations.output import Output
 import torch
 from torch import nn
 import pickle
 import os
-from model_features.layer_operations.random_proj import RandomProjection
 from model_features.layer_operations.output import Output
 
 torch.manual_seed(0)
@@ -27,9 +25,7 @@ class Model(nn.Module):
     def __init__(self,
                 features_layer:int,
                 global_mp: bool,
-                rp: nn.Module,
                 last:nn.Module,
-                print_shape:bool=True
                 ):
         
         super(Model, self).__init__()
@@ -37,9 +33,7 @@ class Model(nn.Module):
 
         self.features_layer = features_layer
         self.global_mp = global_mp
-        self.rp = rp
         self.last = last
-        self.print_shape = print_shape
         
         
     def forward(self, x:nn.Module):
@@ -62,16 +56,10 @@ class Model(nn.Module):
             H = x.shape[-1]
             gmp = nn.MaxPool2d(H)
             x = gmp(x)
-            print('gmp', x.shape)
             
         
-        if self.rp is not None:
-            x = self.rp(x)
-            print('rp', x.shape)    
-        
         x = self.last(x)
-        if self.print_shape:
-            print('output', x.shape)    
+
         
         return x    
 
@@ -82,22 +70,17 @@ class Model(nn.Module):
 class AlexnetU:
 
     
-    def __init__(self, features_layer:int = 12, global_mp:int = True, num_projections:int = None):
+    def __init__(self, features_layer:int = 12, 
+                 global_mp:int = True):
     
         self.features_layer = features_layer
-        self.num_projections = num_projections
         self.global_mp = global_mp
     
     def Build(self):
-        
-        rp = None
-        if self.num_projections is not None:
-            rp = RandomProjection(out_channels=self.num_projections)
 
         last = Output()
         
         return Model(    
                 features_layer = self.features_layer,
                 global_mp = self.global_mp,
-                rp =rp,
                 last = last)

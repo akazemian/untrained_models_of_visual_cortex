@@ -16,7 +16,6 @@ class Model(nn.Module):
                  lin3: nn.Module,
                  nl: nn.Module,
                  last: nn.Module,
-                 print_shape:bool=True
                 ):
         
         super(Model, self).__init__()
@@ -28,25 +27,18 @@ class Model(nn.Module):
         self.nl = nl
         self.last = last
         
-        self.print_shape = print_shape
         
     def forward(self, x:nn.Module): 
        
         N = x.shape[0]
         x = self.lin1(x.reshape(N,-1))  # linear layer
         x = self.nl(x)
-        if self.print_shape:
-            print('lin1',x.shape)
         
         x = self.lin2(x)
         x = self.nl(x)
-        if self.print_shape:
-            print('lin2',x.shape)
             
         x = self.lin3(x)
         x = self.nl(x)
-        if self.print_shape:
-            print('lin3',x.shape)
             
         x = self.last(x)
     
@@ -57,7 +49,7 @@ class Model(nn.Module):
   
 
     
-class FCModel3L:
+class FullyConnected3L:
 
 
     def __init__(self, 

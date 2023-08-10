@@ -38,7 +38,7 @@ class Model(nn.Module):
   
 
     
-class FCModel:
+class FullyConnected:
 
 
     def __init__(self, 
