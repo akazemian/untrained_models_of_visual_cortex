@@ -1,13 +1,9 @@
 import os 
 import sys
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
-import xarray as xr
-import torch
-import torchvision
 import warnings
 warnings.filterwarnings('ignore')
 
-from config import ACTIVATIONS_PATH
 from image_tools.processing import *
 from model_evaluation.predicting_brain_data.regression.scorer import EncodingScore
 from model_evaluation.utils import get_activations_iden, get_scores_iden
@@ -25,7 +21,7 @@ HOOK = None
 DEVICE = 'cuda' 
     
 model_info = {
-                'iden':'expansion_model_test_1',
+                'iden':'expansion_model_test',
                 'model':Expansion(filters_3=10000).Build(),
                 'layers': ['last'], 
                 'num_layers':3,

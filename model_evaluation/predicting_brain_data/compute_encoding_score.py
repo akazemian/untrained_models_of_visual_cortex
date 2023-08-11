@@ -21,7 +21,7 @@ HOOK = None
 DEVICE = 'cuda' 
     
 model_info = {
-                'iden':'expansion_model_test_1',
+                'iden':'expansion_model_test',
                 'model':Expansion(filters_3=10000).Build(),
                 'layers': ['last'], 
                 'num_layers':3,
