@@ -48,11 +48,7 @@ class Model(nn.Module):
         self.last = last
         
         
-    def forward(self, x:nn.Module): 
-        
-        
-        #x = x.to(self.device)
-        
+    def forward(self, x:nn.Module):         
         
         #layer 1 
         x = self.conv1(x)  # conv 
@@ -83,7 +79,6 @@ class Model(nn.Module):
 
         
         x = self.last(x) # final layer
-
         
         return x    
 

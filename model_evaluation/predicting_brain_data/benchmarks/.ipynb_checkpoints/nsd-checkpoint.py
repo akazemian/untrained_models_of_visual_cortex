@@ -125,7 +125,7 @@ def load_nsd_data(mode: str, subject: int, region: str, return_ids: bool = True)
         A Tensor of Neural data, or Tensor of Neural data and stimulus ids
         
         """
-        path = f'/data/shared/for_atlas/roi={region}/preprocessed/z_score=session.average_across_reps=True/subject={subject}.nc'
+        path = os.path.join(NSD_NEURAL_DATA,f'roi={region}/preprocessed/z_score=session.average_across_reps=True/subject={subject}.nc')
         
         var_name = f'allen2021.natural_scenes.preprocessing=fithrf_GLMdenoise_RR.roi={region}.z_score=session.average_across_reps=True.subject={subject}'
 

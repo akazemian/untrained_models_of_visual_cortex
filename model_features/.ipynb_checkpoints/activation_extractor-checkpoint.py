@@ -14,7 +14,7 @@ import sys
 import functools
 
 from image_tools.loading import load_image_paths, get_image_labels
-from image_tools.processing import ImageProcessor
+from image_tools.processing import processor
 
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from config import CACHE 
@@ -140,25 +140,29 @@ def cache(file_name_func):
 
 
 def batch_activations(model: nn.Module, 
-                      layer_names: list, 
-                      images: torch.Tensor,
+                      image_paths: torch.Tensor,
                       image_labels: list,
+                      layer_names:list, 
                       _hook: str,
                       device:str) -> xr.Dataset:
 
         
-        activations_dict = model.get_activations(images = images, layer_names = layer_names, _hook = _hook)
+        images =  processor(image_paths=image_paths, 
+                            image_size=224)
+        
+        activations_dict = model.get_activations(images = images, 
+                                                 layer_names = layer_names, 
+                                                 _hook = _hook)
         activations_final = []
     
-        
-        for layer in layer_names:
                              
+        for layer in layer_names:
             activations_b = activations_dict[layer]
             activations_b = activations_b.reshape(activations_dict[layer].shape[0],-1)
             ds = xr.Dataset(
             data_vars=dict(x=(["presentation", "features"], activations_b.cpu())),
             coords={'stimulus_id': (['presentation'], image_labels)})
-            
+
             activations_final.append(ds)     
         
         
@@ -209,11 +213,6 @@ class Activations:
         
         wrapped_model = PytorchWrapper(model = self.model, identifier = iden, device=self.device)
         image_paths = load_image_paths(name = self.dataset, mode = self.mode)
-        processed_images = ImageProcessor(image_paths=image_paths, 
-                                          dataset = self.dataset, 
-                                          device = self.device,
-                                          image_size=224,
-                                          batch_size = 100).preprocess()
         labels = get_image_labels(self.dataset, image_paths)  
 
         print('extracting activations...')
@@ -225,11 +224,12 @@ class Activations:
         while i < len(image_paths):
 
             batch_data_final = batch_activations(wrapped_model,
-                                                 self.layer_names,
-                                                 processed_images[i:i+self.batch_size,:],
+                                                 image_paths[i:i+self.batch_size],
                                                  labels[i:i+self.batch_size],
+                                                 layer_names = self.layer_names,
                                                  _hook = self.hook,
-                                                 device=self.device)
+                                                 device=self.device,
+                                                )
 
             ds_list.append(batch_data_final)    
             i += self.batch_size

@@ -4,7 +4,7 @@ import sys
 import pickle
 ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
-from config import PLACES_IMAGES, NSD_IMAGES  
+from config import PLACES_IMAGES, NSD_IMAGES, MAJAJ_IMAGES, MAJAJ_NAME_DICT 
 
 
 def load_nsd_images(mode:str='all'):
@@ -31,19 +31,16 @@ def load_nsd_images(mode:str='all'):
     
 
         
-# def load_majajhong_images():
-    
-#     all_images = []
-#     for image in sorted(os.listdir(MAJAJHONG_PATH)):
-#         all_images.append(f'{MAJAJHONG_PATH}/{image}')
-#     return all_images
+def load_majaj_images():
+
+    return sorted([f'{MAJAJ_IMAGES}/{image}' for image in os.listdir(MAJAJ_IMAGES)])
 
     
     
 def load_places_images():
 
-        val_images = os.listdir(os.path.join(PLACES_PATH,'val_images/val_256'))
-        val_images_paths = [f'{PLACES_PATH}/val_images/val_256/{i}' for i in val_images]
+        val_images = os.listdir(os.path.join(PLACES_IMAGES,'val_images/val_256'))
+        val_images_paths = [f'{PLACES_IMAGES}/val_images/val_256/{i}' for i in val_images]
         
         return sorted(val_images_paths)
     
@@ -61,7 +58,7 @@ def load_image_paths(name, mode, *args, **kwargs):
                 return load_nsd_images()
 
         case 'majajhong':
-            return load_majajhong_images()
+            return load_majajimages()
 
         case 'places':
             return load_places_images()
@@ -78,7 +75,7 @@ def get_image_labels(dataset,images,*args,**kwargs):
 
         
         case 'majajhong':
-            name_dict = pd.read_csv('/data/shared/brainio/brain-score/image_dicarlo_hvm-public.csv').set_index('image_file_name')['image_id'].to_dict()
+            name_dict = pd.read_csv(MAJAJ_NAME_DICT).set_index('image_file_name')['image_id'].to_dict()
             return [name_dict[os.path.basename(i)] for i in images]
 
 
