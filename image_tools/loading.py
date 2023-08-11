@@ -7,7 +7,7 @@ sys.path.append(ROOT)
 from config import PLACES_IMAGES, NSD_IMAGES  
 
 
-def load_nsd_images(mode:str='all'):
+def load_nsd_images(mode:str='unshared_subset'):
      
     modes = ['all', 'unshared', 'unshared_subset', 'shared']
     assert mode in modes, f'unsupported mode. please choose one of {modes}'
@@ -42,8 +42,8 @@ def load_nsd_images(mode:str='all'):
     
 def load_places_images():
 
-        val_images = os.listdir(os.path.join(PLACES_PATH,'val_images/val_256'))
-        val_images_paths = [f'{PLACES_PATH}/val_images/val_256/{i}' for i in val_images]
+        val_images = os.listdir(os.path.join(PLACES_IMAGES,'val_images/val_256'))
+        val_images_paths = [f'{PLACES_IMAGES}/val_images/val_256/{i}' for i in val_images]
         
         return sorted(val_images_paths)
     

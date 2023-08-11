@@ -2,60 +2,37 @@ import torch
 from PIL import Image
 from torchvision import transforms
 import torch
-import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
 from tqdm import tqdm
-
-import functools
 import os
-from joblib import dump, load
-from tools import cache
 import sys
-from joblib import Memory
 import h5py
-import numpy as np
-
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from config import CACHE
-memory = Memory(CACHE, verbose=0, mmap_mode='r')
+
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
     
+   
+def load_images(dataset, batch_size):
 
-
-
-import functools
-import os
-from joblib import dump, load
-from config import CACHE
-
-
+    dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
     
-class H5Dataset():
-    def __init__(self,
-                file_path,
-                device):
+    all_batches = []
+    for batch in tqdm(dataloader, desc="Loading images"):
+        all_batches.append(batch)
         
-        self.file_path = file_path
-        self.hf_file = h5py.File(self.file_path, 'r')
-        self.device=device
-        
-        
-    def __len__(self):
-        return sum(self.hf_file[key].shape[0] for key in self.hf_file.keys())
+    return torch.cat(all_batches, dim=0)
 
+
+
+def save_images(file_path, dataset, batch_size):
     
-    def load_images(self):
-        print('loading images...')
-        batches = [self.hf_file[key][:] for key in tqdm(sorted(self.hf_file.keys(), key=lambda x: int(x.split('_')[-1])))]
-        return np.concatenate(batches, axis=0)        
+    dataloader = DataLoader(dataset, batch_size= batch_size, shuffle=False, num_workers=1)
 
-    
-
-def save_images(file_path, dataloader):
     mode = 'a' if os.path.exists(file_path) else 'w'
     with h5py.File(file_path, mode) as hf:
             existing_batches = len(hf.keys())
@@ -81,10 +58,11 @@ class ImageProcessor:
 
         name = f'dataset={self.dataset}_size={self.image_size}_number_of_images={len(self.image_paths)}'
         file_path = os.path.join(CACHE,'preprocessed_images',name)
-        h5data = H5Dataset(file_path = file_path, device = self.device) 
+         
         
-        if os.path.exists(file_path) and h5data.__len__()==len(self.image_paths):
-            return h5data.load_images()
+        if os.path.exists(file_path):
+            dataset = H5Dataset(file_path = file_path, device=self.device)
+            return load_images(dataset=dataset, batch_size=self.batch_size)
     
         else:            
             print('processing images...')
@@ -94,16 +72,16 @@ class ImageProcessor:
                 transforms.ToTensor(),
                 transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)])
 
-            dataset_instance = CustomImageDataset(self.image_paths, transform=transform)
-            dataloader = DataLoader(dataset_instance, batch_size= self.batch_size, shuffle=False, num_workers=1)
-            save_images(file_path, dataloader)
+            dataset = TransformDataset(self.image_paths, transform=transform)
+            save_images(file_path=file_path, dataset=dataset, batch_size=self.batch_size)
          
-        return load_all_images(file_path)
+        dataset = H5Dataset(file_path = file_path, device=self.device)
+        return load_images(dataset=dataset, batch_size=self.batch_size)
 
+
+
+class TransformDataset(Dataset):
     
-
-
-class CustomImageDataset(Dataset):
     def __init__(self, image_paths, transform=None):
         self.image_paths = image_paths
         self.transform = transform
@@ -121,7 +99,26 @@ class CustomImageDataset(Dataset):
 
 
 
+class H5Dataset(Dataset):
+    def __init__(self,
+                file_path,
+                device):  
+        
+        self.file_path = file_path
+        self.hf_file = h5py.File(self.file_path, 'r')
+        self.device=device
+        self.keys = sorted(self.hf_file.keys(), key=lambda x: int(x.split('_')[-1]))
 
+    def __len__(self):
+        return len(self.keys)
 
+    def __getitem__(self, index):
+        key = self.keys[index]
+        image = torch.tensor(self.hf_file[key][:])
+        return image
+    
+    def num_images(self):
+        return sum(self.hf_file[key].shape[0] for key in self.hf_file.keys())
+        
 
         
