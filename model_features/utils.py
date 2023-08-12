@@ -1,7 +1,10 @@
+import sys
+import os
 ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
 from config import CACHE 
 PATH_TO_PCA = os.path.join(ROOT,'pca')
+import functools
 
 
 
