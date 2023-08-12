@@ -10,7 +10,7 @@ warnings.filterwarnings('ignore')
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from config import CACHE       
 import functools
-
+import gc
     
 def cache(file_name_func):
 
@@ -27,6 +27,7 @@ def cache(file_name_func):
             
             result = func(self, *args, **kwargs)
             result.to_netcdf(cache_path)
+            gc.collect()
             return 
 
         return wrapper
