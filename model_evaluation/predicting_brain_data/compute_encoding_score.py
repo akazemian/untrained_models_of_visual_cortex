@@ -14,7 +14,7 @@ from model_features.models.expansion_3_layers import Expansion
 
 # define local variables
 DATASET = 'naturalscenes'
-REGIONS = ['V1','V2','V3','V4','general']
+REGIONS = ['V1']#,'V2','V3','V4','general']
 MAX_POOL = True
 MODE = 'ridgecv'
 HOOK = None
@@ -68,7 +68,8 @@ for _, model_info in model_dict.items():
                     mode = MODE,
                     hook = HOOK,
                     device= DEVICE,
-                    batch_size = 80).get_array(activations_identifier)   
+                    batch_size = 80,
+                    compute_mode='slow').get_array(activations_identifier)   
 
         scores_identifier = get_scores_iden(model_info, activations_identifier, region, DATASET, MODE)
 

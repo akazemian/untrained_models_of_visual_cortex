@@ -104,12 +104,22 @@ class PytorchWrapper:
     
     
 def batch_activations(model: nn.Module, 
-                      images: torch.Tensor,
                       image_labels: list,
                       layer_names:list, 
                       _hook: str,
-                      device:str) -> xr.Dataset:
+                      device=str,
+                      dataset=None,
+                      image_paths: list=None,
+                      images: torch.Tensor=None,
+                      batch_size:int=None) -> xr.Dataset:
 
+            
+        if image_paths is not None:
+            images = ImageProcessor(device=device, batch_size=batch_size).process_batch(image_paths=image_paths, 
+                                                                 dataset=dataset,
+                                                                 )
+
+            
             
         activations_dict = model.get_activations(images = images, 
                                                  layer_names = layer_names, 
@@ -147,7 +157,8 @@ class Activations:
                  mode: str,
                  hook:str = None,
                  device:str= 'cuda',
-                 batch_size: int = 64):
+                 batch_size: int = 64,
+                 compute_mode:str='fast'):
         
         
         self.model = model
@@ -157,7 +168,9 @@ class Activations:
         self.mode = mode
         self.hook = hook
         self.device = device
-        
+        self.compute_mode = compute_mode
+        assert self.compute_mode in ['fast','slow'], "invalid compute mode, please choose one of: 'fast', 'slow'"
+
         if not os.path.exists(os.path.join(CACHE,'activations')):
             os.mkdir(os.path.join(CACHE,'activations'))
      
@@ -169,39 +182,63 @@ class Activations:
     
     @cache(cache_file)
     def get_array(self,iden):       
-
-        
-        
+                
         wrapped_model = PytorchWrapper(model = self.model, identifier = iden, device=self.device)
         image_paths = load_image_paths(name = self.dataset, mode = self.mode)
-        images = ImageProcessor(device=self.device).process(image_paths=image_paths, 
-                                                             dataset=self.dataset, 
-                                                             image_size= 224)
-
-        labels = get_image_labels(self.dataset, image_paths)  
-
-        print('extracting activations...')
+        labels = get_image_labels(self.dataset, image_paths)
         
-        i = 0   
-        ds_list = []
-        pbar = tqdm(total = len(image_paths)//self.batch_size)
+        if self.compute_mode=='fast':
+            images = ImageProcessor(device=self.device).process(image_paths=image_paths, 
+                                                             dataset=self.dataset)
+          
+
+            print('extracting activations...')
+            
+            i = 0   
+            ds_list = []
+            pbar = tqdm(total = len(image_paths)//self.batch_size)
+            
+            while i < len(image_paths):
+
+                batch_data_final = batch_activations(model=wrapped_model,
+                                                    images=images[i:i+self.batch_size, :],
+                                                    image_labels=labels[i:i+self.batch_size],
+                                                    layer_names = self.layer_names,
+                                                    _hook = self.hook,
+                                                    device=self.device,
+                                                    )
+
+                ds_list.append(batch_data_final)    
+                i += self.batch_size
+                pbar.update(1)
+
+            pbar.close()
+
+        else:
+            
+            print('processing images and extracting activations ...')
+            
+            i = 0   
+            ds_list = []
+            pbar = tqdm(total = len(image_paths)//self.batch_size)
+            
+            while i < len(image_paths):
+
+                batch_data_final = batch_activations(model=wrapped_model,
+                                                    image_paths=image_paths[i:i+self.batch_size],
+                                                    image_labels=labels[i:i+self.batch_size],
+                                                    layer_names = self.layer_names,
+                                                    dataset=self.dataset,
+                                                    batch_size=self.batch_size,
+                                                    _hook = self.hook,
+                                                    device=self.device)
+
+                ds_list.append(batch_data_final)    
+                i += self.batch_size
+                pbar.update(1)
+
+            pbar.close()        
         
-        while i < len(image_paths):
-
-            batch_data_final = batch_activations(wrapped_model,
-                                                 images[i:i+self.batch_size, :],
-                                                 labels[i:i+self.batch_size],
-                                                 layer_names = self.layer_names,
-                                                 _hook = self.hook,
-                                                 device=self.device,
-                                                )
-
-            ds_list.append(batch_data_final)    
-            i += self.batch_size
-            pbar.update(1)
-
-        pbar.close()
-
         data = xr.concat(ds_list,dim='presentation')
         
         print('model activations are saved in cache')
