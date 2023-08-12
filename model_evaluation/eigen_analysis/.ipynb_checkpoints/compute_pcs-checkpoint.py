@@ -1,93 +1,49 @@
     
-# define paths
 import os 
 import sys
-ROOT_DIR = os.getenv('MB_ROOT_PATH')
-sys.path.append(ROOT_DIR)
-# define paths
-ROOT_DATA = os.getenv('MB_DATA_PATH')
-ACTIVATIONS_PATH = os.path.join(ROOT_DATA,'activations')
+ROOT = os.getenv('BONNER_ROOT_PATH')
+sys.path.append(ROOT)
 
-
-import xarray as xr
-import torchvision
-from sklearn.decomposition import PCA
 import warnings
 warnings.filterwarnings('ignore')
-
-from tools.processing import *
-from tools.loading import *
-from analysis.encoding_model_analysis.tools.extractor import Activations
-from analysis.encoding_model_analysis.tools.regression import *
-from analysis.encoding_model_analysis.tools.scorer import *
-from models.all_models.model_3L_abs_blurpool_avgpool import ExpansionModel
-from tools.utils import get_activations_iden
-from models.all_models.alexnet import Alexnet
-from models.all_models.alexnet_u import AlexnetU    
+import xarray as xr
+import torchvision
+from image_tools.processing import *
+from model_evaluation.predicting_brain_data.regression.scorer import EncodingScore
+from model_evaluation.utils import get_activations_iden, get_scores_iden
+from model_features.activation_extractor import Activations
+from model_features.models.expansion_3_layers import Expansion
+from model_evaluation.eigen_aalysis.utils import _PCA
     
-#DATASET = 'imagenet21k'    
-DATASET = 'places'
-MAX_POOL = True
-N_COMPONENTS =  1000
-MODE = 'pca'
-PATH_TO_PCA = os.path.join(ROOT_DATA,'pca')
-
-# models    
-MODEL_DICT = {
-
-
-    'expansion model 3L 10000':{
-                'iden':'expansion_model_final',
-                'model':ExpansionModel(filters_3=10000).Build(),
+    
+DATASET = 'naturalscenes'
+N_COMPONENTS = 256
+DEVICE = 'cuda'
+ 
+    
+    
+model_info = {
+                'iden':'expansion_model',
+                'model': Expansion(filters_3=10000).Build(),
                 'layers': ['last'], 
-                'preprocess':Preprocess(im_size=224).PreprocessRGB, 
-                'num_layers':3,
-                'num_features':10000,
-                'max_pool':MAX_POOL}, 
-}
-
-
-
-
-
-        
+                'num_layers': 3,
+                'num_features': 10000
+    }
         
 
-for model_name, model_info in MODEL_DICT.items():
        
-    
-    print(model_name)
     activations_identifier = get_activations_iden(model_info, DATASET, MODE)
-        
-    if os.path.exists(os.path.join(os.path.join(PATH_TO_PCA,activations_identifier))):
-        print(f'pcs are already saved in {PATH_TO_PCA} as {activations_identifier}')
-        
-    else:
+    
+    Activations(model=model_info['model'],
+                layer_names=model_info['layers'],
+                dataset=DATASET,
+                mode = 'pca',
+                hook = None,
+                device= DEVICE,
+                batch_size = 80).get_array(activations_identifier) 
+    
+    _PCA(n_components=N_COMPONENTS).fit(activations_identifier)
+    
 
-        print('obtaining pcs...')
-              
-        for layer in model_info['layers']:
-
-
-            activations = Activations(model=model_info['model'],
-                                    layer_names=model_info['layers'],
-                                    dataset=DATASET,
-                                    preprocess=model_info['preprocess'],
-                                    mode = MODE,
-                                    batch_size = 100
-                                )           
-
-            activations.get_array(ACTIVATIONS_PATH,activations_identifier)   
-
-
-            X = xr.open_dataset(os.path.join(ACTIVATIONS_PATH,activations_identifier)).x.values
-            pca = PCA(N_COMPONENTS)
-            pca.fit(X)
-
-
-            file = open(os.path.join(PATH_TO_PCA,activations_identifier), 'wb')
-            pickle.dump(pca, file, protocol=4)
-            file.close()
-            print(f'pcs are now saved in {PATH_TO_PCA} as {activations_identifier}')
 
 

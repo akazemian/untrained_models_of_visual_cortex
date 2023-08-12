@@ -22,12 +22,12 @@ def cache(file_name_func):
             file_name = file_name_func(*args, **kwargs) 
             cache_path = os.path.join(CACHE, file_name)
             
-            if os.path.exists(cache_path + '.nc'):
-                return xr.open_dataset(cache_path + '.nc')
+            if os.path.exists(cache_path):
+                return 
             
             result = func(self, *args, **kwargs)
             result.to_netcdf(cache_path)
-            return result
+            return 
 
         return wrapper
     return decorator
