@@ -14,11 +14,7 @@ sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from image_tools.processing import *
 from image_tools.loading import *
 from model_evaluation.utils import get_activations_iden, get_scores_iden
-
-
-plot_data_means_vs_features
-plot_diff_models
-plot_diff_layers
+from config import CACHE
 
 
 
@@ -34,7 +30,7 @@ def make_pandas_df(data_dict, dataset, regions, mode, subjects):
             for region in regions:
 
                 scores_iden = get_scores_iden(model_info, activations_iden, region, dataset, mode)
-                data = xr.open_dataset(os.path.join(MODEL_SCORES_PATH,activations_iden,scores_iden), engine='netcdf4')
+                data = xr.open_dataset(os.path.join(CACHE,'encoding_scores',scores_iden), engine='netcdf4')
 
                 for subject in subjects:
                     subject_data = data.where(data.subject == subject, drop=True)
@@ -102,6 +98,7 @@ def compare_layers(df, width):
 
     
 def plot_results(data_dict, plot_type, dataset, regions, mode, x_axis, ylim, width, 
+                 palette=None,
                  show_legend= True, 
                  params = (6,4), 
                  name_dict= None, 
@@ -144,7 +141,7 @@ def plot_results(data_dict, plot_type, dataset, regions, mode, x_axis, ylim, wid
     plt.ylabel('Correlation (Pearson r)', fontsize=18)
     plt.xlabel('')
     plt.ylabel(size=25,ylabel='Correlation (Pearson r)')    
-    plt.xticks(size=25,rotation=15)
+    plt.xticks(size=25)
     plt.yticks(size=25)
     plt.ylim(ylim)
     

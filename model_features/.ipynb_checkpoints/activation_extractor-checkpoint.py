@@ -13,29 +13,17 @@ import pickle
 import sys
 import functools
 
+ROOT = os.getenv('BONNER_ROOT_PATH')
+sys.path.append(ROOT)
 from image_tools.loading import load_image_paths, get_image_labels
-from image_tools.processing import processor
-
-sys.path.append(os.getenv('BONNER_ROOT_PATH'))
+from image_tools.processing import ImageProcessor
 from config import CACHE 
+from model_features.utils import cache, register_pca_hook
 
-ROOT = os.getenv('MB_DATA_PATH')
 PATH_TO_PCA = os.path.join(ROOT,'pca')
 
 
 
-
-
-def register_pca_hook(x, PCA_FILE_NAME, n_components=256, device='cuda'):
-    
-    with open(PCA_FILE_NAME, 'rb') as file:
-        _pca = pickle.load(file)
-    _mean = torch.Tensor(_pca.mean_).to(device)
-    _eig_vec = torch.Tensor(_pca.components_.transpose()).to(device)
-    x = x.squeeze()
-    x -= _mean
-    
-    return x @ _eig_vec[:, :n_components]
 
 
 
@@ -112,44 +100,17 @@ class PytorchWrapper:
     def __repr__(self):
         return repr(self._model)    
     
-   
-    
 
     
-def cache(file_name_func):
-
-    def decorator(func):
-        
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-
-            file_name = file_name_func(*args, **kwargs) 
-            cache_path = os.path.join(CACHE, file_name)
-            
-            if os.path.exists(cache_path):
-                return xr.open_dataset(cache_path)
-            
-            result = func(self, *args, **kwargs)
-            result.to_netcdf(cache_path)
-            return result
-
-        return wrapper
-    return decorator
-
-
-
-
+    
 def batch_activations(model: nn.Module, 
-                      image_paths: torch.Tensor,
+                      images: torch.Tensor,
                       image_labels: list,
                       layer_names:list, 
                       _hook: str,
                       device:str) -> xr.Dataset:
 
-        
-        images =  processor(image_paths=image_paths, 
-                            image_size=224)
-        
+            
         activations_dict = model.get_activations(images = images, 
                                                  layer_names = layer_names, 
                                                  _hook = _hook)
@@ -213,6 +174,10 @@ class Activations:
         
         wrapped_model = PytorchWrapper(model = self.model, identifier = iden, device=self.device)
         image_paths = load_image_paths(name = self.dataset, mode = self.mode)
+        images = ImageProcessor(device=self.device).process(image_paths=image_paths, 
+                                                             dataset=self.dataset, 
+                                                             image_size= 224)
+
         labels = get_image_labels(self.dataset, image_paths)  
 
         print('extracting activations...')
@@ -224,7 +189,7 @@ class Activations:
         while i < len(image_paths):
 
             batch_data_final = batch_activations(wrapped_model,
-                                                 image_paths[i:i+self.batch_size],
+                                                 images[i:i+self.batch_size, :],
                                                  labels[i:i+self.batch_size],
                                                  layer_names = self.layer_names,
                                                  _hook = self.hook,

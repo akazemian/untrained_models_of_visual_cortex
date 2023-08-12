@@ -13,16 +13,10 @@ def get_activations_iden(model_info, dataset, mode):
 
 
 
-def get_scores_iden(model_info, activations_identifier, region, dataset, mode, alpha=None):
+def get_scores_iden(model_info, activations_identifier, region, dataset, mode, alpha=None):        
     
-    
-    if mode == 'ridgecv':
-        scores_identifier = activations_identifier + '_' + region + '_' + mode
-        
-    else:
-        scores_identifier = activations_identifier + '_' + region + '_' + mode + '_' + f'ridge(alpha={alpha})' 
-    
-    return scores_identifier
+    return activations_identifier + '_' + region + '_' + mode
+
 
 
 
