@@ -4,7 +4,9 @@ import xarray as xr
 import numpy as np
 import torch
 import os
-from ..benchmarks.nsd import *
+from ..benchmarks.nsd import nsd_scorer
+from ..benchmarks.majajhong import majajhong_scorer
+
 import warnings
 warnings.filterwarnings('ignore')
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
@@ -26,7 +28,7 @@ def cache(file_name_func):
                 return 
             
             result = func(self, *args, **kwargs)
-            result.to_netcdf(cache_path)
+            result.to_netcdf(cache_path, engine='h5netcdf')
             gc.collect()
             return 
 

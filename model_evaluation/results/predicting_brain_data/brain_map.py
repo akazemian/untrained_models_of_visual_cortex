@@ -1,3 +1,8 @@
+"""
+The following brain surface plot functions are based on nilearn's libraries and adapted from Adapted from https://github.com/cvnlab/nsdcode 
+"""
+
+
 import xarray as xr
 import nilearn.plotting
 import nibabel as nib
@@ -11,23 +16,16 @@ from loguru import logger
 import boto3
 from collections.abc import Collection
 from scipy.ndimage import map_coordinates
+import matplotlib.pyplot as plt
 
-
-ROOT = os.getenv('MB_ROOT_PATH')
+ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
-
-from analysis.encoding_model_analysis.tools.utils import get_activations_iden, get_scores_iden
+from model_evaluation.utils import get_activations_iden
 
 IDENTIFIER = "allen2021.natural_scenes"
 BUCKET_NAME = "natural-scenes-dataset"
 CACHE_PATH = f'/data/atlas/brain_map/{IDENTIFIER}'
 os.environ['AWS_SHARED_CREDENTIALS_FILE'] = '/data/shared/aws/credentials'
-
-
-
-
-#from bonner.datasets.allen2021_natural_scenes._data import load_brain_mask
-
 
 
 
@@ -437,6 +435,7 @@ def load_model_for_brain(
         )
 
 
+
 def plot_brain_map(
     data: xr.DataArray,
     *,
@@ -466,14 +465,15 @@ def plot_brain_map(
         vmax= vmax,
         cmap=cmap
     )
-    fig.savefig(name,dpi=300)
+    fig.savefig(name,dpi=300, transparent=True)
+    plt.close()
     return 
 
 
 
 def process_data_to_plot(scores_path, subject):
 
-    data = xr.open_dataset(scores_path)
+    data = xr.open_dataset(scores_path,engine='h5netcdf')
     data = data.where(data.subject==subject,drop=True)
     data = data.drop_vars(["subject",'region','name']).to_array()
     data.x.values = data.x.values.astype(int)

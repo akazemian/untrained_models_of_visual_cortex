@@ -3,9 +3,10 @@ import sys
 import xarray as xr
 from sklearn.decomposition import PCA
 import functools
+import pickle
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from config import CACHE
-
+import torch
 
 
 
@@ -36,10 +37,8 @@ def cache(file_name_func):
 class _PCA:
     
     def __init__(self,
-                 n_components:int,
                  device:str = 'cuda'):
         
-        self.n_components = n_components
         self.device = device
         
         if not os.path.exists(os.path.join(CACHE,'pca')):
@@ -47,15 +46,15 @@ class _PCA:
      
         
     @staticmethod
-    def cache_file(iden):
+    def cache_file(iden, X):
         return os.path.join('pca',iden)
 
     
     @cache(cache_file)
-    def _fit(self, iden):  
+    def _fit(self, iden, X):  
    
-        X = xr.open_dataset(os.path.join(CACHE,iden)).x.values
-        pca = PCA(self.n_components)
+        X = torch.Tensor(X)
+        pca = PCA()
         pca.fit(X)
         
         return pca

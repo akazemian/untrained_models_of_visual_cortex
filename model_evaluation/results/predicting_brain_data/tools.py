@@ -13,24 +13,24 @@ sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 
 from image_tools.processing import *
 from image_tools.loading import *
-from model_evaluation.utils import get_activations_iden, get_scores_iden
+from model_evaluation.utils import get_activations_iden
 from config import CACHE
 
 
 
-def make_pandas_df(data_dict, dataset, regions, mode, subjects):
+def make_pandas_df(data_dict, dataset, regions, subjects):
     
     df = pd.DataFrame()
     index = 0
     
     for model_name, model_info in data_dict.items():
         
-            activations_iden = get_activations_iden(model_info, dataset, mode)
+            activations_iden = get_activations_iden(model_info, dataset)
 
             for region in regions:
 
-                scores_iden = get_scores_iden(model_info, activations_iden, region, dataset, mode)
-                data = xr.open_dataset(os.path.join(CACHE,'encoding_scores',scores_iden), engine='netcdf4')
+                scores_iden = activations_iden + '_' + region
+                data = xr.open_dataset(os.path.join(CACHE,'encoding_scores',scores_iden), engine='h5netcdf')
 
                 for subject in subjects:
                     subject_data = data.where(data.subject == subject, drop=True)
@@ -81,28 +81,23 @@ def compare_models(df, color, palette, width):
                            width=width, 
                            palette=palette, 
                            dodge=False)           
-    
-    
-
-
-def compare_layers(df, width):
-
-    return  sns.barplot(x = df.n_layers, 
-                        y = df['score'], 
-                        errorbar="sd",  
-                        width=width)
         
             
 
     
 
     
-def plot_results(data_dict, plot_type, dataset, regions, mode, x_axis, ylim, width, 
+def plot_results(data_dict, plot_type, dataset, regions, 
+                 ylim, width, 
+                 x_axis=None, 
                  palette=None,
+                 color = None,
                  show_legend= True, 
                  params = (6,4), 
                  name_dict= None, 
                  file_name=None):    
+    
+    assert plot_type in ['scores_vs_num_features','compare_models'], f"choose one of {['scores_vs_num_features','compare_models']} as the plot type"
     
     plt.clf()
     
@@ -116,23 +111,23 @@ def plot_results(data_dict, plot_type, dataset, regions, mode, x_axis, ylim, wid
     
     rcParams['figure.figsize'] = params        
     
-    df = make_pandas_df(data_dict, dataset, regions, mode, subjects)
+    df = make_pandas_df(data_dict, dataset, regions, subjects)
     
     if name_dict is not None:
         df['iden'] = df['iden'].map(name_dict)
-    df[x_axis] = df[x_axis].apply(lambda x: str(x))
+    
+    if x_axis is not None:
+        df[x_axis] = df[x_axis].apply(lambda x: str(x))
     
     match plot_type:
         case 'scores_vs_num_features':
             ax1 = scores_vs_num_features(df, x_axis, palette, width)
         case 'compare_models':
             ax1 = compare_models(df, color, palette, width)
-        case 'compare_layers':
-            ax1 = compare_layers(df, width)
             
             
     if show_legend:
-        ax1.legend(fontsize=15,loc='upper left')
+        ax1.legend(fontsize=20,loc='upper left')
     else:
         ax1.get_legend().remove()
         
@@ -146,7 +141,7 @@ def plot_results(data_dict, plot_type, dataset, regions, mode, x_axis, ylim, wid
     plt.ylim(ylim)
     
     if file_name is not None:
-        plt.savefig(f'{file_name}.png', dpi=300) 
+        plt.savefig(f'{file_name}.png', bbox_inches='tight', dpi=300, transparent=True) 
         
 
     

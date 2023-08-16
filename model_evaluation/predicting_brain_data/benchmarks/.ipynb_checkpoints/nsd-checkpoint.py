@@ -35,7 +35,7 @@ def nsd_scorer(model_name: str,
     
 
 
-        activations_data = xr.open_dataarray(os.path.join(CACHE,'activations',activations_identifier), engine='netcdf4')  
+        activations_data = xr.open_dataarray(os.path.join(CACHE,'activations',activations_identifier), engine='h5netcdf')  
         
         ds = xr.Dataset(data_vars=dict(r_value=(["neuroid"], [])),
                                 coords={'x':(['neuroid'], []), 
@@ -51,9 +51,8 @@ def nsd_scorer(model_name: str,
 
 
             ids_train, neural_data_train, var_name_train = load_nsd_data(mode ='unshared',
-                                   subject = subject,
-                                   region = region,
-                                   return_ids = True)
+                                                                         subject = subject,
+                                                                         region = region)
 
             X_train = filter_activations(data = activations_data, ids = ids_train)       
             y_train = neural_data_train[var_name_train].values
@@ -65,19 +64,18 @@ def nsd_scorer(model_name: str,
             best_alpha = st.mode(regression.alpha_)[0]
 
             ids_test, neural_data_test, var_name_test = load_nsd_data(mode ='shared',
-                                   subject = subject,
-                                   region = region,
-                                   return_ids = True)           
+                                                                      subject = subject,
+                                                                      region = region)           
 
             X_test = filter_activations(data = activations_data, ids = ids_test)                
             y_test = neural_data_test[var_name_test].values                    
             
 
             y_true, y_predicted = regression_shared_unshared(x_train=X_train,
-                                                         x_test=X_test,
-                                                         y_train=y_train,
-                                                         y_test=y_test,
-                                                         model= Ridge(alpha=best_alpha))
+                                                             x_test=X_test,
+                                                             y_train=y_train,
+                                                             y_test=y_test,
+                                                             model= Ridge(alpha=best_alpha))
             r = pearson_r(y_true,y_predicted)
 
             ds_tmp = xr.Dataset(data_vars=dict(r_value=(["neuroid"], r)),
@@ -98,7 +96,7 @@ def nsd_scorer(model_name: str,
     
 
     
-def load_nsd_data(mode: str, subject: int, region: str, return_ids: bool = True) -> torch.Tensor:
+def load_nsd_data(mode: str, subject: int, region: str) -> torch.Tensor:
         
         """
         
@@ -130,7 +128,7 @@ def load_nsd_data(mode: str, subject: int, region: str, return_ids: bool = True)
         var_name = f'allen2021.natural_scenes.preprocessing=fithrf_GLMdenoise_RR.roi={region}.z_score=session.average_across_reps=True.subject={subject}'
 
         
-        ds = xr.open_dataset(path)
+        ds = xr.open_dataset(path, engine='h5netcdf')
 
         if mode == 'unshared':
             data = ds.where(~ds.presentation.stimulus_id.isin(SHARED_IDS),drop=True)
@@ -141,13 +139,7 @@ def load_nsd_data(mode: str, subject: int, region: str, return_ids: bool = True)
             
         ids = list(data.presentation.stimulus_id.values)
             
-        
-        if return_ids:
-            return ids, data, var_name
-        
-        else:
-            return data, var_name
-           
+        return ids, data, var_name
         
         
             

@@ -2,10 +2,14 @@ import sys
 import os
 ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
-from config import CACHE 
-PATH_TO_PCA = os.path.join(ROOT,'pca')
-import functools
 
+from config import CACHE 
+import functools
+import pickle
+import torch
+import gc
+
+PATH_TO_PCA = os.path.join(CACHE,'pca')
 
 
 def register_pca_hook(x, PCA_FILE_NAME, n_components=256, device='cuda'):
@@ -37,6 +41,7 @@ def cache(file_name_func):
             
             result = func(self, *args, **kwargs)
             result.to_netcdf(cache_path)
+            gc.collect()
             return 
 
         return wrapper

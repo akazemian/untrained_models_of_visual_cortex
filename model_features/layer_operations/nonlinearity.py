@@ -9,10 +9,13 @@ class NonLinearity(nn.Module):
         super().__init__()
     
         self.operation = operation
+        self.operation_type = ['zscore', 'leaky_relu', 'relu', 'gelu', 'abs', 'none']
 
     
     def forward(self,x):
 
+        assert self.operation in self.operation_type, f'invalid operation type, choose one of {self.operation_type}'
+        
         match self.operation:
 
             case 'zscore':
@@ -39,3 +42,7 @@ class NonLinearity(nn.Module):
             
             case 'abs': 
                 return x.abs()
+            
+            
+            case 'none': 
+                return x         

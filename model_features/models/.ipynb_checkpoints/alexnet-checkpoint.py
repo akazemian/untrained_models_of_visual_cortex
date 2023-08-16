@@ -5,7 +5,8 @@ from torch import nn
 import pickle
 import os
 from model_features.layer_operations.output import Output
-
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
 model = torchvision.models.alexnet(pretrained=True)
 
 
@@ -15,8 +16,8 @@ class Model(nn.Module):
     
     def __init__(self,
                 features_layer: str,
-                global_mp: bool,
                 last:nn.Module,
+                 global_mp: bool=True,
                 ):
         
         super(Model, self).__init__()

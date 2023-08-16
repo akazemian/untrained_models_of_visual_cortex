@@ -2,17 +2,16 @@ import pickle
 import os
 import sys
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
-from data_tools.loading import load_places_cat_names, load_places_cat_labels
-from data_tools.config import PLACES_PATH
+from image_tools.loading import load_places_cat_names, load_places_cat_labels
+from config import PLACES_IMAGES
 import random
 random.seed(42)
-RESULTS_PATH = os.path.join(os.getenv('BONNER_ROOT_PATH'),'model_evaluation','results')
 
 
-CAT_SUBSET_PATH = os.path.join(PLACES_PATH,'categories_subset_100')
-if not os.path.exists(CAT_SUBSET_PATH):
+CAT_SUBSET_PATH = os.path.join(PLACES_IMAGES,'categories_subset_100')
+if not os.path.exists(PLACES_IMAGES):
     print('generating a subset of 100 categories')
-    with open(os.path.join(PLACES_PATH,'categories_places365.txt'),'r') as f:
+    with open(os.path.join(PLACES_IMAGES,'categories_places365.txt'),'r') as f:
         categories = f.read().split('\n/') 
     
     CAT_SUBSET = random.sample(range(0, len(num_categories)), 100)
