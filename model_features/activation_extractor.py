@@ -20,7 +20,7 @@ from image_tools.processing import ImageProcessor
 from config import CACHE 
 from model_features.utils import cache, register_pca_hook
 
-PATH_TO_PCA = os.path.join(ROOT,'pca')
+PATH_TO_PCA = os.path.join(CACHE,'pca')
 
 
 
@@ -90,7 +90,7 @@ class PytorchWrapper:
                 target_dict[name] = output
                 
             elif _hook == 'pca':
-                target_dict[name] = register_pca_hook(output, os.path.join(PATH_TO_PCA, f'{self.identifier}_pca'))
+                target_dict[name] = register_pca_hook(output, os.path.join(PATH_TO_PCA, f'{self.identifier}'))
 
         hook = layer.register_forward_hook(hook_function)
         return hook 
@@ -154,7 +154,6 @@ class Activations:
                  model: nn.Module,
                  layer_names: list,
                  dataset: str,
-                 mode: str,
                  hook:str = None,
                  device:str= 'cuda',
                  batch_size: int = 64,
@@ -165,10 +164,10 @@ class Activations:
         self.layer_names = layer_names
         self.dataset = dataset
         self.batch_size = batch_size
-        self.mode = mode
         self.hook = hook
         self.device = device
         self.compute_mode = compute_mode
+        
         assert self.compute_mode in ['fast','slow'], "invalid compute mode, please choose one of: 'fast', 'slow'"
 
         if not os.path.exists(os.path.join(CACHE,'activations')):
@@ -184,60 +183,60 @@ class Activations:
     def get_array(self,iden):       
                 
         wrapped_model = PytorchWrapper(model = self.model, identifier = iden, device=self.device)
-        image_paths = load_image_paths(name = self.dataset, mode = self.mode)
+        image_paths = load_image_paths(name = self.dataset)
         labels = get_image_labels(self.dataset, image_paths)
         
         if self.compute_mode=='fast':
-            images = ImageProcessor(device=self.device).process(image_paths=image_paths, 
-                                                             dataset=self.dataset)
-          
+                
+                images = ImageProcessor(device=self.device).process(image_paths=image_paths, 
+                                                                    dataset=self.dataset)
 
-            print('extracting activations...')
-            
-            i = 0   
-            ds_list = []
-            pbar = tqdm(total = len(image_paths)//self.batch_size)
-            
-            while i < len(image_paths):
+                print('extracting activations...')
 
-                batch_data_final = batch_activations(model=wrapped_model,
-                                                    images=images[i:i+self.batch_size, :],
-                                                    image_labels=labels[i:i+self.batch_size],
-                                                    layer_names = self.layer_names,
-                                                    _hook = self.hook,
-                                                    device=self.device,
-                                                    )
+                i = 0   
+                ds_list = []
+                pbar = tqdm(total = len(image_paths)//self.batch_size)
 
-                ds_list.append(batch_data_final)    
-                i += self.batch_size
-                pbar.update(1)
+                while i < len(image_paths):
 
-            pbar.close()
+                    batch_data_final = batch_activations(model=wrapped_model,
+                                                        images=images[i:i+self.batch_size, :],
+                                                        image_labels=labels[i:i+self.batch_size],
+                                                        layer_names = self.layer_names,
+                                                        _hook = self.hook,
+                                                        device=self.device,
+                                                        )
+
+                    ds_list.append(batch_data_final)    
+                    i += self.batch_size
+                    pbar.update(1)
+
+                pbar.close()
 
         else:
             
-            print('processing images and extracting activations ...')
-            
-            i = 0   
-            ds_list = []
-            pbar = tqdm(total = len(image_paths)//self.batch_size)
-            
-            while i < len(image_paths):
+                print('processing images and extracting activations ...')
 
-                batch_data_final = batch_activations(model=wrapped_model,
-                                                    image_paths=image_paths[i:i+self.batch_size],
-                                                    image_labels=labels[i:i+self.batch_size],
-                                                    layer_names = self.layer_names,
-                                                    dataset=self.dataset,
-                                                    batch_size=self.batch_size,
-                                                    _hook = self.hook,
-                                                    device=self.device)
+                i = 0   
+                ds_list = []
+                pbar = tqdm(total = len(image_paths)//self.batch_size)
 
-                ds_list.append(batch_data_final)    
-                i += self.batch_size
-                pbar.update(1)
+                while i < len(image_paths):
 
-            pbar.close()        
+                    batch_data_final = batch_activations(model=wrapped_model,
+                                                        image_paths=image_paths[i:i+self.batch_size],
+                                                        image_labels=labels[i:i+self.batch_size],
+                                                        layer_names = self.layer_names,
+                                                        dataset=self.dataset,
+                                                        batch_size=self.batch_size,
+                                                        _hook = self.hook,
+                                                        device=self.device)
+
+                    ds_list.append(batch_data_final)    
+                    i += self.batch_size
+                    pbar.update(1)
+
+                pbar.close()        
         
         data = xr.concat(ds_list,dim='presentation')
         

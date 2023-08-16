@@ -7,32 +7,12 @@ sys.path.append(ROOT)
 from config import PLACES_IMAGES, NSD_IMAGES, MAJAJ_IMAGES, MAJAJ_NAME_DICT 
 
 
-def load_nsd_images(mode:str='all'):
-     
-    modes = ['all', 'unshared', 'unshared_subset', 'shared']
-    assert mode in modes, f'unsupported mode. please choose one of {modes}'
-    
-    shared_ids = pickle.load(open(os.path.join(ROOT,'image_tools','nsd_ids_shared'), 'rb'))
-    
-    match mode:
-        
-        case 'shared': 
-            return sorted([os.path.join(NSD_IMAGES,image) for image in shared_ids])
-    
-        case 'unshared_subset': 
-            image_ids = pickle.load(open(os.path.join(ROOT,'image_tools','nsd_ids_unshared_sample=30000'),'rb')) 
-            return sorted([os.path.join(NSD_IMAGES,image) for image in image_ids])
-   
-        case 'unshared':
-            return sorted([os.path.join(NSD_IMAGES,image) for image in os.listdir(NSD_IMAGES) if image not in shared_ids]) 
-
-        case 'all':
-            return sorted([os.path.join(NSD_IMAGES,image) for image in os.listdir(NSD_IMAGES)])
+def load_nsd_images():
+    return sorted([os.path.join(NSD_IMAGES,image) for image in os.listdir(NSD_IMAGES)])
     
 
         
 def load_majaj_images():
-
     return sorted([f'{MAJAJ_IMAGES}/{image}' for image in os.listdir(MAJAJ_IMAGES)])
 
     
@@ -46,19 +26,15 @@ def load_places_images():
     
     
     
-def load_image_paths(name, mode, *args, **kwargs): 
+def load_image_paths(name, *args, **kwargs): 
     
     match name:
         
         case 'naturalscenes':
-                        
-            if mode == 'pca':
-                return load_nsd_images(mode='unshared_subset')
-            else:
-                return load_nsd_images()
+            return load_nsd_images()
 
         case 'majajhong':
-            return load_majajimages()
+            return load_majaj_images()
 
         case 'places':
             return load_places_images()

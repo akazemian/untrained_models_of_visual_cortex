@@ -9,17 +9,15 @@ import pickle
 import xarray as xr
 
 # local libraries
-from config import VAL_IMAGES_SUBSET, RESULTS_PATH
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
-from data_tools.config import ACTIVATIONS_PATH
-from model_evaluation.image_classification.tools import get_pairwise_performance, normalize
+from model_evaluation.image_classification._config import VAL_IMAGES_SUBSET
+from model_evaluation.image_classification.tools import PairwiseClassification, normalize
 from model_evaluation.utils import get_activations_iden
 from model_features.activation_extractor import Activations
+from config import CACHE
 
 # models
-from model_features.models.expansion_3_layers import ExpansionModel
-from model_features.models.alexnet import Alexnet
-
+from model_features.models.models import load_model_dict
 
 
 # local vars
@@ -29,41 +27,22 @@ HOOK = None
 
 
 # define models in a dict
-model_dict = {
-    
-    'expansion':{
-                'iden':'expansion_model_test',
-                'model':ExpansionModel(filters_3=10000).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':10000,
-    },
-    
-    'alexnet':{  
-                'iden':'alexnet_conv5',
-                'model':Alexnet().Build(),
-                'layers': ['last'], 
-                'num_layers':5,
-                'num_features':256,
-    }
-}
+models = ['expansion_10000', 'alexnet_conv5']
 
-
-for model_info in model_dict.values():
+for model_name in models:
     
-    activations_iden = get_activations_iden(model_info=model_info, dataset=DATASET, mode=None)
+    print(model_name)
+    model_info = load_model_dict(model_name)
+
+    activations_iden = get_activations_iden(model_info=model_info, dataset=DATASET)
     
     activations = Activations(model=model_info['model'],
                             layer_names=model_info['layers'],
                             dataset=DATASET,
-                            mode = None,
                             hook = HOOK,
-                            batch_size = 50)
-
-
-    # extract model activations
-    activations.get_array(ACTIVATIONS_PATH,activations_iden) 
-    data = xr.open_dataset(os.path.join(ACTIVATIONS_PATH,activations_iden))
+                            batch_size = 50).get_array(activations_iden) 
+    
+    data = xr.open_dataset(os.path.join(CACHE,'activations',activations_iden))
     
     # normalize activations for image classification
     data.x.values = normalize(data.x.values)
@@ -72,11 +51,6 @@ for model_info in model_dict.values():
     data = data.set_xindex('stimulus_id')
     data_subset = data.sel(stimulus_id = VAL_IMAGES_SUBSET)
 
-
     # get pairwise classification performance
-    performance_dict = get_pairwise_performance(data_subset)
-
-    with open(os.path.join(RESULTS_PATH,'classification',activations_iden),'wb') as f:
-        pickle.dump(performance_dict,f)
-
-    print(f'pairwaise performance is saved in {os.path.join(RESULTS_PATH,"classification",activations_iden)}')
+    PairwiseClassification().get_performance(iden = activations_iden, 
+                                            data = data_subset)

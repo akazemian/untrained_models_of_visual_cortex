@@ -5,7 +5,8 @@ from model_features.layer_operations.convolution import Convolution, initialize_
 from model_features.layer_operations.output import Output
 from model_features.layer_operations.blurpool import BlurPool
 from model_features.layer_operations.nonlinearity import NonLinearity
-                        
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)                        
 
         
 class Model(nn.Module):

@@ -16,23 +16,22 @@ import random
 random.seed(0)
 import scipy.stats as st
 
+
 ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
-from config import CACHE, MAJAJ_NEURAL_DATA   
-
-
+from config import CACHE, MAJAJ_DATA   
 DATASET = 'majajhong'
 SUBJECTS = ['Chabo','Tito']
-TRAIN_IDS = os.path.join(ROOT,'train_ids_majajhong')
-TEST_IDS = os.path.join(ROOT,'test_ids_majajhong')
+ALPHA_RANGE = [10**i for i in range(1,10)]
 
+TRAIN_IDS =  pickle.load(open(os.path.join(ROOT,'model_evaluation/predicting_brain_data/benchmarks','majaj_train_ids'), "rb"))
+TEST_IDS =  pickle.load(open(os.path.join(ROOT,'model_evaluation/predicting_brain_data/benchmarks','majaj_test_ids'), "rb"))
 
     
-def majajhong_scorer_end_to_end(model_name: str, 
+def majajhong_scorer(model_name: str, 
                            activations_identifier: str, 
                            scores_identifier: str, 
-                           region: str,
-                           alpha_values: list):
+                           region: str):
     
 
         
@@ -54,7 +53,7 @@ def majajhong_scorer_end_to_end(model_name: str,
             y_test = load_majaj_data(subject= subject, region= region, mode = 'test')
 
 
-            regression = RidgeCVMod(alphas=alpha_values, store_cv_values = False,
+            regression = RidgeCVMod(alphas=ALPHA_RANGE, store_cv_values = False,
                                   alpha_per_target = True, scoring = 'pearson_r')
             regression.fit(X_train, y_train)
             best_alpha = st.mode(regression.alpha_)[0]
@@ -112,20 +111,17 @@ def load_majaj_data(subject: str, region: str, mode: bool = None) -> torch.Tenso
         """
         
         file_name = f'SUBJECT_{subject}_REGION_{region}'
-        file_path = os.path.join(NEURAL_DATA_PATH,DATASET,file_name)
-        neural_data = xr.open_dataset(file_path)
+        file_path = os.path.join(MAJAJ_DATA,file_name)
+        neural_data = xr.open_dataset(file_path, engine='netcdf4')
 
         
         if mode == 'train':
-            with open(TRAIN_IDS, "rb") as fp:   
-                train_ids = pickle.load(fp) 
-            neural_data = neural_data.where(neural_data.stimulus_id.isin(train_ids),drop=True)
+
+            neural_data = neural_data.where(neural_data.stimulus_id.isin(TRAIN_IDS),drop=True)
         
         
         elif mode == 'test':
-            with open(TEST_IDS, "rb") as fp:   
-                test_ids = pickle.load(fp) 
-            neural_data = neural_data.where(neural_data.stimulus_id.isin(test_ids),drop=True)
+            neural_data = neural_data.where(neural_data.stimulus_id.isin(TEST_IDS),drop=True)
             
         
         neural_data = neural_data.sortby('stimulus_id', ascending=True)
@@ -161,24 +157,15 @@ def load_activations(activations_identifier: str, mode: bool = None) -> torch.Te
         
         """
         
-        activations_data = xr.open_dataset(os.path.join(ACTIVATIONS_PATH,activations_identifier))
+        activations_data = xr.open_dataset(os.path.join(os.path.join(CACHE,'activations',activations_identifier)), engine='netcdf4')
         activations_data = activations_data.set_index({'presentation':'stimulus_id'})
 
-
         if mode == 'train':
-
-            with open(TRAIN_IDS, "rb") as fp:   
-                train_ids = pickle.load(fp)
-            activations_data = activations_data.sel(presentation=train_ids)
+            activations_data = activations_data.sel(presentation=TRAIN_IDS)
         
         
-        elif mode == 'test':
-
-            with open(TEST_IDS, "rb") as fp:   
-                test_ids = pickle.load(fp)
-            activations_data = activations_data.sel(presentation=test_ids)    
-        
-        
+        elif mode == 'test':            
+            activations_data = activations_data.sel(presentation=TEST_IDS)           
         
         activations_data = activations_data.sortby('presentation', ascending=True)
         

@@ -71,7 +71,7 @@ class FullyConnected3L:
         lin3 = nn.Linear(self.features_2, self.features_3)
         
         
-        nl = NonLinearity('abs')
+        nl = NonLinearity('relu')
         last = Output()
         
         return Model(lin1, lin2, lin3, nl, last)

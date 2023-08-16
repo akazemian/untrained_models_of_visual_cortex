@@ -6,7 +6,6 @@ import os
 import sys
 import os 
 import sys
-from joblib import load, dump
 import functools
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
@@ -32,6 +31,7 @@ def cache(file_name_func):
             cache_path = os.path.join(CACHE, file_name)
             
             if os.path.exists(cache_path):
+                print('loading processed images...')
                 with open(cache_path, 'rb') as f:
                     return pickle.load(f)
             
@@ -51,30 +51,37 @@ class ImageProcessor:
                 
         self.device = device
         self.batch_size = batch_size
+        self.im_size = 224
+        self.transform = transforms.Compose([
+            transforms.Resize((self.im_size, self.im_size)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)])
+  
+
         
         if not os.path.exists(os.path.join(CACHE,'preprocessed_images')):
             os.mkdir(os.path.join(CACHE,'preprocessed_images'))
         
         
     @staticmethod
-    def cache_file(image_paths, dataset, image_size):
-        name = f'{dataset}_size={image_size}x{image_size}_num_images={len(image_paths)}'
+    def cache_file(image_paths, dataset):
+        name = f'{dataset}_num_images={len(image_paths)}'
         return os.path.join('preprocessed_images',name)
 
     
     @cache(cache_file)
-    def process(self, image_paths, dataset, image_size):        
+    def process(self, image_paths, dataset):        
 
         print('processing images...')
-        transform = transforms.Compose([
-            transforms.Resize((image_size, image_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)])
-  
-        dataset = TransformDataset(image_paths, transform=transform)
+        dataset = TransformDataset(image_paths, transform=self.transform)
         dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False, num_workers=2)
-        images = torch.cat([batch for batch in tqdm(dataloader)],dim=0)
-        return images
+        return torch.cat([batch for batch in tqdm(dataloader)],dim=0)
+    
+
+    def process_batch(self, image_paths, dataset):
+        dataset = TransformDataset(image_paths, transform=self.transform)
+        dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False, num_workers=2)
+        return torch.cat([batch for batch in dataloader],dim=0)
 
 
 

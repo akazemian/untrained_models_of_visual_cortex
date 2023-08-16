@@ -1,9 +1,0 @@
-# load models
-
-from model_features.models.expansion_3_layers import Expansion
-from model_features.models.alexnet_untrained import AlexnetU
-from model_features.models.alexnet import Alexnet
-from model_features.models.expansion_3_layers_linear import ExpansionLinear
-from model_features.models.fully_connected import FullyConnected
-from model_features.models.fully_connected_3_layers import FullyConnected3L
-from model_features.models.fully_random import FullyRandom

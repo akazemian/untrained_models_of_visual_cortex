@@ -21,12 +21,13 @@ from tqdm import tqdm
 import pickle
 import sys
 import os
+import functools
 
 # local vars
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
-from config import CAT_SUBSET
-from data_tools.loading import load_places_cat_labels
-
+from image_tools.loading import load_places_cat_labels
+from model_evaluation.image_classification._config import CAT_SUBSET
+from config import CACHE
 
 
 def create_splits(n: int, num_folds: int = 5, shuffle: bool = True): 
@@ -101,26 +102,63 @@ def cv_performance(X, y, num_folds=5):
 
 
 
-def get_pairwise_performance(data):
+def cache(file_name_func):
+
+    def decorator(func):
+        
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+
+            file_name = file_name_func(*args, **kwargs) 
+            cache_path = os.path.join(CACHE, file_name)
+            
+            if os.path.exists(cache_path):
+                return 
+            
+            result = func(self, *args, **kwargs)
+            with open(cache_path,'wb') as f:
+                pickle.dump(result,f)
+            print('classification results are saved in cache')
+            return 
+
+        return wrapper
+    return decorator
+
+
+
+class PairwiseClassification():
     
-    performance_dict = {}
-    pairs = []
+    def __init__(self):
+        
+        if not os.path.exists(os.path.join(CACHE,'classification')):
+            os.mkdir(os.path.join(CACHE,'classification'))
+
+    @staticmethod
+    def cache_file(iden, data):
+        return os.path.join('classification',iden)
+
     
-    for cat_1 in tqdm(CAT_SUBSET):
-        for cat_2 in CAT_SUBSET:
+    @cache(cache_file)
+    def get_performance(self, iden, data):
+    
+        performance_dict = {}
+        pairs = []
 
-            if {cat_1, cat_2} in pairs:
-                pass
+        for cat_1 in tqdm(CAT_SUBSET):
+            for cat_2 in CAT_SUBSET:
 
-            elif cat_1 == cat_2:
-                performance_dict[(cat_1,cat_2)] = 1
+                if {cat_1, cat_2} in pairs:
+                    pass
 
-            else:
-                X, y = get_Xy(data, [cat_1,cat_2])
-                performance_dict[(cat_1,cat_2)] = cv_performance(X, y)
-                pairs.append({cat_1, cat_2})
-                
-    return performance_dict
+                elif cat_1 == cat_2:
+                    performance_dict[(cat_1,cat_2)] = 1
+
+                else:
+                    X, y = get_Xy(data, [cat_1,cat_2])
+                    performance_dict[(cat_1,cat_2)] = cv_performance(X, y)
+                    pairs.append({cat_1, cat_2})
+
+        return performance_dict
 
 
 
