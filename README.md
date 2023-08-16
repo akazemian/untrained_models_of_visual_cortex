@@ -11,7 +11,9 @@ export BONNER_ROOT_PATH='<local path to this repo>'
 ```
 - navigate to the local repository, in the config.py file, set all the paths
 - install the required libraries:
-``` pip install -r requirements.txt```
+```
+pip install -r requirements.txt
+```
 
 # The (dimensionality) Expansion Model
 
