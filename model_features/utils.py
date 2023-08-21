@@ -9,7 +9,6 @@ import pickle
 import torch
 import gc
 
-PATH_TO_PCA = os.path.join(CACHE,'pca')
 
 
 def register_pca_hook(x, PCA_FILE_NAME, n_components=256, device='cuda'):

@@ -127,7 +127,7 @@ def plot_results(data_dict, plot_type, dataset, regions,
             
             
     if show_legend:
-        ax1.legend(fontsize=20,loc='upper left')
+        ax1.legend(fontsize=30,loc='upper left')
     else:
         ax1.get_legend().remove()
         
