@@ -17,17 +17,18 @@ import gc
 # REGIONS = ['V4','IT']
 
 DATASET = 'naturalscenes'
-REGIONS = ['V1','V2','V3','V4','general']
+REGIONS = ['V1']#,'V2','V3','V4','general']
 HOOK = None
 DEVICE = 'cuda' 
     
-models = ['expansion_10','expansion_100','expansion_1000','expansion_10000','expansion_first_256_pcs',
-          'expansion_linear','fully_random','fully_connected_10','fully_connected_100','fully_connected_1000',
-          'fully_connected_10000','fully_connected_3_layers_10','fully_connected_3_layers_100',
-          'fully_connected_3_layers_1000','fully_connected_3_layers_10000','alexnet_conv1','alexnet_conv2',
-          'alexnet_conv3','alexnet_conv4','alexnet_conv5','alexnet_test','alexnet_untrained_conv1',
-          'alexnet_untrained_conv2','alexnet_untrained_conv3','alexnet_untrained_conv4',
-          'alexnet_untrained_conv5']     
+models = ['expansion_10']
+#,'expansion_100','expansion_1000','expansion_10000','expansion_first_256_pcs',
+        #   'expansion_linear','fully_random','fully_connected_10','fully_connected_100','fully_connected_1000',
+        #   'fully_connected_10000','fully_connected_3_layers_10','fully_connected_3_layers_100',
+        #   'fully_connected_3_layers_1000','fully_connected_3_layers_10000','alexnet_conv1','alexnet_conv2',
+        #   'alexnet_conv3','alexnet_conv4','alexnet_conv5','alexnet_test','alexnet_untrained_conv1',
+        #   'alexnet_untrained_conv2','alexnet_untrained_conv3','alexnet_untrained_conv4',
+        #   'alexnet_untrained_conv5']     
  
 
 
