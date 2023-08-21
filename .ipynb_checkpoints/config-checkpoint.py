@@ -1,11 +1,10 @@
-
 import os
 
 # naturalscenes data
 NSD_IMAGES = '/data/shared/datasets/allen2021.natural_scenes/images'
 NSD_NEURAL_DATA = '/data/shared/for_atlas'
 
-#majaj data
+#majaj neural data
 MAJAJ_IMAGES = '/data/shared/brainio/brain-score/dicarlo.hvm-public'
 MAJAJ_DATA = '/data/atlas/neural_data/majajhong'
 MAJAJ_NAME_DICT = '/data/shared/brainio/brain-score/image_dicarlo_hvm-public.csv'
@@ -13,8 +12,8 @@ MAJAJ_NAME_DICT = '/data/shared/brainio/brain-score/image_dicarlo_hvm-public.csv
 # places dataset for image classification
 PLACES_IMAGES = '/data/atlas/datasets/places' # places 
 
-CACHE_DIR = '/data/atlas'
-CACHE = os.path.join(CACHE_DIR,'.cache')
+# where everything will be cached
+CACHE = '/data/atlas/.cache'
 
 
 # # naturalscenes data
