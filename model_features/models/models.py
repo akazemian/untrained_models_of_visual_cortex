@@ -56,7 +56,7 @@ def load_model_dict(name):
 
         case 'expansion_first_256_pcs': 
             return {
-                'iden':'expansion_model_first_256_pcs',
+                'iden':'expansion_model',
                 'model':Expansion(filters_3=10000).Build(),
                 'layers': ['last'], 
                 'num_layers':3,

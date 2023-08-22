@@ -18,10 +18,9 @@ import gc
 
 DATASET = 'naturalscenes'
 REGIONS = ['V1']#,'V2','V3','V4','general']
-HOOK = None
 DEVICE = 'cuda' 
     
-models = ['expansion_10']
+models = ['expansion_first_256_pcs']
 #,'expansion_100','expansion_1000','expansion_10000','expansion_first_256_pcs',
         #   'expansion_linear','fully_random','fully_connected_10','fully_connected_100','fully_connected_1000',
         #   'fully_connected_10000','fully_connected_3_layers_10','fully_connected_3_layers_100',
@@ -34,9 +33,16 @@ models = ['expansion_10']
 
 for model_name in models:
     
-    print(model_name)
+    print('model: ',model_name)
     model_info = load_model_dict(model_name)
+    model_info['hook'] = None
     
+
+    if model_name == 'expansion_first_256_pcs':
+        model_info['hook'] = 'pca'
+        os.system('python model_evaluation/eigen_analysis/compute_pcs.py')
+    
+
     for region in REGIONS:
         
         activations_identifier = get_activations_iden(model_info, DATASET)
@@ -44,7 +50,7 @@ for model_name in models:
         Activations(model=model_info['model'],
                     layer_names=model_info['layers'],
                     dataset=DATASET,
-                    hook = HOOK,
+                    hook = model_info['hook'],
                     device= DEVICE,
                     batch_size = 50,
                     compute_mode = 'slow').get_array(activations_identifier)   
