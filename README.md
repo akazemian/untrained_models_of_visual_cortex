@@ -55,7 +55,7 @@ The ouput is a tensor of size NxP, where N is the number of image and P is the n
 
 # Image Classification 
 - Navigate to the local repo directory 
-- Eun the following code:
+- Run the following:
 ```
 python model_evaluation/image_classification/classification.py
 ```
