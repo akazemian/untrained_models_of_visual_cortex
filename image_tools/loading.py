@@ -3,10 +3,10 @@ import pandas as pd
 import sys
 ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
-from config import PLACES_IMAGES, NSD_IMAGES, MAJAJ_IMAGES, MAJAJ_NAME_DICT 
 
 
 def load_nsd_images():
+    from config import NSD_IMAGES
     """
     Loads the file paths of natural scene images from the NSD_IMAGES directory.
 
@@ -17,6 +17,7 @@ def load_nsd_images():
     
         
 def load_majaj_images():
+    from config import MAJAJ_IMAGES
     """
     Loads the file paths of images from the MAJAJ_IMAGES directory.
 
@@ -27,6 +28,7 @@ def load_majaj_images():
     
     
 def load_places_images():
+    from config import PLACES_IMAGES
     """
     Loads the file paths of validation images from the PLACES_IMAGES directory.
 
@@ -67,6 +69,7 @@ def load_image_paths(name):
 
 def get_image_labels(dataset, images):
     
+    
     """
     Get image labels based on a specified dataset.
 
@@ -85,6 +88,7 @@ def get_image_labels(dataset, images):
 
         
         case 'majajhong':
+            from config import MAJAJ_NAME_DICT 
             name_dict = pd.read_csv(MAJAJ_NAME_DICT).set_index('image_file_name')['image_id'].to_dict()
             return [name_dict[os.path.basename(i)] for i in images]
 
@@ -95,6 +99,7 @@ def get_image_labels(dataset, images):
     
 
 def load_places_cat_labels():
+    from config import PLACES_IMAGES
     """
     Load category labels for placees dataset.
 
