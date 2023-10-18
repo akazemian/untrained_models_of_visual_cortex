@@ -16,7 +16,6 @@ import scipy
 from abc import ABC, abstractmethod
 import torch
 import os
-PATH_TO_BETAS = '/data/atlas/regression_betas'
 
 
 
@@ -224,7 +223,7 @@ def regression_shared_unshared(
     x_test: torch.Tensor,
     y_train: torch.Tensor,
     y_test: torch.Tensor,
-    model: Regression = Ridge(),
+    model: Regression,
     indices_train=None,
     indices_test= None,
 ):
