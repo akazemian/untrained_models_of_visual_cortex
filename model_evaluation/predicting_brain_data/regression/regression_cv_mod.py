@@ -1,6 +1,6 @@
 
 """
-The following is a modification of sklearn's ridge_gcv and is taken from Collin Conwell's DeepDive repository (https://github.com/ColinConwell/DeepDive.git)"
+The following is a modification of sklearn's ridge_gcv and is taken from Collin Conwell's DeepJuice repository (https://github.com/ColinConwell/DeepDive.git)"
 """
 
 

@@ -17,14 +17,14 @@ class Model(nn.Module):
     def __init__(self,
                 features_layer: str,
                 last:nn.Module,
-                 global_mp: bool=True,
+                 gpool: bool=True,
                 ):
         
         super(Model, self).__init__()
         
 
         self.features_layer = features_layer
-        self.global_mp = global_mp
+        self.gpool = gpool
         self.last = last
         
         
@@ -44,7 +44,7 @@ class Model(nn.Module):
         
         x = activation[f'features.{self.features_layer}']   
                     
-        if self.global_mp:
+        if self.gpool:
             H = x.shape[-1]
             gmp = nn.MaxPool2d(H)
             x = gmp(x)
@@ -60,10 +60,10 @@ class Model(nn.Module):
 class Alexnet:
 
     
-    def __init__(self, features_layer:str = 12, global_mp:int = True):
+    def __init__(self, features_layer:str = 12, gpool:int = True):
     
         self.features_layer = features_layer
-        self.global_mp = global_mp
+        self.gpool = gpool
     
     def Build(self):
     
@@ -71,5 +71,5 @@ class Alexnet:
         
         return Model(    
                 features_layer = self.features_layer,
-                global_mp = self.global_mp,
+                gpool = self.gpool,
                 last = last)

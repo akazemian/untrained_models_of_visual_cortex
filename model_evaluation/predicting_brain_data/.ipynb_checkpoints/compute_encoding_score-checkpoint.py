@@ -12,40 +12,57 @@ from model_features.models.models import load_model_dict
 import gc
 
 # define local variables
+
 # DATASET = 'majajhong'
 # REGIONS = ['V4','IT']
 
 DATASET = 'naturalscenes'
-REGIONS = ['V1','V2','V3','V4']
-HOOK = None
+REGIONS = ['V1','V2','V3','V4','general']
+
 DEVICE = 'cuda' 
-    
-models = ['alexnet_conv1','alexnet_conv2','alexnet_conv3','alexnet_conv4','alexnet_conv5','alexnet_test','alexnet_untrained_conv1','alexnet_untrained_conv2','alexnet_untrained_conv3','alexnet_untrained_conv4','alexnet_untrained_conv5']     
- 
+GLOBAL_POOL = True 
+models = [
+          'expansion_linear','fully_random','fully_connected_10','fully_connected_100','fully_connected_1000',
+          'fully_connected_10000','fully_connected_3_layers_10','fully_connected_3_layers_100',
+          'fully_connected_3_layers_1000','fully_connected_3_layers_10000','expansion_first_256_pcs']
+        #   'expansion_10','expansion_100','expansion_1000','expansion_10000','expansion_first_256_pcs',
+        #   'expansion_linear','fully_random','fully_connected_10','fully_connected_100','fully_connected_1000',
+        #   'fully_connected_10000','fully_connected_3_layers_10','fully_connected_3_layers_100',
+        #   'fully_connected_3_layers_1000','fully_connected_3_layers_10000','alexnet_conv1','alexnet_conv2',
+        #   'alexnet_conv3','alexnet_conv4','alexnet_conv5','alexnet_test','alexnet_untrained_conv1',
+        #   'alexnet_untrained_conv2','alexnet_untrained_conv3','alexnet_untrained_conv4',
+        #   'alexnet_untrained_conv5']     
 
-
+        
 for model_name in models:
     
-    print(model_name)
-    model_info = load_model_dict(model_name)
+    print('model: ',model_name)
+    model_info = load_model_dict(model_name, gpool=GLOBAL_POOL)
+    model_info['hook'] = None
     
+    
+    if model_name == 'expansion_first_256_pcs':
+        model_info['hook'] = 'pca'
+        os.system('python model_evaluation/eigen_analysis/compute_pcs.py')
+    
+
     for region in REGIONS:
         
-        activations_identifier = get_activations_iden(model_info, DATASET)
+        activations_identifier = get_activations_iden(model_info, DATASET) 
 
         Activations(model=model_info['model'],
                     layer_names=model_info['layers'],
                     dataset=DATASET,
-                    hook = HOOK,
+                    hook = model_info['hook'],
                     device= DEVICE,
-                    batch_size = 50).get_array(activations_identifier)   
+                    batch_size = 1,
+                    compute_mode = 'fast').get_array(activations_identifier)   
 
-        scores_identifier = activations_identifier + '_' + region
 
         EncodingScore(model_name=model_info['iden'],
                        activations_identifier=activations_identifier,
                        dataset=DATASET,
-                       region=region).get_scores(scores_identifier=scores_identifier)
+                       region=region).get_scores()
         gc.collect()
 
 

@@ -41,7 +41,7 @@ for model_name in models:
                             dataset=DATASET,
                             hook = HOOK,
                             batch_size = 50,
-                            compute_mode = 'slow').get_array(activations_iden) 
+                            compute_mode = 'fast').get_array(activations_iden) 
     
     data = xr.open_dataset(os.path.join(CACHE,'activations',activations_iden))
     

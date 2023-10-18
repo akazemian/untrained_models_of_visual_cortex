@@ -11,20 +11,12 @@ torch.cuda.manual_seed(0)
 model = torchvision.models.alexnet(pretrained=False)
 
 
-def load_pca_file(identifier):
-
-    file = open(os.path.join(PATH_TO_PCA,identifier), 'rb')
-    _pca = pickle.load(file)  
-    file.close()
-    return _pca
-
-
 class Model(nn.Module):
     
     
     def __init__(self,
                 features_layer:int,
-                global_mp: bool,
+                gpool: bool,
                 last:nn.Module,
                 ):
         
@@ -32,7 +24,7 @@ class Model(nn.Module):
         
 
         self.features_layer = features_layer
-        self.global_mp = global_mp
+        self.gpool = gpool
         self.last = last
         
         
@@ -52,7 +44,7 @@ class Model(nn.Module):
         
         x = activation[f'features.{self.features_layer}']   
                     
-        if self.global_mp:
+        if self.gpool:
             H = x.shape[-1]
             gmp = nn.MaxPool2d(H)
             x = gmp(x)
@@ -71,10 +63,10 @@ class AlexnetU:
 
     
     def __init__(self, features_layer:int = 12, 
-                 global_mp:int = True):
+                 gpool:int = True):
     
         self.features_layer = features_layer
-        self.global_mp = global_mp
+        self.gpool = gpool
     
     def Build(self):
 
@@ -82,5 +74,5 @@ class AlexnetU:
         
         return Model(    
                 features_layer = self.features_layer,
-                global_mp = self.global_mp,
+                gpool = self.gpool,
                 last = last)

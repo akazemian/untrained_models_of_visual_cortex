@@ -27,7 +27,7 @@ HOOK = None
 
 
 # define models in a dict
-models = ['expansion_10000', 'alexnet_conv5']
+models = ['expansion_10000'] #, 'alexnet_conv5']
 
 for model_name in models:
     
@@ -40,7 +40,8 @@ for model_name in models:
                             layer_names=model_info['layers'],
                             dataset=DATASET,
                             hook = HOOK,
-                            batch_size = 50).get_array(activations_iden) 
+                            batch_size = 50,
+                            compute_mode = 'fast').get_array(activations_iden) 
     
     data = xr.open_dataset(os.path.join(CACHE,'activations',activations_iden))
     
