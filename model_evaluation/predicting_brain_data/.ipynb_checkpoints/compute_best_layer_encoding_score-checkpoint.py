@@ -6,7 +6,7 @@ warnings.filterwarnings('ignore')
 
 from image_tools.processing import *
 from model_evaluation.predicting_brain_data.regression.scorer import EncodingScore
-from model_evaluation.utils import get_activations_iden
+from model_evaluation.utils import get_activations_iden, get_best_layer_iden
 from model_features.activation_extractor import Activations
 from model_features.models.models import load_model_dict
 import gc
@@ -21,12 +21,14 @@ REGIONS = ['V4','IT']
 
 DEVICE = 'cuda' 
 GLOBAL_POOL = False
-models = ['alexnet_conv1','alexnet_conv2','alexnet_conv3','alexnet_conv4','alexnet_conv5']
 
+model_name = 'alexnet'
+models = ['alexnet_conv1','alexnet_conv2','alexnet_conv3','alexnet_conv4','alexnet_conv5']
+    
+# model_name = 'alexnet_untrained'
 # models = ['alexnet_untrained_conv1',
 #           'alexnet_untrained_conv2','alexnet_untrained_conv3','alexnet_untrained_conv4',
 #           'alexnet_untrained_conv5']     
-
         
 idens = []
 
@@ -53,13 +55,13 @@ for model_name in models:
         
 for region in REGIONS:
     
-        print(region)
-
+        scores_iden = get_best_layer_iden(model_name, DATASET, region, GLOBAL_POOL)
+        
         encoding_score = EncodingScore(model_name=model_info['iden'],
                         activations_identifier=idens,
                         dataset=DATASET,
                         region=region,
-                        best_layer=True).get_scores()
+                        best_layer=True).get_scores(scores_iden)
                         
         gc.collect()
 

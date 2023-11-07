@@ -30,6 +30,7 @@ for model_name in models:
     model_info = load_model_dict(model_name)
     
     activations_identifier = get_activations_iden(model_info=model_info, dataset= DATASET)
+    print(activations_identifier)
     
     Activations(model=model_info['model'],
                     layer_names=model_info['layers'],
@@ -38,7 +39,7 @@ for model_name in models:
                     batch_size = 80).get_array(activations_identifier) 
 
     data = xr.open_dataarray(os.path.join(CACHE,'activations',activations_identifier),engine='netcdf4')
-    
+        
     activations_identifier = activations_identifier + '_principal_components'
     
     if DATASET == 'naturalscenes':

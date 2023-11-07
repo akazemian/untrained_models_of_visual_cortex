@@ -17,14 +17,13 @@ import gc
 # REGIONS = ['V4','IT']
 
 DATASET = 'naturalscenes'
-REGIONS = ['V1','V2','V3','V4','general']
+REGIONS = ['general']
 
 DEVICE = 'cuda' 
 GLOBAL_POOL = True 
-models = [
-          'expansion_linear','fully_random','fully_connected_10','fully_connected_100','fully_connected_1000',
-          'fully_connected_10000','fully_connected_3_layers_10','fully_connected_3_layers_100',
-          'fully_connected_3_layers_1000','fully_connected_3_layers_10000','expansion_first_256_pcs']
+models = ['expansion_first_256_pcs','alexnet_conv1','alexnet_conv3','alexnet_conv5',
+          'alexnet_untrained_conv1', 'alexnet_untrained_conv3','alexnet_untrained_conv5'
+          ]
         #   'expansion_10','expansion_100','expansion_1000','expansion_10000','expansion_first_256_pcs',
         #   'expansion_linear','fully_random','fully_connected_10','fully_connected_100','fully_connected_1000',
         #   'fully_connected_10000','fully_connected_3_layers_10','fully_connected_3_layers_100',
@@ -43,7 +42,7 @@ for model_name in models:
     
     if model_name == 'expansion_first_256_pcs':
         model_info['hook'] = 'pca'
-        os.system('python model_evaluation/eigen_analysis/compute_pcs.py')
+        os.system('python Desktop/random_models_of_visual_cortex/model_evaluation/eigen_analysis/compute_pcs.py')
     
 
     for region in REGIONS:
@@ -55,14 +54,17 @@ for model_name in models:
                     dataset=DATASET,
                     hook = model_info['hook'],
                     device= DEVICE,
-                    batch_size = 1,
+                    batch_size = 80,
                     compute_mode = 'fast').get_array(activations_identifier)   
 
 
+        scores_iden = activations_identifier + '_' + region
+        
         EncodingScore(model_name=model_info['iden'],
                        activations_identifier=activations_identifier,
                        dataset=DATASET,
-                       region=region).get_scores()
+                       region=region,
+                       device= DEVICE).get_scores(scores_iden)
         gc.collect()
 
 
