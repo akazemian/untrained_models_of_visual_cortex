@@ -21,6 +21,7 @@ def cache(file_name_func):
             cache_path = os.path.join(CACHE, file_name)
             
             if os.path.exists(cache_path):
+                print('pca results are already saved in cache')
                 return 
             
             result = func(self, *args, **kwargs)

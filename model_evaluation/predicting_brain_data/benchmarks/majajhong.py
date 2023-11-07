@@ -31,8 +31,7 @@ TEST_IDS =  pickle.load(open(os.path.join(ROOT,'model_evaluation/predicting_brai
     
     
     
-def majajhong_scorer_cv(model_name: str, 
-                       activations_identifier: str, 
+def majajhong_scorer_cv(activations_identifier: str, 
                        region: str):
 
         
@@ -75,9 +74,9 @@ def majajhong_scorer_cv(model_name: str,
         
         
         
-def majajhong_scorer(model_name: str, 
-                       activations_identifier: str, 
-                       region: str):
+def majajhong_scorer(activations_identifier: str, 
+                       region: str,
+                       device:str):
 
         
         ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
@@ -102,7 +101,8 @@ def majajhong_scorer(model_name: str,
                 scale_X=False,
                 scoring='pearsonr',
                 store_cv_values=False,
-                alpha_per_target=False)
+                alpha_per_target=False,
+                device = device)
             
             regression.fit(X_train, y_train)
             best_alpha = float(regression.alpha_)
@@ -133,7 +133,7 @@ def majajhong_scorer(model_name: str,
         
         
     
-def get_best_model_layer(activations_identifier, region):
+def get_best_model_layer(activations_identifier, region, device):
     
         
         t = 0
@@ -148,7 +148,7 @@ def get_best_model_layer(activations_identifier, region):
             
             for subject in tqdm(range(len(SUBJECTS))):
 
-                regression = fit_model_for_subject_roi(SUBJECTS[subject], region, activations_data)                
+                regression = fit_model_for_subject_roi(SUBJECTS[subject], region, activations_data, device)                
                 scores.append(regression.score_.mean())
                 alphas.append(float(regression.alpha_))
             
@@ -175,7 +175,7 @@ def get_best_model_layer(activations_identifier, region):
     
     
     
-def majajhong_get_best_layer_scores(activations_identifier: list, region: str):
+def majajhong_get_best_layer_scores(activations_identifier: list, region: str, device:str):
     
         ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
                                 coords={'subject': (['r_values'], []),
@@ -183,7 +183,7 @@ def majajhong_get_best_layer_scores(activations_identifier: list, region: str):
                                          })
 
 
-        best_layer, best_alphas = get_best_model_layer(activations_identifier, region)            
+        best_layer, best_alphas = get_best_model_layer(activations_identifier, region, device)            
         
         X_train = load_activations(best_layer, mode = 'train')
         X_test = load_activations(best_layer, mode = 'test')
@@ -219,7 +219,7 @@ def majajhong_get_best_layer_scores(activations_identifier: list, region: str):
     
     
     
-def fit_model_for_subject_roi(subject:int, region:str, activations_data:xr.DataArray()):
+def fit_model_for_subject_roi(subject:int, region:str, activations_data:xr.DataArray(), device:str):
             
             X_train = activations_data
             y_train = load_majaj_data(subject, region, 'train')
@@ -230,7 +230,8 @@ def fit_model_for_subject_roi(subject:int, region:str, activations_data:xr.DataA
                 scale_X=False,
                 scoring='pearsonr',
                 store_cv_values=False,
-                alpha_per_target=False)
+                alpha_per_target=False,
+                device=device)
             
             regression.fit(X_train, y_train)
             return regression

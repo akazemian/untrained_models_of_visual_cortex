@@ -14,36 +14,45 @@ sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from image_tools.processing import *
 from image_tools.loading import *
 from model_evaluation.utils import get_activations_iden
+from model_evaluation.utils import get_best_layer_iden
+
 from config import CACHE
 
 
 
 
 
-def get_scores_iden(keys, exclude_keys=[]):
-    models = []
-    scores_path = os.path.join(CACHE,'encoding_scores_torch')
-    for iden in os.listdir(scores_path):
-        if all(sub in iden for sub in keys) and not any(exclude in iden for exclude in exclude_keys):
-            return iden
 
-
-
-
-def make_pandas_df(data_dict, dataset, regions, subjects, best_layer):
+def make_pandas_df(data_dict, dataset, regions, subjects, gpool):
     
     df = pd.DataFrame()
-    index = 0
+    index = 0        
     
     for model_name, model_info in data_dict.items():
         
-            activations_iden = get_activations_iden(model_info, dataset) 
-
+        if model_info == None:
+            
             for region in regions:
+                scores_iden = get_best_layer_iden(model_name, dataset, region, gpool)
+                data = xr.open_dataset(os.path.join(CACHE,'encoding_scores_torch',scores_iden), engine='h5netcdf')
 
-                scores_iden = activations_iden + '_' + region 
-                if best_layer:
-                    scores_iden = scores_iden + '_best_layer' 
+                for subject in subjects:
+                    subject_data = data.where(data.subject == subject, drop=True)
+                    mean_r = subject_data.r_value.values.mean()
+
+                    df_tmp =  pd.DataFrame({'score':mean_r,
+                                            'model':model_name,
+                                            'iden':model_name,
+                                            'n_layers':None,
+                                            'num_features':None,
+                                            'region':region,
+                                            'subject':subject},index=[index])                
+                    df = pd.concat([df,df_tmp])
+                    index+=1
+                    
+        else:
+            for region in regions:
+                scores_iden = get_activations_iden(model_info, dataset) + '_' + region 
                 data = xr.open_dataset(os.path.join(CACHE,'encoding_scores_torch',scores_iden), engine='h5netcdf')
 
                 for subject in subjects:
@@ -110,7 +119,7 @@ def plot_results(data_dict, plot_type, dataset, regions,
                  params = (6,4), 
                  name_dict= None, 
                  file_name=None,
-                 best_layer=False):    
+                 gpool=True):    
     
     assert plot_type in ['scores_vs_num_features','compare_models'], f"choose one of {['scores_vs_num_features','compare_models']} as the plot type"
     
@@ -126,7 +135,7 @@ def plot_results(data_dict, plot_type, dataset, regions,
     
     rcParams['figure.figsize'] = params        
     
-    df = make_pandas_df(data_dict, dataset, regions, subjects, best_layer)
+    df = make_pandas_df(data_dict, dataset, regions, subjects, gpool)
     
     if name_dict is not None:
         df['iden'] = df['iden'].map(name_dict)

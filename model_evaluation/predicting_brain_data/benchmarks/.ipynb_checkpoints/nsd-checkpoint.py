@@ -38,7 +38,8 @@ def normalize(X):
 
 
 def nsd_scorer(activations_identifier: str, 
-               region: str):
+               region: str,
+              device: str):
     
 
 
@@ -68,7 +69,8 @@ def nsd_scorer(activations_identifier: str,
                 scale_X=False,
                 scoring='pearsonr',
                 store_cv_values=False,
-                alpha_per_target=False)
+                alpha_per_target=False,
+                device=device)
             
             regression.fit(X_train, y_train)
             best_alpha = float(regression.alpha_)
@@ -104,7 +106,7 @@ def nsd_scorer(activations_identifier: str,
 
      
     
-def get_best_model_layer(activations_identifier, region):
+def get_best_model_layer(activations_identifier, region, device):
     
         best_score = 0
         
@@ -118,7 +120,7 @@ def get_best_model_layer(activations_identifier, region):
             
             for subject in tqdm(range(8)):
 
-                regression = fit_model_for_subject_roi(subject, region, activations_data)                
+                regression = fit_model_for_subject_roi(subject, region, activations_data, device)                
                 scores.append(regression.score_.mean())
                 alphas.append(float(regression.alpha_))
             
@@ -196,7 +198,7 @@ def nsd_get_best_layer_scores(activations_identifier: list, region: str):
     
     
     
-def fit_model_for_subject_roi(subject:int, region:str, activations_data:xr.DataArray()):
+def fit_model_for_subject_roi(subject:int, region:str, activations_data:xr.DataArray(), device:str):
             
             ids_train, neural_data_train, var_name_train = load_nsd_data(mode ='unshared',
                                                                          subject = subject,
@@ -211,7 +213,8 @@ def fit_model_for_subject_roi(subject:int, region:str, activations_data:xr.DataA
                 scale_X=False,
                 scoring='pearsonr',
                 store_cv_values=False,
-                alpha_per_target=False)
+                alpha_per_target=False,
+                device=device)
             
             regression.fit(X_train, y_train)
             return regression
