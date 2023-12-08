@@ -12,6 +12,39 @@ torch.cuda.manual_seed(42)
 class Model(nn.Module):
     
     
+    """
+    Neural network architecture consisting of three layers.
+    
+    Attributes:
+    -----------
+    conv1 : nn.Module
+        Convolutional layer for the first layer.
+    bpool1 : nn.Module
+        BlurPool (anti-aliasing) layer for the first layer.
+    pool1 : nn.Module
+        Average pooling layer for the first layer.
+    conv2 : nn.Module
+        Convolutional layer for the second layer.
+    bpool2 : nn.Module
+        BlurPool layer for the second layer.
+    pool2 : nn.Module
+        Average pooling layer for the second layer.
+    conv3 : nn.Module
+        Convolutional layer for the third layer.
+    bpool3 : nn.Module
+        BlurPool layer for the third layer.
+    pool3 : nn.Module
+        Average pooling layer for the third layer.
+    batches_3 : int
+        Number of batches used in the third layer's convolution.
+    nl : nn.Module
+        Non-linearity module.
+    gpool : bool
+        If true, global pooling is applied after the third layer.
+    last : nn.Module
+        Final output layer.
+    """
+
     def __init__(self,
                 conv1: nn.Module,
                 bpool1: nn.Module,
@@ -50,7 +83,7 @@ class Model(nn.Module):
         
         
     def forward(self, x:nn.Module):         
-        
+   
         #layer 1 
         x = self.conv1(x)  # conv 
         x = self.nl(x) # non linearity 
@@ -91,34 +124,29 @@ class Model(nn.Module):
     
 class Expansion:
         
-    
     """
-    Attributes
-    ----------
-    curv_params  
-        pre-set curvature filter parameters 
+    Builds a Model instance based on various filter parameters and configurations.
     
-    filters_2
-        number of random filters in layer 2
-
-        
-    filters_3 
-        number of random filters in layer 3
-    
-    batches_3
-        number of batches used for layer 3 convolution. Used in case of memory issues 
-        to perform convolution in batches. The number of output channles is equal to 
-        filters_3 x batches_3
-    
-    bpool_filter_size
-        kernel size for the anti aliasing operation (blurpool)
-
-    gpool:
-        whether global pooling is performed on the output of layer 3 
+    Attributes:
+    -----------
+    filter_params : dict
+        Contains parameters for preset banana filters.
+    filters_2 : int
+        Number of random filters for the second layer.
+    filters_3 : int
+        Number of random filters for the third layer.
+    batches_3 : int
+        Number of batches used for layer 3 convolution.
+    init_type : str
+        Type of weight initialization for convolution layers.
+    bpool_filter_size : int
+        Kernel size for blurpool operation.
+    gpool : bool
+        If true, global pooling is applied on the output of layer 3.
+    non_linearity : str
+        Type of non-linear activation function.
     """
     
-
-
 
     def __init__(self, 
                  filter_params:dict = {'type':'curvature','n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
@@ -174,7 +202,6 @@ class Expansion:
         
         #readout layer
         last = Output()
-        
 
         
         return Model(

@@ -11,7 +11,7 @@ import gc
 
 
 
-def register_pca_hook(x, PCA_FILE_NAME, n_components=256, device='cuda'):
+def register_pca_hook(x, PCA_FILE_NAME, n_components=1000, device='cuda'):
     
     with open(PCA_FILE_NAME, 'rb') as file:
         _pca = pickle.load(file)

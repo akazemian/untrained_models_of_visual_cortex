@@ -60,15 +60,7 @@ class SparseRandomProjection:
         self.seed = seed
         self.allow_expansion = allow_expansion
 
-        super().__init__(
-            identifier=(
-                "sparse_random_projection"
-                f".n_components={self.n_components}"
-                f".density={self.density}"
-                f".seed={self.seed}"
-                f".allow_expansion={self.allow_expansion}"
-            ),
-        )
+        super().__init__()
 
     def __call__(self, features: torch.Tensor) -> torch.Tensor:
         features = features.flatten(start_dim=1)
@@ -84,7 +76,7 @@ class SparseRandomProjection:
         if (n_features <= projection.shape[-1]) and not self.expand:
             return features
 
-        return self._project(features=features, projection=projection)
+        return self._project(features=features.to('cuda'), projection=projection.to('cuda'))
 
     def _project(
         self,
