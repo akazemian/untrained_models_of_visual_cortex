@@ -130,7 +130,7 @@ class Expansion:
     Attributes:
     -----------
     filter_params : dict
-        Contains parameters for preset filter configuration.
+        Contains parameters for preset banana filters.
     filters_2 : int
         Number of random filters for the second layer.
     filters_3 : int

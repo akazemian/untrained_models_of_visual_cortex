@@ -103,7 +103,6 @@ def batch_activations(model: nn.Module,
                       layer_names:list, 
                       _hook: str,
                       device=str,
-                      image_size=int,
                       dataset=None,
                       image_paths: list=None,
                       images: torch.Tensor=None,
@@ -112,7 +111,6 @@ def batch_activations(model: nn.Module,
             
         if image_paths is not None:
             images = ImageProcessor(device=device, batch_size=batch_size).process_batch(image_paths=image_paths,
-                                                                                        image_size = image_size,
                                                                                         dataset=dataset
                                                                                        )
 
@@ -127,6 +125,7 @@ def batch_activations(model: nn.Module,
         for layer in layer_names:
             activations_b = activations_dict[layer]
             activations_b = torch.Tensor(activations_b.reshape(activations_dict[layer].shape[0],-1))
+            print(activations_b.shape)
             ds = xr.Dataset(
             data_vars=dict(x=(["presentation", "features"], activations_b.cpu())),
             coords={'stimulus_id': (['presentation'], image_labels)})
@@ -154,7 +153,6 @@ class Activations:
                  hook:str = None,
                  device:str= 'cuda',
                  batch_size: int = 64,
-                 image_size: int = 224,
                  compute_mode:str='fast'):
         
         
@@ -162,7 +160,6 @@ class Activations:
         self.layer_names = layer_names
         self.dataset = dataset
         self.batch_size = batch_size
-        self.image_size = image_size
         self.hook = hook
         self.device = device
         self.compute_mode = compute_mode
@@ -188,7 +185,6 @@ class Activations:
         if self.compute_mode=='fast':
                 
                 images = ImageProcessor(device=self.device).process(image_paths=image_paths,
-                                                                    image_size=self.image_size,
                                                                     dataset=self.dataset)
 
                 print('extracting activations...')

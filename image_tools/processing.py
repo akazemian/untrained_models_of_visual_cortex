@@ -67,13 +67,13 @@ class ImageProcessor:
         
         
     @staticmethod
-    def cache_file(image_paths, dataset, image_size):
+    def cache_file(image_paths, dataset, image_size=224):
         name = f'{dataset}_size={image_size}_num_images={len(image_paths)}'
         return os.path.join('preprocessed_images',name)
 
     
     @cache(cache_file)
-    def process(self, image_paths, dataset, image_size):        
+    def process(self, image_paths, dataset, image_size=224):        
         """
         Process and transform a list of images.
 

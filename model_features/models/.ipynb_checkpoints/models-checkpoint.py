@@ -1,4 +1,3 @@
-
 import warnings
 warnings.filterwarnings('ignore')
 import os
@@ -10,6 +9,7 @@ from model_features.models.expansion_3_layers import Expansion
 from model_features.models.expansion_fully_random import FullyRandom
 from model_features.models.fully_connected import FullyConnected
 from model_features.models.fully_connected_3_layers import FullyConnected3L
+from model_features.models.scat_transform import ScatTransformKymatio as ST_2D
 import torchvision
 
 
@@ -304,4 +304,26 @@ def load_model_dict(name, gpool=True):
                 'num_features':256,
                 'hook':None,
                 'gpool':gpool
+            }
+                
+        case 'scat_transform':
+            return {
+                'iden':'scat_transform',
+                'model':ST_2D(J=3, L=4, max_pool = True, global_pool = gpool).Build(),
+                'layers': ['last'], 
+                'num_layers':2,
+                'num_features':None,
+                'hook':None,
+                'gpool':gpool
+            }
+                
+        case 'scat_transform_pcs':
+            return {
+                'iden':'scat_transform',
+                'model':ST_2D(J=3, L=4, max_pool = True, global_pool = gpool).Build(),
+                'layers': ['last'], 
+                'num_layers':2,
+                'num_features':None,
+                'hook':'pca',
+                'gpool':gpool            
             } 

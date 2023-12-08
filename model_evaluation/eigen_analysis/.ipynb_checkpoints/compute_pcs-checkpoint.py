@@ -19,17 +19,16 @@ NSD_UNSHARED_SAMPLE = [image_id.strip('.png') for image_id in pickle.load(open(I
 
 DATASET = 'naturalscenes'
 DEVICE = 'cuda'
-models = ['expansion_10000']
+models = ['scat_transform']
 MODE = 'pca'
-
-
+GLOBAL_POOL = False 
 
 for model_name in models:
         
     print('computing PCs')
-    model_info = load_model_dict(model_name)
+    model_info = load_model_dict(model_name, gpool=GLOBAL_POOL)
     
-    activations_identifier = get_activations_iden(model_info=model_info, dataset= DATASET)
+    activations_identifier = get_activations_iden(model_info=model_info, dataset= DATASET, J=3, L=4)
     print(activations_identifier)
     
     Activations(model=model_info['model'],

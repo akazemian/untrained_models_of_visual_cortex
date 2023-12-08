@@ -27,8 +27,6 @@ class Convolution(nn.Module):
     def __init__(self, 
                  filter_params:dict=None,
                  filter_size:int=None,
-                 device: str = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-   
                 ):
                 
         super().__init__()
@@ -36,7 +34,6 @@ class Convolution(nn.Module):
 
         self.filter_size = filter_size
         self.filter_params = filter_params
-        self.device = device
     
     def extra_repr(self) -> str:
         return 'kernel_size={filter_size}, filter_params:{filter_params}'.format(**self.__dict__)
@@ -45,12 +42,8 @@ class Convolution(nn.Module):
     
     def forward(self,x):
             
-        
-        x =  x.to(self.device)
         in_channels = x.shape[1]
-        
         weights = filters(in_channels=1, kernel_size=self.filter_size, filter_params=self.filter_params)
-        weights = weights.to(self.device)
         
         
         # for RGB input (the preset L1 filters are repeated across the 3 channels)
