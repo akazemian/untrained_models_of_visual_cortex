@@ -1,9 +1,9 @@
 # Modeling the brain using an untrained CNN with a rich representational space
 
-The expansion model is a learning-free convolutional neural network based on high-dimensional random sampling. To use the model as an encoding model of visual cortex for your own data, please follow the steps incuded in the Setup sectionfollowed by those in section: The (dimensionality) Expansion Model. 
+The expansion model is a learning-free convolutional neural network based on high-dimensional random sampling. To use the model as an encoding model of visual cortex for your own data, please follow the steps incuded in section 0 followed by those in section 1.  
 
 
-# Setup
+# 0. Setup
 
 - Clone this repository to a local directrory. 
 ```
@@ -17,10 +17,9 @@ pip install -r requirements.txt
 ```
 export BONNER_ROOT_PATH='<local path to this repo>'
 ```
-- Navigate to the local repository, in the config.py file, set the paths for the neural data and their corresponing stimuli.
 
-# The (dimensionality) Expansion Model
-Below is an example of how to use it the expansion model.
+# 1. The (dimensionality) Expansion Model
+Below is an example of how to use it the expansion model. Alternatively, you can navigate to `model_features/models/main.ipynb` for an example.
 
 1. Import the model
 ```python
@@ -35,30 +34,40 @@ X = troch.Tensor(1,3,224,224)
 3. Instantiate the model
 ```python
 expansion = Expansion()
-model = expansion.Build()
+expansion_model = expansion.Build()
 ```
 
 4. Extract model features
 ```python
-output = model(X)
+features = expansion_model(X)
 ```
 
 The ouput is a tensor of size NxP, where N is the number of image and P is the number of features in the last layer of the model.
 
 
-# Predicting Neural Data
-- Navigate to the local repo directory 
-- In ```model_evaluation/predicting_brain_data/compute_encoding_score.py```, choose the neural dataset and the model for which encoding perofrmance will be obtained.
-- Run the following code to extract model activations and use them to predict neural responses:
-```model_evaluation/predicting_brain_data/compute_encoding_score.py```
-- The results can be viewed in ```model_evaluation/results/predicting_brain_data/encoding_performance.ipynb```
+# 2. Predicting Human fMRI Responses to Natural Scenes
 
-# Image Classification 
-- Navigate to the local repo directory 
-- Run the following:
-```
-python model_evaluation/image_classification/classification.py
-```
-- View the results in ```model_evaluation/results/classification/classification_results.ipynb```
+Data:
+The Natural Scenes Dataset human fMRI dataset (Allen et al., 2022) can be downloaded here. 
+
+Preprocessing:
+We use the NSD single-trial betas, preprocessed in 1.8-mm volume space and denoised using the GLMdenoise technique (version 3; “betas_fithrf_GLMdenoise_RR”) (Kay et al., 2013). We converted the betas to z-scores within each scanning session and computed the average betas for each NSD stimulus across repetitions. 
+
+ 
+# 3. Predicting Macaque Single Cell Responses to Objects 
+
+Data:
+The monkey electrophysiology dataset (Majaj et al., 2015) can be downloaded here. 
+
+Preprocessing:
+We use the average response to stimuli across repetitions. 
+
+
+# 4. Image Classification 
+
+Data:
+The Places dataset (Zhou et al, 2018) can be downloaded [here](http://places.csail.mit.edu/).
+
+
   
   
