@@ -1,11 +1,12 @@
 import os
 import pandas as pd
 import sys
+import pickle
 ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
 
 
-def load_nsd_images():
+def load_nsd_images(ids=None):
     from config import NSD_IMAGES
     """
     Loads the file paths of natural scene images from the NSD_IMAGES directory.
@@ -13,7 +14,12 @@ def load_nsd_images():
     Returns:
         list: A sorted list of full paths to the natural scene images.
     """
-    return sorted([os.path.join(NSD_IMAGES,image) for image in os.listdir(NSD_IMAGES)])
+    if ids is not None:        
+        return sorted([f'{os.path.join(NSD_IMAGES,image)}.png' for image in ids])
+        
+    else:
+        return sorted([os.path.join(NSD_IMAGES,image) for image in os.listdir(NSD_IMAGES)])
+    
     
         
 def load_majaj_images():
@@ -25,6 +31,8 @@ def load_majaj_images():
         list: A sorted list of full paths to the images in the MAJAJ_IMAGES directory.
     """
     return sorted([f'{MAJAJ_IMAGES}/{image}' for image in os.listdir(MAJAJ_IMAGES)])
+    
+    
     
     
 def load_places_images():
@@ -41,7 +49,9 @@ def load_places_images():
     return sorted(val_images_paths)
     
     
-def load_image_paths(name): 
+    
+
+def load_image_paths(name, *args, **kwargs): 
     
     """
     Load image file paths based on a specified dataset name.
@@ -56,7 +66,7 @@ def load_image_paths(name):
     match name:
         
         case 'naturalscenes':
-            return load_nsd_images()
+            return load_nsd_images(*args, **kwargs)
 
         case 'majajhong':
             return load_majaj_images()
@@ -85,14 +95,12 @@ def get_image_labels(dataset, images):
         
         case 'naturalscenes':
             return [os.path.basename(i).strip('.png') for i in images]
-
         
         case 'majajhong':
             from config import MAJAJ_NAME_DICT 
             name_dict = pd.read_csv(MAJAJ_NAME_DICT).set_index('image_file_name')['image_id'].to_dict()
             return [name_dict[os.path.basename(i)] for i in images]
-
-
+        
         case 'places':
             return [os.path.basename(i) for i in images]
                                                   
@@ -117,6 +125,8 @@ def load_places_cat_labels():
     return cat_dict
     
    
+ 
+    
     
 def load_places_cat_names():
     """

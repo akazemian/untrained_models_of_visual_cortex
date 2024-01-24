@@ -17,7 +17,7 @@ class Model(nn.Module):
     def __init__(self,
                 features_layer: str,
                 last:nn.Module,
-                 gpool: bool=True,
+                 gpool: bool=False,
                 ):
         
         super(Model, self).__init__()
@@ -60,7 +60,7 @@ class Model(nn.Module):
 class Alexnet:
 
     
-    def __init__(self, features_layer:str = 12, gpool:int = True):
+    def __init__(self, features_layer:str = 12, gpool:int = False):
     
         self.features_layer = features_layer
         self.gpool = gpool

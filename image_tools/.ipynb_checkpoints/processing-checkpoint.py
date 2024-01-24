@@ -19,7 +19,6 @@ IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
-
 def cache(file_name_func):
 
     def decorator(func):
@@ -61,14 +60,20 @@ class ImageProcessor:
         self.device = device
         self.batch_size = batch_size
 
-        
         if not os.path.exists(os.path.join(CACHE,'preprocessed_images')):
             os.mkdir(os.path.join(CACHE,'preprocessed_images'))
         
         
     @staticmethod
     def cache_file(image_paths, dataset, image_size=224):
-        name = f'{dataset}_size={image_size}_num_images={len(image_paths)}'
+        if dataset == 'naturalscenes':
+            num_images = 73000
+            
+        else:
+            num_images = len(image_paths)
+            
+        name = f'{dataset}_size={image_size}_num_images={num_images}'
+        print(name)
         return os.path.join('preprocessed_images',name)
 
     

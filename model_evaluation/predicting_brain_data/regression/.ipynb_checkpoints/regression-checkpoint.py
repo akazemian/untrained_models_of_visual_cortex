@@ -227,14 +227,15 @@ def regression_shared_unshared(
     indices_train=None,
     indices_test= None,
 ):
-    x_train = torch.Tensor(x_train)
-    x_test = torch.Tensor(x_test)
-    y_train = torch.Tensor(y_train)
-    y_test = torch.Tensor(y_test)
+    x_train = torch.Tensor(x_train).to(dtype=torch.float32)
+    x_test = torch.Tensor(x_test).to(dtype=torch.float32)
+    y_train = torch.Tensor(y_train).to(dtype=torch.float32)
+    y_test = torch.Tensor(y_test).to(dtype=torch.float32)
 
+    
     model.fit(x_train, y_train)
-
     y_predicted = torch.Tensor(model.predict(x_test))
+    
     return y_test, y_predicted
 
 

@@ -4,7 +4,7 @@ import xarray as xr
 import numpy as np
 import torch
 import os
-from ..benchmarks.nsd import nsd_scorer, nsd_get_best_layer_scores
+from ..benchmarks.nsd import nsd_scorer, nsd_scorer_subjects, nsd_get_best_layer_scores
 from ..benchmarks.majajhong import majajhong_scorer, majajhong_get_best_layer_scores, majajhong_scorer_cv
 
 import warnings
@@ -24,8 +24,8 @@ def cache(file_name_func):
             file_name = file_name_func(*args, **kwargs) 
             cache_path = os.path.join(CACHE, file_name)
             
-            if os.path.exists(cache_path):
-                return 
+            # if os.path.exists(cache_path):
+            #     return 
             
             result = func(self, *args, **kwargs)
             result.to_netcdf(cache_path, engine='h5netcdf')
@@ -43,6 +43,7 @@ class EncodingScore():
                  dataset: str,
                  region:str,
                  device:str,
+                 subject:int=None,
                  best_layer:bool=False):
         
         self.activations_identifier = activations_identifier
@@ -50,6 +51,7 @@ class EncodingScore():
         self.region = region
         self.best_layer = best_layer
         self.device = device
+        self.subject = subject 
         
         if not os.path.exists(os.path.join(CACHE,'encoding_scores_torch')):
             os.mkdir(os.path.join(CACHE,'encoding_scores_torch'))
@@ -87,15 +89,21 @@ class EncodingScore():
         match self.dataset:
             
             case 'naturalscenes':
-
                 if self.best_layer:
                     ds = nsd_get_best_layer_scores(activations_identifier= self.activations_identifier, 
                                                    region= self.region,
                                                   device = self.device)                  
                 else:
-                    ds = nsd_scorer(activations_identifier = self.activations_identifier, 
+                    if self.subject is None:
+                        ds = nsd_scorer(activations_identifier = self.activations_identifier, 
                                     region = self.region,
                                     device = self.device)
+                        
+                    else:
+                        ds = nsd_scorer_subjects(activations_identifier = self.activations_identifier, 
+                                    region = self.region,
+                                    device = self.device,
+                                    subject = self.subject)
 
                     
             case 'majajhong':

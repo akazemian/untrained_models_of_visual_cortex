@@ -55,7 +55,7 @@ class _PCA:
     def _fit(self, iden, X):  
    
         X = torch.Tensor(X)
-        pca = PCA()
+        pca = PCA(n_components=1000)
         pca.fit(X)
         
         return pca

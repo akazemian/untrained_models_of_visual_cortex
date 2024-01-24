@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-"The follwoing blurpool function is from Adobe's anti-aliasing repository (https://github.com/adobe/antialiased-cnns/blob/master/antialiased_cnns)"
+"The follwoing blurpool function is taken from Adobe's anti-aliasing repository (https://github.com/adobe/antialiased-cnns/blob/master/antialiased_cnns)"
 
 class BlurPool(nn.Module):
     def __init__(self, channels, pad_type='reflect', filt_size=4, stride=2, pad_off=0):
@@ -14,6 +14,7 @@ class BlurPool(nn.Module):
         self.pad_off = pad_off
         self.pad_sizes = [int(1.*(filt_size-1)/2), int(np.ceil(1.*(filt_size-1)/2)), int(1.*(filt_size-1)/2), int(np.ceil(1.*(filt_size-1)/2))]
         self.pad_sizes = [pad_size+pad_off for pad_size in self.pad_sizes]
+        #self.pad_sizes = [(filt_size - 1) // 2 for pad_size in self.pad_sizes]
         self.stride = stride
         self.off = int((self.stride-1)/2.)
         self.channels = channels
@@ -48,6 +49,7 @@ class BlurPool(nn.Module):
                 return self.pad(inp)[:,:,::self.stride,::self.stride]
         else:
             return F.conv2d(self.pad(inp), self.filt, stride=self.stride, groups=inp.shape[1])
+            #return F.conv2d(self.pad(inp), self.filt, groups=inp.shape[1], padding = (self.filt_size - 1) // 2)
 
 def get_pad_layer(pad_type):
     if(pad_type in ['refl','reflect']):

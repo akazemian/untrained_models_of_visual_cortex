@@ -27,6 +27,7 @@ ALPHA_RANGE = [10**i for i in range(10)]
 TRAIN_IDS =  pickle.load(open(os.path.join(ROOT,'model_evaluation/predicting_brain_data/benchmarks','majaj_train_ids'), "rb"))
 TEST_IDS =  pickle.load(open(os.path.join(ROOT,'model_evaluation/predicting_brain_data/benchmarks','majaj_test_ids'), "rb"))
 
+PREDS_PATH = '/data/atlas/.cache/beta_predictions'
     
     
     
@@ -114,6 +115,10 @@ def majajhong_scorer(activations_identifier: str,
                                                          y_train=y_train,
                                                          y_test=y_test,
                                                          model= Ridge(alpha=best_alpha))
+            
+            with open(os.path.join(PREDS_PATH,f'{activations_identifier}_{region}_{subject}.pkl'), 'wb') as file:
+                pickle.dump(y_predicted, file)
+            
             r = pearson_r(y_true,y_predicted)
             print(r.mean())
 
@@ -201,6 +206,9 @@ def majajhong_get_best_layer_scores(activations_identifier: list, region: str, d
             r = pearson_r(y_true,y_predicted)
 
            
+            with open(os.path.join(PREDS_PATH,f'alexnet_gpool=False_majajhong_{region}_{SUBJECTS[subject]}.pkl'), 'wb') as file:
+                pickle.dump(y_predicted, file)
+                
             ds_tmp = xr.Dataset(data_vars=dict(r_value=(["r_values"], r)),
                             coords={'subject': (['r_values'], [SUBJECTS[subject] for i in range(len(r))]),
                                     'region': (['r_values'], [region for i in range(len(r))])
