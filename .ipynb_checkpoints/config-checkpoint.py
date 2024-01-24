@@ -1,9 +1,11 @@
 import os
 
 # naturalscenes data
+NSD_SAMPLE_IMAGES = '/data/atlas/neural_data/naturalscenes/sample_ids.pkl'
 NSD_IMAGES = '/data/shared/datasets/allen2021.natural_scenes/images'
 NSD_NEURAL_DATA = '/data/shared/for_atlas'
 
+            
 #majaj neural data
 MAJAJ_IMAGES = '/data/shared/.cache/brainscore/brainio/image_dicarlo_hvm-public'
 MAJAJ_DATA = '/data/atlas/neural_data/majajhong'

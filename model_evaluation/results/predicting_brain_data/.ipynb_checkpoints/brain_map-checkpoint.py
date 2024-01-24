@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 
 ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
-from model_evaluation.utils import get_activations_iden
 
 IDENTIFIER = "allen2021.natural_scenes"
 BUCKET_NAME = "natural-scenes-dataset"

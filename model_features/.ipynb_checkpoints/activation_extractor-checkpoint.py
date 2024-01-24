@@ -22,8 +22,6 @@ from model_features.utils import cache, register_pca_hook
 
 PATH_TO_PCA = os.path.join(CACHE,'pca')
 
-
-
 class PytorchWrapper:
     def __init__(self, model, identifier, device, forward_kwargs=None): 
         
@@ -111,7 +109,7 @@ def batch_activations(model: nn.Module,
             
         if image_paths is not None:
             images = ImageProcessor(device=device, batch_size=batch_size).process_batch(image_paths=image_paths,
-                                                                                        dataset=dataset
+                                                                                        dataset=dataset,
                                                                                        )
 
             
@@ -153,7 +151,8 @@ class Activations:
                  hook:str = None,
                  device:str= 'cuda',
                  batch_size: int = 64,
-                 compute_mode:str='fast'):
+                 compute_mode:str='fast',
+                 subject_images=None):
         
         
         self.model = model
@@ -163,6 +162,7 @@ class Activations:
         self.hook = hook
         self.device = device
         self.compute_mode = compute_mode
+        self.subject_images = subject_images 
         
         assert self.compute_mode in ['fast','slow'], "invalid compute mode, please choose one of: 'fast', 'slow'"
 
@@ -179,13 +179,17 @@ class Activations:
     def get_array(self,iden):       
                 
         wrapped_model = PytorchWrapper(model = self.model, identifier = iden, device=self.device)
-        image_paths = load_image_paths(name = self.dataset)
+        image_paths = load_image_paths(name = self.dataset, ids = self.subject_images)
         labels = get_image_labels(self.dataset, image_paths)
+        
 
         if self.compute_mode=='fast':
                 
                 images = ImageProcessor(device=self.device).process(image_paths=image_paths,
                                                                     dataset=self.dataset)
+                if self.dataset == 'naturalscenes':
+                    idx = [int(labels[i].strip('image')) for i in range(len(labels))]
+                    images = images[idx,:,:,:]
 
                 print('extracting activations...')
 
@@ -239,4 +243,13 @@ class Activations:
         
         print('model activations are saved in cache')
         return data
+    
+
+    
+    
+    
+
+    
+    
+    
     

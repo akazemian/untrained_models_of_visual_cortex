@@ -75,51 +75,74 @@ def make_pandas_df(data_dict, dataset, regions, subjects, gpool):
 
     
 
-def scores_vs_num_features(df, x_axis, palette, width):
+def scores_vs_num_features(df, x_axis, width=None, palette=None, subjects=False):
 
-    return sns.barplot(x = df[x_axis], 
+    if subjects:
+        return sns.scatterplot(x = df[x_axis], 
+                       y = df['score'], 
+                       style = df.subject,
+                       hue= df.iden, 
+                       s= 150,   
+                       palette = palette)
+    
+    
+    else:
+        return sns.barplot(x = df[x_axis], 
                        y = df['score'], 
                        hue=df.iden, 
                        palette = palette, 
                        errorbar="sd",  
                        width=width)
 
-    
 
-def compare_models(df, color, palette, width):
+
+def compare_models(df, palette=None, color = None, width=None, subjects=False):
 
     
     if color is not None:
-        return sns.barplot(x = df.iden, 
+        if subjects:
+            return sns.scatterplot(x = df.iden, 
+                           y = df['score'],
+                           color=color,
+                           s=150,
+                           style = df.subject,
+                          )            
+            
+        else:
+            return sns.barplot(x = df.iden, 
                            y = df['score'],
                            errorbar="sd",
                            width=width,
-                           color=color
+                           palette=palette,
+                           style = df.subject,
                           )
+    
     else:    
-        return sns.barplot(x = df.iden, 
+        if subjects:
+            return sns.scatterplot(x = df.iden, 
+                           y = df['score'],
+                           palette=palette, 
+                           s=150,
+                           style = df.subject,
+                          )  
+        else:
+            return sns.barplot(x = df.iden, 
                            y = df['score'], 
                            hue = df.iden, 
                            errorbar="sd",  
                            width=width, 
                            palette=palette, 
                            dodge=False)           
-        
             
 
     
-
-    
-def plot_results(data_dict, plot_type, dataset, regions, 
-                 ylim, width, 
-                 x_axis=None, 
-                 palette=None,
-                 color = None,
-                 show_legend= True, 
-                 params = (6,4), 
-                 name_dict= None, 
+def plot_results(data_dict, plot_type, dataset, regions, ylim, params,
+                 show_legend=False, 
+                 gpool=True, 
+                 name_dict=None, 
                  file_name=None,
-                 gpool=True):    
+                 x_axis=None,
+                 *args, **kwargs):    
     
     assert plot_type in ['scores_vs_num_features','compare_models'], f"choose one of {['scores_vs_num_features','compare_models']} as the plot type"
     
@@ -145,9 +168,9 @@ def plot_results(data_dict, plot_type, dataset, regions,
     
     match plot_type:
         case 'scores_vs_num_features':
-            ax1 = scores_vs_num_features(df, x_axis, palette, width)
+            ax1 = scores_vs_num_features(df, x_axis, *args, **kwargs)
         case 'compare_models':
-            ax1 = compare_models(df, color, palette, width)
+            ax1 = compare_models(df, *args, **kwargs)
             
             
     if show_legend:

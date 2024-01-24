@@ -5,325 +5,105 @@ import sys
 ROOT = os.getenv('BONNER_ROOT_PATH')
 from model_features.models.alexnet import Alexnet
 from model_features.models.alexnet_untrained import AlexnetU
-from model_features.models.expansion_3_layers import Expansion
-from model_features.models.expansion_fully_random import FullyRandom
-from model_features.models.fully_connected import FullyConnected
-from model_features.models.fully_connected_3_layers import FullyConnected3L
-from model_features.models.scat_transform import ScatTransformKymatio as ST_2D
-import torchvision
+from model_features.models.expansion import Expansion3L, Expansion5L
+from model_features.models.fully_connected import FullyConnected3L, FullyConnected5L
+from model_features.models.expansion_linear import Expansion3LLinear, Expansion5LLinear
 
 
-def load_model_dict(name, gpool=True):
+def load_iden(model_name, dataset, features=None, layers=None):
     
-    match name:
-
-        case 'expansion_10':
-            return {
-                'iden':'expansion_model',
-                'model':Expansion(filters_3=10, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':10,
-                'hook':None,
-                'gpool':gpool
-            }
-
-
-        case 'expansion_100': 
-            return {
-                'iden':'expansion_model',
-                'model':Expansion(filters_3=100, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':100,
-                'hook':None,
-                'gpool':gpool
-            }
-
-        case 'expansion_1000': 
-            return {
-                'iden':'expansion_model',
-                'model':Expansion(filters_3=1000, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':1000,
-                'hook':None,
-                'gpool':gpool
-            }
-
-        case 'expansion_10000': 
-            return {
-                'iden':'expansion_model',
-                'model':Expansion(filters_3=10000, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':10000,
-                'hook':None,
-                'gpool':gpool
-                }
-
-
-        case 'expansion_first_256_pcs': 
-            return {
-                'iden':'expansion_model',
-                'model':Expansion(filters_3=10000, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':10000,
-                'hook':'pca',
-                'gpool':gpool
-                }
+    if model_name in ['expansion','fully_connected', 'expansion_linear']:
         
-        case 'expansion_linear': 
-            return {
-                'iden':'expansion_model_linear',
-                'model':Expansion(filters_3=10000, non_linearity='none', gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':10000,
-                'hook':None,
-                'gpool':gpool
-                }
-
-        case 'fully_random': 
-            return {
-                'iden':'expansion_model_fully_random',
-                'model':FullyRandom().Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':10000,
-                'hook':None,
-                'gpool':gpool
-                }
-
-
-
-        case 'fully_connected_10': 
-            return {
-                'iden':'fully_connected',
-                'model':FullyConnected(features=10).Build(),
-                'layers': ['last'], 
-                'num_layers':1,
-                'num_features':10,
-                'hook':None,
-                'gpool':gpool
-                }
+        if model_name == 'fully_connected':
+                if layers == 3:
+                    features = features*9*9
+                else:
+                    features = features*6*6
+                    
+        return f'{model_name}_features={features}_layers={layers}_dataset={dataset}'
+    
+    
         
-        case 'fully_connected_100': 
-            return {
-                'iden':'fully_connected',
-                'model':FullyConnected(features=100).Build(),
-                'layers': ['last'], 
-                'num_layers':1,
-                'num_features':100,
-                'hook':None,
-                'gpool':gpool
-                }
+    elif 'alexnet' in model_name:
+            match layers:
+                case 1:
+                    return f'{model_name}_conv{layers}_layers={layers}_features=64_gpool=False_dataset={dataset}'
+                case 2:
+                    return f'{model_name}_conv{layers}_layers={layers}_features=192_gpool=False_dataset={dataset}'
+                case 3:
+                    return f'{model_name}_conv{layers}_layers={layers}_features=384_gpool=False_dataset={dataset}'
+                case 4:
+                    return f'{model_name}_conv{layers}_layers={layers}_features=256_gpool=False_dataset={dataset}'
+                case 5:
+                    return f'{model_name}_conv{layers}_layers={layers}_features=256_gpool=False_dataset={dataset}'
+                case 'best':
+                    return f'{model_name}_gpool=False_dataset={dataset}'
+    
+    else:
+            print('model name not known')
+            
+    
+    
+    
+    
+def load_model(model_name, features=None, layers=None):
+    
+    match model_name:
         
-        case 'fully_connected_1000': 
-            return {
-                'iden':'fully_connected',
-                'model':FullyConnected(features=1000).Build(),
-                'layers': ['last'], 
-                'num_layers':1,
-                'num_features':1000,
-                'hook':None,
-                'gpool':gpool
-                }
+        case 'expansion':
+            match layers:
+                case 3:
+                    return Expansion3L(filters_3=features).Build()
+                case 5:
+                    return Expansion5L(filters_5=features).Build()
+    
+    
+        case 'expansion_linear':
+            match layers:
+                case 3:
+                    return Expansion3LLinear(filters_3=features).Build()
+                case 5:
+                    return Expansion5LLinear(filters_5=features).Build()
+    
+    
+        case 'fully_connected':
+            match layers:
+                case 3:
+                    return FullyConnected3L(features_3=features).Build()
+                case 5:
+                    return FullyConnected5L(features_5=features).Build()
         
-        case 'fully_connected_10000': 
-            return {
-                'iden':'fully_connected',
-                'model':FullyConnected().Build(),
-                'layers': ['last'], 
-                'num_layers':1,
-                'num_features':10000,
-                'hook':None,
-                'gpool':gpool
-                }
-
-
-        case 'fully_connected_3_layers_10': 
-            return {
-                'iden':'fully_connected_3_layers',
-                'model':FullyConnected3L(features_3 = 10).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':10,
-                'hook':None,
-                'gpool':gpool
-                }
-
-        case 'fully_connected_3_layers_100': 
-            return {
-                'iden':'fully_connected_3_layers',
-                'model':FullyConnected3L(features_3 = 100).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':100,
-                'hook':None,
-                'gpool':gpool
-                }        
-        
-        case 'fully_connected_3_layers_1000': 
-            return {
-                'iden':'fully_connected_3_layers',
-                'model':FullyConnected3L(features_3 = 1000).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':1000,
-                'hook':None,
-                'gpool':gpool
-                } 
-        
-        case 'fully_connected_3_layers_10000': 
-            return {
-                'iden':'fully_connected_3_layers',
-                'model':FullyConnected3L().Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':10000,
-                'hook':None,
-                'gpool':gpool
-                }
-
-        case 'alexnet_conv1':
-            return {
-                'iden':'alexnet_conv1',
-                'model':Alexnet(features_layer =2, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':1,
-                'num_features':64,
-                'hook':None,
-                'gpool':gpool
-            }            
-
-
-        case 'alexnet_conv2':
-            return {
-               'iden':'alexnet_conv2',
-                'model':Alexnet(features_layer =5, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':2,
-                'num_features':192,
-                'hook':None,
-                'gpool':gpool
-            }   
-
-
-        case 'alexnet_conv3':
-            return {
-                'iden':'alexnet_conv3',
-                'model':Alexnet(features_layer =7, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':384,
-                'hook':None,
-                'gpool':gpool
-            }  
-
-
-        case 'alexnet_conv4':
-            return {
-                'iden':'alexnet_conv4',
-                'model':Alexnet(features_layer =9, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':4,
-                'num_features':256,
-                'hook':None,
-                'gpool':gpool
-            }   
-
-
-        case 'alexnet_conv5':
-            return {
-                'iden':'alexnet_conv5',
-                'model':Alexnet(gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':5,
-                'num_features':256,
-                'hook':None,
-                'gpool':gpool
-            } 
-
-
-        case 'alexnet_untrained_conv1':
-            return {
-                'iden':'alexnet_untrained_conv1',
-                'model':AlexnetU(features_layer =2, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':1,
-                'num_features':64,
-                'hook':None,                
-                'gpool':gpool
-            }            
-
-
-        case 'alexnet_untrained_conv2':
-            return {
-               'iden':'alexnet_untrained_conv2',
-                'model':AlexnetU(features_layer =5, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':2,
-                'num_features':192,
-                'hook':None,
-                'gpool':gpool
-            }   
-
-
-        case 'alexnet_untrained_conv3':
-            return {
-                'iden':'alexnet_untrained_conv3',
-                'model':AlexnetU(features_layer =7, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':3,
-                'num_features':384,
-                'hook':None,
-                'gpool':gpool
-            }  
-
-
-        case 'alexnet_untrained_conv4':
-            return {
-                'iden':'alexnet_untrained_conv4',
-                'model':AlexnetU(features_layer =9, gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':4,
-                'num_features':256,
-                'hook':None,
-                'gpool':gpool
-            }   
-
-
-        case 'alexnet_untrained_conv5':
-            return {
-                'iden':'alexnet_untrained_conv5',
-                'model':AlexnetU(gpool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':5,
-                'num_features':256,
-                'hook':None,
-                'gpool':gpool
-            }
+        case 'alexnet':
+            
+            match layers:
                 
-        case 'scat_transform':
-            return {
-                'iden':'scat_transform',
-                'model':ST_2D(J=3, L=4, max_pool = True, global_pool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':2,
-                'num_features':None,
-                'hook':None,
-                'gpool':gpool
-            }
+                case 1:
+                    return Alexnet(features_layer =2).Build()
+                case 2:
+                    return Alexnet(features_layer =5).Build()
+                case 3:
+                    return Alexnet(features_layer =7).Build()
+                case 4:
+                    return Alexnet(features_layer =9).Build()
+                case 5:
+                    return Alexnet().Build()
                 
-        case 'scat_transform_pcs':
-            return {
-                'iden':'scat_transform',
-                'model':ST_2D(J=3, L=4, max_pool = True, global_pool = gpool).Build(),
-                'layers': ['last'], 
-                'num_layers':2,
-                'num_features':None,
-                'hook':'pca',
-                'gpool':gpool            
-            } 
+                    
+
+        case 'alexnet_untrained':
+            
+            match layers:
+                
+                case 1:
+                    return AlexnetU(features_layer =2).Build()
+                case 2:
+                    return AlexnetU(features_layer =5).Build()
+                case 3:
+                    return AlexnetU(features_layer =7).Build()
+                case 4:
+                    return AlexnetU(features_layer =9).Build()
+                case 5:
+                    return AlexnetU().Build()
+    
+    
+    

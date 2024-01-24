@@ -11,7 +11,7 @@ import gc
 
 
 
-def register_pca_hook(x, PCA_FILE_NAME, n_components=1000, device='cuda'):
+def register_pca_hook(x, PCA_FILE_NAME, n_components=None, device='cuda'):
     
     with open(PCA_FILE_NAME, 'rb') as file:
         _pca = pickle.load(file)
@@ -20,7 +20,11 @@ def register_pca_hook(x, PCA_FILE_NAME, n_components=1000, device='cuda'):
     x = x.squeeze()
     x -= _mean
     
-    return x @ _eig_vec[:, :n_components]
+    if n_components is not None:
+        return x @ _eig_vec[:, :n_components]
+    else:
+        return x @ _eig_vec
+        
 
 
 
@@ -40,9 +44,15 @@ def cache(file_name_func):
                 return 
             
             result = func(self, *args, **kwargs)
-            result.to_netcdf(cache_path)
+            result.to_netcdf(cache_path, engine='netcdf4')
             gc.collect()
             return 
 
         return wrapper
     return decorator
+
+
+
+
+    
+    

@@ -23,30 +23,29 @@ models = ['scat_transform']
 MODE = 'pca'
 GLOBAL_POOL = False 
 
-for model_name in models:
         
-    print('computing PCs')
-    model_info = load_model_dict(model_name, gpool=GLOBAL_POOL)
-    
-    activations_identifier = get_activations_iden(model_info=model_info, dataset= DATASET, J=3, L=4)
-    print(activations_identifier)
-    
-    Activations(model=model_info['model'],
-                    layer_names=model_info['layers'],
-                    dataset=DATASET,
-                    device= DEVICE,
-                    batch_size = 80).get_array(activations_identifier) 
+print('computing PCs')
+model_info = load_model_dict(model_name, gpool=GLOBAL_POOL)
 
-    data = xr.open_dataarray(os.path.join(CACHE,'activations',activations_identifier),engine='netcdf4')
-        
-    activations_identifier = activations_identifier + '_principal_components'
-    
-    if DATASET == 'naturalscenes':
-        data = filter_activations(data, NSD_UNSHARED_SAMPLE)
-        _PCA()._fit(activations_identifier, data)
-    
-    else:
-        _PCA()._fit(activations_identifier, data.values)
+activations_identifier = get_activations_iden(model_info=model_info, dataset= DATASET, J=3, L=4)
+print(activations_identifier)
+
+Activations(model=model_info['model'],
+                layer_names=model_info['layers'],
+                dataset=DATASET,
+                device= DEVICE,
+                batch_size = 80).get_array(activations_identifier) 
+
+data = xr.open_dataarray(os.path.join(CACHE,'activations',activations_identifier),engine='netcdf4')
+
+activations_identifier = activations_identifier + '_principal_components'
+
+if DATASET == 'naturalscenes':
+    data = filter_activations(data, NSD_UNSHARED_SAMPLE)
+    _PCA()._fit(activations_identifier, data)
+
+else:
+    _PCA()._fit(activations_identifier, data.values)
 
 
 

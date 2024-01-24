@@ -10,6 +10,7 @@ from sklearn.utils.validation import check_array, check_is_fitted
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn import svm
 from sklearn.model_selection import cross_val_predict
+from itertools import combinations
 from tqdm import tqdm
 import random
 import numpy as np
@@ -41,7 +42,6 @@ def create_splits(n: int, num_folds: int = 5, shuffle: bool = True):
 
     x = np.array_split(indices, num_folds)
     return x
-
 
 
 
@@ -137,29 +137,19 @@ class PairwiseClassification():
     def cache_file(iden, data):
         return os.path.join('classification',iden)
 
-    
+   
     @cache(cache_file)
     def get_performance(self, iden, data):
-    
+        
         performance_dict = {}
-        pairs = []
 
-        for cat_1 in tqdm(CAT_SUBSET):
-            for cat_2 in CAT_SUBSET:
-
-                if {cat_1, cat_2} in pairs:
-                    pass
-
-                elif cat_1 == cat_2:
-                    performance_dict[(cat_1,cat_2)] = 1
-
-                else:
-                    X, y = get_Xy(data, [cat_1,cat_2])
-                    performance_dict[(cat_1,cat_2)] = cv_performance(X, y)
-                    pairs.append({cat_1, cat_2})
-
+        for cat_1, cat_2 in tqdm(combinations(CAT_SUBSET, 2),
+                                 total=(len(CAT_SUBSET)*(len(CAT_SUBSET)-1)//2)):
+            
+                X, y = get_Xy(data, [cat_1, cat_2])
+                performance_dict[(cat_1, cat_2)] = cv_performance(X, y)
+                
         return performance_dict
-
 
 
 def normalize(X):
