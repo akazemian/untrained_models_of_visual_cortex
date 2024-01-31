@@ -628,7 +628,6 @@ class Model5L(nn.Module):
                 conv5: nn.Module,
                 bpool5: nn.Module,
                 pool5: nn.Module,
-                randproj5: nn.Module,
                 nl: nn.Module,
                 gpool: bool,
                 last: nn.Module,
@@ -656,7 +655,6 @@ class Model5L(nn.Module):
         self.conv5 = conv5
         self.bpool5 = bpool5
         self.pool5 = pool5
-        self.randproj5 = randproj5
         
         self.nl = nl
         self.gpool = gpool
@@ -669,7 +667,6 @@ class Model5L(nn.Module):
         x = self.conv1(x)  # conv 
         x = self.nl(x) # non linearity 
         x = self.bpool1(x) # anti-aliasing blurpool               
-        # x = self.pool1(x) # pool
         print(x.shape)
 
             
@@ -677,29 +674,24 @@ class Model5L(nn.Module):
         x = self.conv2(x)  
         x = self.nl(x) 
         x = self.bpool2(x) 
-        # x = self.pool2(x)    
         print(x.shape) 
             
         #layer 3
         x = self.conv3(x)  
         x = self.nl(x) 
         x = self.bpool3(x) 
-        # x = self.pool3(x)  
         print(x.shape)
 
         #layer 4
         x = self.conv4(x)  
         x = self.nl(x) 
         x = self.bpool4(x) 
-        #x = self.pool4(x)  
         print(x.shape)
         
-        #layer 4
+        #layer 5
         x = self.conv5(x)  
         x = self.nl(x) 
-        #x = self.bpool5(x) 
         x = self.pool5(x)  
-        #x = self.randproj5(x)
         print(x.shape)
         
         if self.gpool: # global pool
@@ -807,7 +799,8 @@ class Expansion5L:
         initialize_conv_layer(conv5, self.init_type)
         bpool5 = BlurPool(self.filters_5, filt_size=self.bpool_filter_size, stride=2)
         pool5 = nn.AvgPool2d(kernel_size=5, stride=1)
-        randproj5 = nn.Conv2d(self.filters_5, 3000, kernel_size=(1,1), bias=False)
+        #randproj5 = nn.Conv2d(self.filters_5, 3000, kernel_size=(1,1), bias=False)
+        
         # non lineairy function
         nl = NonLinearity(self.non_linearity)
         
@@ -831,7 +824,6 @@ class Expansion5L:
                 conv5 = conv5,
                 bpool5 = bpool5,
                 pool5 = pool5,
-            randproj5 = randproj5,
                 nl = nl,
                 gpool = self.gpool,
                 last = last

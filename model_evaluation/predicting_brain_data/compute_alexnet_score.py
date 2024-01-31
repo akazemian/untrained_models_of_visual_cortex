@@ -11,27 +11,24 @@ from model_features.models.models import load_model, load_iden
 import gc
 
 # define local variables
-
 # DATASET = 'majajhong'
 # REGIONS = ['V4','IT']
 
+
 DATASET = 'naturalscenes'
-REGIONS = ['V1-4','ventral visual stream','early visual stream', 'midventral visual stream']
-MODEL_NAME = 'alexnet'    
+REGIONS = ['early visual stream', 'ventral visual stream','midventral visual stream']
+
+MODEL_NAME = '_alexnet'    
 DEVICE = 'cpu'
+
 
 for region in REGIONS:
     
     print(region)
-    
-    if region == 'ventral visual stream':
-        layers = range(3,6)
-    else:
-        layers = range(1,6)
                 
     activation_iden_list = []
     
-    for layer_num in layers:
+    for layer_num in range(1,6):
         
         activations_identifier = load_iden(model_name=MODEL_NAME, dataset=DATASET, layers=layer_num)
         activation_iden_list.append(activations_identifier)

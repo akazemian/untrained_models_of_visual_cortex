@@ -88,7 +88,7 @@ def nsd_scorer_subjects(activations_identifier: str,
         print('best score:',regression.score_)
 
         #load X_test and y_test
-        X_test = xr.open_dataset(os.path.join(CACHE,'activations',f'expansion_features=3000_layers=3_dataset=naturalscenes_shared_images'), 
+        X_test = xr.open_dataset(os.path.join(CACHE,'activations',f'{activations_identifier}_shared_images'), 
                                                       engine='netcdf4').x.values
 
         _ , neural_data_test, var_name_test = load_nsd_data(mode ='shared',
@@ -106,7 +106,11 @@ def nsd_scorer_subjects(activations_identifier: str,
         model.fit(X_train, y_train)
         y_predicted = model.predict(X_test)
         
-        with open(os.path.join(PREDS_PATH,f'{activations_identifier}_{region}.pkl'), 'wb') as file:
+        iden = activations_identifier.split('subject=')
+        
+        print(f'{iden[0]}{region}_{iden[1]}.pkl')
+        
+        with open(os.path.join(PREDS_PATH,f'{iden[0]}{region}_{iden[1]}.pkl'), 'wb') as file:
                 pickle.dump(y_predicted, file)
                 
         r = pearson_r(torch.Tensor(y_test),torch.Tensor(y_predicted))
@@ -117,6 +121,9 @@ def nsd_scorer_subjects(activations_identifier: str,
                                             'z':(['neuroid'], neural_data_test.z.values),
                                              })
 
+
+        
+        
         ds = xr.concat([ds,ds_tmp], dim='neuroid')   
 
         ds['name'] = activations_identifier + '_' + region 
@@ -284,9 +291,9 @@ def nsd_get_best_layer_scores(activations_identifier: list, region: str, device:
                                                              y_test=y_test,
                                                              model= Ridge(alpha=best_alphas[subject]))
             
-            with open(os.path.join(PREDS_PATH,f'alexnet_gpool=False_naturalscenes_{region}_{subject}.pkl'), 'wb') as file:
+            with open(os.path.join(PREDS_PATH,f'alexnet_gpool=False_dataset=naturalscenes_{region}_{subject}.pkl'), 'wb') as file:
                 pickle.dump(y_predicted, file)
-            
+
             r = pearson_r(y_true,y_predicted)
 
             ds_tmp = xr.Dataset(data_vars=dict(r_value=(["neuroid"], r)),
