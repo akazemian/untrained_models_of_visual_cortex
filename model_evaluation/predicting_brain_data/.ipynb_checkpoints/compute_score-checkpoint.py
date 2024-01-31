@@ -11,20 +11,19 @@ from model_features.models.expansion import Expansion, Expansion2L
 import gc
 from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
 from model_features.models.models import load_model, load_iden
-from model_features.models.ViT import ViT
 # define local variables
 
-DATASET = 'naturalscenes'
-REGIONS = ['early visual stream','midventral visual stream']
+# DATASET = 'naturalscenes'
+# REGIONS = ['ventral visual stream','midventral visual stream'] #'early visual stream',
 
-# DATASET = 'majajhong'
-# REGIONS = ['V4']
+DATASET = 'majajhong'
+REGIONS = ['IT']
 
 
-MODELS = ['expansion'] #'expansion_linear']#,
-FEATURES = [3,30,300]
-LAYERS = 3
-
+# MODELS = ['ViT_large_embed']#,
+MODELS = ['fully_random_1000']
+FEATURES = [3000]
+LAYERS = 5
 
 
 for region in REGIONS:
@@ -37,30 +36,27 @@ for region in REGIONS:
         
         for features in FEATURES:
     
-            print(features)
-            
-            activations_identifier = load_iden(model_name=model_name, features=features, layers=LAYERS, dataset=DATASET)
-            activations_identifier = activations_identifier + '_6x6'
-            print(activations_identifier)
-            model = load_model(model_name=model_name, features=features, layers=LAYERS)
-         
+                        
+                activations_identifier = load_iden(model_name=model_name, features=features, layers=LAYERS, dataset=DATASET)
 
-            # activations_identifier = 'transformer_untarined_learned_pos_larger_hidden_large_lin_head'
-            # model = ViT().Build()
+                print(activations_identifier)
 
-            Activations(model=model,
-                    layer_names=['last'],
-                    dataset=DATASET,
-                    device= 'cuda',
-                    batch_size = 40).get_array(activations_identifier) 
+                model = load_model(model_name=model_name, features=features, layers=LAYERS)
 
 
-            EncodingScore(activations_identifier=activations_identifier,
-                       dataset=DATASET,
-                       region=region,
-                       device= 'cpu').get_scores(iden= activations_identifier + '_' + region)
+                Activations(model=model,
+                        layer_names=['last'],
+                        dataset=DATASET,
+                        device= 'cuda',
+                        batch_size = 2).get_array(activations_identifier) 
 
-            gc.collect()
+
+                EncodingScore(activations_identifier=activations_identifier,
+                           dataset=DATASET,
+                           region=region,
+                           device= 'cpu').get_scores(iden= activations_identifier + '_' + region)
+
+                gc.collect()
 
 
 

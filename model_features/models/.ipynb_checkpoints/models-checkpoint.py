@@ -8,11 +8,13 @@ from model_features.models.alexnet_untrained import AlexnetU
 from model_features.models.expansion import Expansion3L, Expansion5L
 from model_features.models.fully_connected import FullyConnected3L, FullyConnected5L
 from model_features.models.expansion_linear import Expansion3LLinear, Expansion5LLinear
+from model_features.models.expansion_fully_random import FullyRandom5L
+from model_features.models.ViT import ViTBase
 
 
-def load_iden(model_name, dataset, features=None, layers=None):
+def load_iden(model_name, dataset, block = None, features=None, layers=None):
     
-    if model_name in ['expansion','fully_connected', 'expansion_linear']:
+    if model_name in ['expansion','fully_connected', 'expansion_linear', 'fully_random_1000']:
         
         if model_name == 'fully_connected':
                 if layers == 3:
@@ -39,6 +41,11 @@ def load_iden(model_name, dataset, features=None, layers=None):
                 case 'best':
                     return f'{model_name}_gpool=False_dataset={dataset}'
     
+    elif 'ViT' in model_name:
+            return f'{model_name}_features={features}_dataset={dataset}'
+            #return f'{model_name}_block={block}_dataset={dataset}'
+    
+    
     else:
             print('model name not known')
             
@@ -46,7 +53,7 @@ def load_iden(model_name, dataset, features=None, layers=None):
     
     
     
-def load_model(model_name, features=None, layers=None):
+def load_model(model_name, block = None, features=None, layers=None):
     
     match model_name:
         
@@ -73,7 +80,7 @@ def load_model(model_name, features=None, layers=None):
                 case 5:
                     return FullyConnected5L(features_5=features).Build()
         
-        case 'alexnet':
+        case '_alexnet':
             
             match layers:
                 
@@ -104,6 +111,18 @@ def load_model(model_name, features=None, layers=None):
                     return AlexnetU(features_layer =9).Build()
                 case 5:
                     return AlexnetU().Build()
+                
+        case 'ViT_base':
+            return ViTBase(out_features = features).Build()
     
-    
-    
+        case 'fully_random_1000':
+            return FullyRandom5L(filters_5=features).Build()
+            
+            
+        # case 'ViT_fixed_pos':
+        #     return ViTBase(fixed_pos_encoding=True, block = block).Build()
+        
+#         case 'ViT_large_embed':
+#             return ViTLarge(out_features=features).Build()    
+        
+    return

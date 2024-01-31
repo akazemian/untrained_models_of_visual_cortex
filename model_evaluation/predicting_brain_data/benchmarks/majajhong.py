@@ -206,7 +206,7 @@ def majajhong_get_best_layer_scores(activations_identifier: list, region: str, d
             r = pearson_r(y_true,y_predicted)
 
            
-            with open(os.path.join(PREDS_PATH,f'alexnet_gpool=False_majajhong_{region}_{SUBJECTS[subject]}.pkl'), 'wb') as file:
+            with open(os.path.join(PREDS_PATH,f'alexnet_gpool=False_dataset=majajhong_{region}_{SUBJECTS[subject]}.pkl'), 'wb') as file:
                 pickle.dump(y_predicted, file)
                 
             ds_tmp = xr.Dataset(data_vars=dict(r_value=(["r_values"], r)),
