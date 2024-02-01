@@ -12,9 +12,9 @@ from model_features.models.expansion_fully_random import FullyRandom5L
 from model_features.models.ViT import ViTBase
 
 
-def load_iden(model_name, dataset, block = None, features=None, layers=None):
+def load_iden(model_name, dataset, block = None, features=None, layers=None, random_filters=None):
     
-    if model_name in ['expansion','fully_connected', 'expansion_linear', 'fully_random_1000']:
+    if model_name in ['expansion','fully_connected', 'expansion_linear']:
         
         if model_name == 'fully_connected':
                 if layers == 3:
@@ -46,6 +46,10 @@ def load_iden(model_name, dataset, block = None, features=None, layers=None):
             #return f'{model_name}_block={block}_dataset={dataset}'
     
     
+    elif 'fully_random' in model_name:
+        f'{model_name}_{random_filters}_features={features}_layers={layers}_dataset={dataset}'
+        
+    
     else:
             print('model name not known')
             
@@ -53,7 +57,7 @@ def load_iden(model_name, dataset, block = None, features=None, layers=None):
     
     
     
-def load_model(model_name, block = None, features=None, layers=None):
+def load_model(model_name, block = None, features=None, layers=None, random_filters=None):
     
     match model_name:
         
@@ -115,8 +119,8 @@ def load_model(model_name, block = None, features=None, layers=None):
         case 'ViT_base':
             return ViTBase(out_features = features).Build()
     
-        case 'fully_random_1000':
-            return FullyRandom5L(filters_5=features).Build()
+        case 'fully_random':
+            return FullyRandom5L(filters_1=random_filters,filters_5=features).Build()
             
             
         # case 'ViT_fixed_pos':

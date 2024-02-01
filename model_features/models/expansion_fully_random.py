@@ -176,7 +176,7 @@ class FullyRandom5L:
     
 
     def __init__(self, 
-                 filters_1:int=1000,
+                 filters_1:int=100,
                  filters_2:int=1000,
                  filters_3:int=3000,
                  filters_4:int=5000,
@@ -230,7 +230,7 @@ class FullyRandom5L:
         conv5 = nn.Conv2d(self.filters_4, self.filters_5, kernel_size=(3,3), bias=False)
         initialize_conv_layer(conv5, self.init_type)
         bpool5 = BlurPool(self.filters_5, filt_size=self.bpool_filter_size, stride=2)
-        pool5 = nn.AvgPool2d(kernel_size=4, stride=1)
+        pool5 = nn.AvgPool2d(kernel_size=5, stride=1)
         #randproj5 = nn.Conv2d(self.filters_5, 3000, kernel_size=(1,1), bias=False)
         
         # non lineairy function
