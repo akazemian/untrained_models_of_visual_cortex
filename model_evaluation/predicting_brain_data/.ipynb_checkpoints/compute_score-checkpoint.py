@@ -21,8 +21,9 @@ REGIONS = ['IT']
 
 
 # MODELS = ['ViT_large_embed']#,
-MODELS = ['fully_random_1000']
-FEATURES = [3000]
+MODELS = ['fully_random']
+FEATURES = [3, 30, 300, 3000, 30000]
+FILTERS = [50, 500, 5000]
 LAYERS = 5
 
 
@@ -35,20 +36,22 @@ for region in REGIONS:
         print(model_name)
         
         for features in FEATURES:
+            
+            for random_filters in FILTERS:
     
                         
-                activations_identifier = load_iden(model_name=model_name, features=features, layers=LAYERS, dataset=DATASET)
+                activations_identifier = load_iden(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS, dataset=DATASET)
 
                 print(activations_identifier)
 
-                model = load_model(model_name=model_name, features=features, layers=LAYERS)
+                model = load_model(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS)
 
 
                 Activations(model=model,
                         layer_names=['last'],
                         dataset=DATASET,
                         device= 'cuda',
-                        batch_size = 2).get_array(activations_identifier) 
+                        batch_size = 10).get_array(activations_identifier) 
 
 
                 EncodingScore(activations_identifier=activations_identifier,
