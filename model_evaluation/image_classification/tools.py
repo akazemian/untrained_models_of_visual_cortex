@@ -65,7 +65,7 @@ def prototype_performance(X_train, y_train, X_test, y_test):
 
 
     
-def get_Xy(data, categories):
+def get_Xy(data, categories=CAT_SUBSET):
     
     cat_labels = load_places_cat_labels()
     cat_labels_subset = {k: v for k, v in cat_labels.items() if v in categories}
@@ -81,9 +81,15 @@ def get_Xy(data, categories):
 
 
 
+def logistic_regression(X_train, y_train, X_test, y_test):
+    
+    clf = LogisticRegression(random_state=0).fit(X_train, y_train)
+    #preds = clf.predict(X_test)
+    #preds_proba = clf.predict_proba(X_test)
+    return clf.score(X_test, y_test)
 
 
-def cv_performance(X, y, num_folds=5):
+def cv_performance(X, y, clf = 'logistic', num_folds=5):
     
     splits = create_splits(n = len(X), shuffle = True, num_folds=num_folds)
     accuracy = []
@@ -95,8 +101,13 @@ def cv_performance(X, y, num_folds=5):
         X_train, y_train = X[indices_train,...], y[indices_train,...]
         X_test, y_test = X[indices_test,...], y[indices_test,...]
 
-        accuracy_score = prototype_performance(X_train, y_train, X_test, y_test)
-        accuracy.append(accuracy_score)
+        if clf == 'prototype':
+            accuracy_score = prototype_performance(X_train, y_train, X_test, y_test)
+            accuracy.append(accuracy_score)
+        
+        elif clf == 'logistic':
+            accuracy_score = logistic_regression(X_train, y_train, X_test, y_test)
+            accuracy.append(accuracy_score)    
     
     return sum(accuracy)/len(accuracy) 
 

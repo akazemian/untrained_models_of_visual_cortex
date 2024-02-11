@@ -9,46 +9,8 @@ torch.manual_seed(42)
 torch.cuda.manual_seed(42)                        
 
     
-    
-
-
-    
-    
 class Model5L(nn.Module):
-    
-    
-    """
-    Neural network architecture consisting of three layers.
-    
-    Attributes:
-    -----------
-    conv1 : nn.Module
-        Convolutional layer for the first layer.
-    bpool1 : nn.Module
-        BlurPool (anti-aliasing) layer for the first layer.
-    pool1 : nn.Module
-        Average pooling layer for the first layer.
-    conv2 : nn.Module
-        Convolutional layer for the second layer.
-    bpool2 : nn.Module
-        BlurPool layer for the second layer.
-    pool2 : nn.Module
-        Average pooling layer for the second layer.
-    conv3 : nn.Module
-        Convolutional layer for the third layer.
-    bpool3 : nn.Module
-        BlurPool layer for the third layer.
-    pool3 : nn.Module
-        Average pooling layer for the third layer.
-    batches_3 : int
-        Number of batches used in the third layer's convolution.
-    nl : nn.Module
-        Non-linearity module.
-    gpool : bool
-        If true, global pooling is applied after the third layer.
-    last : nn.Module
-        Final output layer.
-    """
+
 
     def __init__(self,
                 conv1: nn.Module,
@@ -105,32 +67,27 @@ class Model5L(nn.Module):
         x = self.conv1(x)  # conv 
         x = self.nl(x) # non linearity 
         x = self.bpool1(x) # anti-aliasing blurpool               
-        print(x.shape)
 
             
         #layer 2
         x = self.conv2(x)  
         x = self.nl(x) 
         x = self.bpool2(x) 
-        print(x.shape) 
             
         #layer 3
         x = self.conv3(x)  
         x = self.nl(x) 
         x = self.bpool3(x) 
-        print(x.shape)
 
         #layer 4
         x = self.conv4(x)  
         x = self.nl(x) 
         x = self.bpool4(x) 
-        print(x.shape)
         
         #layer 5
         x = self.conv5(x)  
         x = self.nl(x) 
         x = self.pool5(x)  
-        print(x.shape)
         
         if self.gpool: # global pool
             H = x.shape[-1]
@@ -139,7 +96,6 @@ class Model5L(nn.Module):
 
         
         x = self.last(x) # final layer
-        print(x.shape)
         
         return x    
 
@@ -230,7 +186,7 @@ class FullyRandom5L:
         conv5 = nn.Conv2d(self.filters_4, self.filters_5, kernel_size=(3,3), bias=False)
         initialize_conv_layer(conv5, self.init_type)
         bpool5 = BlurPool(self.filters_5, filt_size=self.bpool_filter_size, stride=2)
-        pool5 = nn.AvgPool2d(kernel_size=5, stride=1)
+        pool5 = nn.AvgPool2d(kernel_size=4, stride=1)
         #randproj5 = nn.Conv2d(self.filters_5, 3000, kernel_size=(1,1), bias=False)
         
         # non lineairy function

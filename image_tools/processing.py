@@ -10,14 +10,16 @@ import functools
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 import pickle
-
+import torch.nn.functional as F
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from config import CACHE
-
+import torch.nn as nn
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 
+torch.manual_seed(42)
+INDICES = torch.randperm(224**2)
 
 def cache(file_name_func):
 
@@ -66,7 +68,7 @@ class ImageProcessor:
         
     @staticmethod
     def cache_file(image_paths, dataset, image_size=224):
-        if dataset == 'naturalscenes':
+        if 'naturalscenes' in dataset:
             num_images = 73000
             
         else:
@@ -91,12 +93,21 @@ class ImageProcessor:
         """
         print('processing images...')
         
-        transform = transforms.Compose([
-            transforms.Resize((image_size, image_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)])
-  
+        if 'shuffled' in dataset:
+            
+            transform = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+                ShufflePixels(),
+                transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)])
 
+
+        else:
+  
+            transform = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)])
 
         dataset = TransformDataset(image_paths, transform=transform)
         dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False, num_workers=2)
@@ -122,7 +133,7 @@ class ImageProcessor:
 
 
 class TransformDataset(Dataset):
-    def __init__(self, image_paths, transform=None):
+    def __init__(self, image_paths, shuffle_pixels = True, transform=None):
         self.image_paths = image_paths
         self.transform = transform
 
@@ -132,9 +143,37 @@ class TransformDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.image_paths[idx]
         img = Image.open(img_path).convert('RGB')  # Convert image to RGB
-        
+    
+                          
         if self.transform:
             img = self.transform(img)
         
         return img
+
+
+
+
+
+
+class ShufflePixels(nn.Module):
+    def __init__(self):
+        super(ShufflePixels, self).__init__()
+
+    def forward(self, img):
+        """
+        Shuffle the pixels of an image.
+        Args:
+        - img (torch.Tensor): An image tensor of shape (channels, height, width).
+        Returns:
+        - torch.Tensor: An image with shuffled pixels.
+        """
+        C, H, W = img.shape
+        shuffled_img = torch.empty_like(img)
+
+        for c in range(C):
+            pixels = img[c].view(-1)  # Flatten
+            shuffled_pixels = pixels[INDICES]  # Shuffle
+            shuffled_img[c] = shuffled_pixels.view(H, W)  # Reshape
+
+        return shuffled_img
         

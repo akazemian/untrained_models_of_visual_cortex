@@ -9,7 +9,7 @@ NSD_NEURAL_DATA = '/data/shared/for_atlas'
 #majaj neural data
 MAJAJ_IMAGES = '/data/shared/.cache/brainscore/brainio/image_dicarlo_hvm-public'
 MAJAJ_DATA = '/data/atlas/neural_data/majajhong'
-MAJAJ_NAME_DICT = '/data/shared/brainscore/image_dicarlo_hvm-public.csv'
+MAJAJ_NAME_DICT = '/data/shared/.cache/brainscore/image_dicarlo_hvm-public.csv'
 
 # places dataset for image classification
 PLACES_IMAGES = '/data/atlas/datasets/places' # places 
