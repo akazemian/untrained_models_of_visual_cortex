@@ -13,20 +13,24 @@ from model_features.models.models import load_model, load_iden
 # define local variables
 
 DATASET = 'naturalscenes'
-REGIONS = ['early visual stream','midventral visual stream', 'ventral visual stream']
+REGIONS = ['midventral visual stream','early visual stream', 'ventral visual stream']
 # DATASET = 'majajhong'
 # REGIONS = ['V4']
 
+MODELS = ['ViT_wavelet']
+#MODELS = ['expansion']#,'expansion_linear','fully_connected']
+FEATURES = [12*450]
+#FEATURES = [30000]
 
-MODELS = ['expansion','fully_connected', 'expansion_linear']
-FEATURES = [3000]
 LAYERS = 5
 DEVICE = 'cuda'
-subject = -1
+subject =  0
 
 
 #for subject in range(1,8,1):
     
+    
+
     
 for region in REGIONS:
 
@@ -34,42 +38,39 @@ for region in REGIONS:
 
         for features in FEATURES:
 
-            model = load_model(model_name=model_name, features=features, layers=LAYERS)
-            activations_identifier = load_iden(model_name=model_name, features=features, layers=LAYERS, dataset=DATASET)
+            # for subject in range(8):
+                
+                model = load_model(model_name=model_name, features=features, layers=LAYERS)
+                activations_identifier = load_iden(model_name=model_name, features=features, layers=LAYERS, dataset=DATASET)
+    
+                if subject == -1:
 
-            if subject == -1:
-
-                activations_identifier = activations_identifier + '_shared_images'
-                print(activations_identifier)
-
-                image_ids = load_nsd_data(mode='shared', subject=0, region=region, return_data=False)
-                Activations(model=model,
-                        layer_names=['last'],
-                        dataset=DATASET,
-                        device= DEVICE,
-                        batch_size = 30,
-                        subject_images=image_ids).get_array(activations_identifier) 
-            else:
-                activations_identifier = activations_identifier + f'_subject={subject}'
-                print(activations_identifier)
-
-                image_ids = load_nsd_data(mode='unshared', subject=subject, region=region, return_data=False)
-                Activations(model=model,
-                        layer_names=['last'],
-                        dataset=DATASET,
-                        device= DEVICE,
-                        batch_size = 5,
-                        subject_images=image_ids).get_array(activations_identifier) 
-
-                scores_iden = activations_identifier + '_' + region 
-
-                EncodingScore(activations_identifier=activations_identifier,
-                           dataset=DATASET,
-                           region=region,
-                           subject = subject,
-                           device= 'cpu').get_scores(scores_iden)
-
-            gc.collect()
+                    image_ids = load_nsd_data(mode='shared', subject=0, region=region, return_data=False)
+                    Activations(model=model,
+                            layer_names=['last'],
+                            dataset=DATASET,
+                            device= DEVICE,
+                            batch_size = 100,
+                            subject_images=image_ids).get_array(activations_identifier + '_shared_images') 
+                else:
+    
+                    image_ids = load_nsd_data(mode='unshared', subject=subject, region=region, return_data=False)
+                    Activations(model=model,
+                            layer_names=['last'],
+                            dataset=DATASET,
+                            device= DEVICE,
+                            batch_size = 100,
+                            subject_images=image_ids).get_array(activations_identifier + f'_subject={subject}') 
+    
+                    scores_iden = activations_identifier + f'_subject={subject}' + '_' + region 
+    
+                    EncodingScore(activations_identifier=activations_identifier,
+                               dataset=DATASET,
+                               region=region,
+                               subject = subject,
+                               device= 'cpu').get_scores(scores_iden)
+    
+                    gc.collect()
 
 
 

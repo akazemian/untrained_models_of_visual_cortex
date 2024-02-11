@@ -64,7 +64,7 @@ def nsd_scorer_subjects(activations_identifier: str,
                                          })
 
         #load X_train and y_train
-        X_train = xr.open_dataset(os.path.join(CACHE,'activations', activations_identifier), 
+        X_train = xr.open_dataset(os.path.join(CACHE,'activations', activations_identifier + f'_subject={subject}'), 
                                     engine='netcdf4').x.values
             
         _ , neural_data_train, var_name_train = load_nsd_data(mode = 'unshared',
@@ -218,8 +218,99 @@ def nsd_scorer(activations_identifier: str,
         return ds            
             
 
-     
+
+
+
+
+def nsd_scorer_principal_components(activations_identifier: str,region: str,device: str, n_components:int):
     
+
+            
+            activations_data = xr.open_dataarray(os.path.join(CACHE,'activations',activations_identifier), engine='h5netcdf')  
+        
+            ds = xr.Dataset(data_vars=dict(r_value=(["neuroid"], [])),
+                                    coords={'x':(['neuroid'], []), 
+                                            'y':(['neuroid'], []), 
+                                            'z':(['neuroid'], []),
+                                            'subject': (['neuroid'], []),
+                                            'region': (['neuroid'], [])
+                                             })
+    
+            for subject in tqdm(range(8)):
+    
+                
+                ids_train, neural_data_train, var_name_train = load_nsd_data(mode ='unshared',
+                                                            subject = subject,
+                                                            region = region)
+                
+                X_train = filter_activations(data = activations_data, ids = ids_train)  
+                
+                ###### NORMALIZE ####
+                X_train, X_min, X_max = normalize(X_train)
+                X_train = np.nan_to_num(X_train)
+                #####################
+                
+                
+                y_train = neural_data_train[var_name_train].values
+                
+                
+                X_train = X_train[:,:n_components]
+                print(X_train.shape)
+                
+                regression = TorchRidgeGCV(
+                    alphas=ALPHA_RANGE,
+                    fit_intercept=True,
+                    scale_X=False,
+                    scoring='pearsonr',
+                    store_cv_values=False,
+                    alpha_per_target=False,
+                    device=device)
+                
+                regression.fit(X_train, y_train)
+                best_alpha = float(regression.alpha_)
+                print('best alpha:',best_alpha)
+                
+                
+                ids_test, neural_data_test, var_name_test = load_nsd_data(mode ='shared',
+                                                                          subject = subject,
+                                                                          region = region)           
+                X_test = filter_activations(data = activations_data, ids = ids_test)                
+                
+                ### NORMALIZE #####
+                X_test = normalize(X_test, X_min, X_max, use_min_max=True)
+                X_test = np.nan_to_num(X_test)
+                #################################
+                
+                y_test = neural_data_test[var_name_test].values                   
+                
+                X_test = X_test[:,:n_components]
+                print(X_test.shape)
+                
+                y_true, y_predicted = regression_shared_unshared(x_train=X_train,
+                                                                 x_test=X_test,
+                                                                 y_train=y_train,
+                                                                 y_test=y_test,
+                                                                 model= Ridge(alpha=best_alpha))
+                
+                with open(os.path.join(PREDS_PATH,f'{activations_identifier}_principal_components={n_components}_{region}_{subject}.pkl'), 'wb') as file:
+                    pickle.dump(y_predicted, file)
+                    
+                r = pearson_r(y_true,y_predicted)
+    
+                ds_tmp = xr.Dataset(data_vars=dict(r_value=(["neuroid"], r)),
+                                            coords={'x':(['neuroid'],neural_data_test.x.values ),
+                                                    'y':(['neuroid'],neural_data_test.y.values ),
+                                                    'z':(['neuroid'], neural_data_test.z.values),
+                                                    'subject': (['neuroid'], [subject for i in range(len(r))]),
+                                                    'region': (['neuroid'], [region for i in range(len(r))])
+                                                     })
+    
+                ds = xr.concat([ds,ds_tmp],dim='neuroid')   
+    
+            ds['name'] = activations_identifier + '_' + region 
+            return ds            
+
+
 def get_best_model_layer(activations_identifier, region, device):
     
         best_score = 0

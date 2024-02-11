@@ -13,6 +13,8 @@ import gc
 
 def register_pca_hook(x, PCA_FILE_NAME, n_components=None, device='cuda'):
     
+    PCA_FILE_NAME = PCA_FILE_NAME.split('_principal_components')[0]
+    
     with open(PCA_FILE_NAME, 'rb') as file:
         _pca = pickle.load(file)
     _mean = torch.Tensor(_pca.mean_).to(device)

@@ -35,7 +35,7 @@ def load_majaj_images():
     
     
     
-def load_places_images():
+def load_places_val_images():
     from config import PLACES_IMAGES
     """
     Loads the file paths of validation images from the PLACES_IMAGES directory.
@@ -43,11 +43,28 @@ def load_places_images():
     Returns:
         list: A sorted list of full paths to the validation images.
     """
-    val_images = os.listdir(os.path.join(PLACES_IMAGES,'val_images/val_256'))
-    val_images_paths = [f'{PLACES_IMAGES}/val_images/val_256/{i}' for i in val_images]
+        
+    images = os.listdir(os.path.join(PLACES_IMAGES,'val_images/val_256'))
+    images_paths = [f'{PLACES_IMAGES}/val_images/val_256/{i}' for i in images]
     
-    return sorted(val_images_paths)
+    return sorted(images_paths)
     
+    
+def load_places_test_images():
+    from config import PLACES_IMAGES
+    """
+    Loads the file paths of validation images from the PLACES_IMAGES directory.
+
+    Returns:
+        list: A sorted list of full paths to the validation images.
+    """
+        
+    with open('/home/akazemi3/Desktop/untrained_models_of_visual_cortex/image_tools/places_test_ids_sample=3000', 'rb') as file:
+        images_paths = pickle.load(file)
+    
+    return sorted(images_paths)
+    
+
     
     
 
@@ -65,16 +82,18 @@ def load_image_paths(name, *args, **kwargs):
     
     match name:
         
-        case 'naturalscenes':
+        case 'naturalscenes' | 'naturalscenes_shuffled':
             return load_nsd_images(*args, **kwargs)
-
-        case 'majajhong':
+            
+        case 'majajhong' | 'majajhong_shuffled':
             return load_majaj_images()
 
-        case 'places':
-            return load_places_images()
+        case 'places_val':
+            return load_places_val_images()
     
-  
+        case 'places_test':
+            return load_places_test_images()
+      
     
 
 def get_image_labels(dataset, images):
@@ -93,15 +112,15 @@ def get_image_labels(dataset, images):
     
     match dataset:
         
-        case 'naturalscenes':
+        case 'naturalscenes' | 'naturalscenes_shuffled':
             return [os.path.basename(i).strip('.png') for i in images]
         
-        case 'majajhong':
+        case 'majajhong' | 'majajhong_shuffled':
             from config import MAJAJ_NAME_DICT 
             name_dict = pd.read_csv(MAJAJ_NAME_DICT).set_index('image_file_name')['image_id'].to_dict()
             return [name_dict[os.path.basename(i)] for i in images]
         
-        case 'places':
+        case 'places_val' | 'places_test':
             return [os.path.basename(i) for i in images]
                                                   
     
@@ -135,7 +154,7 @@ def load_places_cat_names():
     Returns:
         list: List of category names for the validation images in the PLACES_IMAGES dataset.
     """    
-    val_image_paths = load_places_images()
+    val_image_paths = load_places_val_images()
     val_image_names = [os.path.basename(i) for i in val_image_paths]
     cat_dict = load_places_cat_labels()
 

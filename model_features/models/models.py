@@ -5,11 +5,11 @@ import sys
 ROOT = os.getenv('BONNER_ROOT_PATH')
 from model_features.models.alexnet import Alexnet
 from model_features.models.alexnet_untrained import AlexnetU
-from model_features.models.expansion import Expansion3L, Expansion5L
-from model_features.models.fully_connected import FullyConnected3L, FullyConnected5L
-from model_features.models.expansion_linear import Expansion3LLinear, Expansion5LLinear
+from model_features.models.expansion import Expansion5L
+from model_features.models.fully_connected import FullyConnected5L
+from model_features.models.expansion_linear import Expansion5LLinear
 from model_features.models.expansion_fully_random import FullyRandom5L
-from model_features.models.ViT import ViTBase
+from model_features.models.ViT import CustomViT
 
 
 def load_iden(model_name, dataset, block = None, features=None, layers=None, random_filters=None):
@@ -47,7 +47,7 @@ def load_iden(model_name, dataset, block = None, features=None, layers=None, ran
     
     
     elif 'fully_random' in model_name:
-        f'{model_name}_{random_filters}_features={features}_layers={layers}_dataset={dataset}'
+            return f'{model_name}_{random_filters}_features={features}_layers={layers}_dataset={dataset}'
         
     
     else:
@@ -77,7 +77,7 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
                     return Expansion5LLinear(filters_5=features).Build()
     
     
-        case 'fully_connected':
+        case 'fully_connected_wavelet':
             match layers:
                 case 3:
                     return FullyConnected3L(features_3=features).Build()
@@ -116,11 +116,11 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
                 case 5:
                     return AlexnetU().Build()
                 
-        case 'ViT_base':
-            return ViTBase(out_features = features).Build()
+        case 'ViT_wavelet':
+            return ViTBase(use_wavelets=True, out_features = features, block = 11).Build()
     
         case 'fully_random':
-            return FullyRandom5L(filters_1=random_filters,filters_5=features).Build()
+            return FullyRandom5L(filters_1=random_filters, filters_5=features).Build()
             
             
         # case 'ViT_fixed_pos':

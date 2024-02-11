@@ -3,27 +3,30 @@ import sys
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 import warnings
 warnings.filterwarnings('ignore')
-
+print(os.getenv('BONNER_ROOT_PATH'))
 from image_tools.processing import *
 from model_evaluation.predicting_brain_data.regression.scorer import EncodingScore
 from model_features.activation_extractor import Activations
-from model_features.models.expansion import Expansion, Expansion2L
 import gc
 from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
 from model_features.models.models import load_model, load_iden
+from model_features.models.expansion import ExpansionNoWeightShare
+
 # define local variables
 
-# DATASET = 'naturalscenes'
-# REGIONS = ['ventral visual stream','midventral visual stream'] #'early visual stream',
+DATASET = 'naturalscenes'
+REGIONS = ['ventral visual stream']#'midventral visual stream','early visual stream', ]
 
-DATASET = 'majajhong'
-REGIONS = ['IT']
+# DATASET = 'majajhong_shuffled'
+# REGIONS = ['IT']
 
 
-# MODELS = ['ViT_large_embed']#,
 MODELS = ['fully_random']
-FEATURES = [3, 30, 300, 3000, 30000]
-FILTERS = [50, 500, 5000]
+#MODELS = ['expansion']#,'expansion_linear','fully_connected']
+#FEATURES = [12,12*5,12*50,12*300]
+FEATURES = [3,30,300,3000]
+
+FILTERS = [30,300,3000]
 LAYERS = 5
 
 
@@ -41,23 +44,24 @@ for region in REGIONS:
     
                         
                 activations_identifier = load_iden(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS, dataset=DATASET)
+                # activations_identifier = 'expansion_no_weight_sharing'
 
                 print(activations_identifier)
-
                 model = load_model(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS)
+                # model = ExpansionNoWeightShare().Build()
 
 
                 Activations(model=model,
                         layer_names=['last'],
                         dataset=DATASET,
                         device= 'cuda',
-                        batch_size = 10).get_array(activations_identifier) 
+                        batch_size = 5).get_array(activations_identifier) 
 
 
                 EncodingScore(activations_identifier=activations_identifier,
                            dataset=DATASET,
                            region=region,
-                           device= 'cpu').get_scores(iden= activations_identifier + '_' + region)
+                           device= 'cuda').get_scores(iden= activations_identifier + '_' + region)
 
                 gc.collect()
 

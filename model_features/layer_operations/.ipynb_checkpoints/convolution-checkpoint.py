@@ -5,25 +5,15 @@ import torch
 torch.manual_seed(42)
 from torch import nn
 import numpy as np
+import torch.nn.functional as F
+
+
 
 class Convolution(nn.Module):
-    
-    """
-    Attributes
-    ----------
-    filter_type  
-        The type of filter used for convolution. One of [curvature, gabor]
-    
-    curv_params
-        the parametrs used to create the filters, applicable for curvature filters
-        
-    filter_size 
-        The kernel size used in layer. 
 
-    """
-    
     
     def __init__(self, 
+                 device:str,
                  filter_params:dict=None,
                  filter_size:int=None,
                 ):
@@ -33,16 +23,16 @@ class Convolution(nn.Module):
 
         self.filter_size = filter_size
         self.filter_params = filter_params
+        self.device = device
     
     def extra_repr(self) -> str:
-        return 'kernel_size={filter_size}, filter_params:{filter_params}'.format(**self.__dict__)
-    
+        return 'filter_size={filter_size}, filter_params:{filter_params}'.format(**self.__dict__)
     
     
     def forward(self,x):
             
         in_channels = x.shape[1]
-        weights = filters(in_channels=1, kernel_size=self.filter_size, filter_params=self.filter_params).cuda()
+        weights = filters(in_channels=1, kernel_size=self.filter_size, filter_params=self.filter_params).to(self.device)
         
         
         # for RGB input (the preset L1 filters are repeated across the 3 channels)
@@ -50,7 +40,7 @@ class Convolution(nn.Module):
         convolved_tensor = []
         for i in range(in_channels):
             channel_image = x[:, i:i+1, :, :]
-            channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2)).cuda()
+            channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2)).to(self.device)
             convolved_tensor.append(channel_convolved)
         x = torch.cat(convolved_tensor, dim=1)    
     
@@ -58,6 +48,59 @@ class Convolution(nn.Module):
         return x
     
 
+
+
+
+class NonSharedConv2d(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0):
+        super(NonSharedConv2d, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        # Ensure kernel_size and padding are treated as integers
+        self.kernel_size = kernel_size if isinstance(kernel_size, int) else kernel_size[0]
+        self.stride = stride
+        self.padding = padding if isinstance(padding, int) else padding[0]
+
+        # Adjusted weight shape considering kernel_size as an int
+        self.weight_shape = (out_channels, in_channels, self.kernel_size, self.kernel_size)
+
+
+    def forward(self, x):
+        # Get the input dimensions
+        batch_size, _, height, width = x.shape
+        
+        # Calculate output dimensions
+        out_height = (height + 2 * self.padding - self.kernel_size) // self.stride + 1
+        out_width = (width + 2 * self.padding - self.kernel_size) // self.stride + 1
+        
+        # Output tensor
+        output = torch.zeros((batch_size, self.out_channels, out_height, out_width), device=x.device, dtype=x.dtype)
+
+        # Initialize random weights for each patch
+        # This is highly inefficient and not practical but follows the request
+        for b in range(batch_size):
+            for i in range(out_height):
+                for j in range(out_width):
+                    # Create an uninitialized tensor for weights
+                    weights = torch.empty(self.weight_shape, device=x.device, dtype=x.dtype)
+                    # Apply Kaiming/He uniform initialization to the weights
+                    nn.init.kaiming_uniform_(weights, a=math.sqrt(5))
+                    
+                    h_start = i * self.stride
+                    h_end = h_start + self.kernel_size
+                    w_start = j * self.stride
+                    w_end = w_start + self.kernel_size
+                    
+                    # Extract the patch
+                    patch = x[b:b+1, :, h_start:h_end, w_start:w_end].unfold(2, self.kernel_size, self.stride).unfold(3, self.kernel_size, self.stride)
+                    patch = patch.contiguous().view(self.in_channels, -1)
+                    
+                    # Convolve the patch with the weights
+                    for c in range(self.out_channels):
+                        weight = weights[c].view(-1)
+                        output[b, c, i, j] = torch.dot(patch.view(-1), weight)
+        
+        return output
 
 
         
