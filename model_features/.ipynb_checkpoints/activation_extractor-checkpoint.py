@@ -128,7 +128,6 @@ def batch_activations(model: nn.Module,
         for layer in layer_names:
             activations_b = activations_dict[layer]
             activations_b = torch.Tensor(activations_b.reshape(activations_dict[layer].shape[0],-1))
-            print(activations_b.shape)
             ds = xr.Dataset(
             data_vars=dict(x=(["presentation", "features"], activations_b.cpu())),
             coords={'stimulus_id': (['presentation'], image_labels)})
@@ -151,8 +150,8 @@ class Activations:
     
     def __init__(self,
                  model: nn.Module,
-                 layer_names: list,
                  dataset: str,
+                 layer_names: list=['last'],
                  pca_iden= None,
                  hook:str = None,
                  n_components=None,

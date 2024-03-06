@@ -113,7 +113,8 @@ class Expansion5LLinear:
                  filters_5:int=30000,
                  init_type:str = 'kaiming_uniform',
                  bpool_filter_size:int=4,
-                 gpool:bool=False):    
+                 gpool:bool=False,
+                device='cuda'):    
         
         
         self.filter_params = filter_params
@@ -130,13 +131,14 @@ class Expansion5LLinear:
         self.init_type = init_type
         self.bpool_filter_size = bpool_filter_size
         self.gpool = gpool
+        self.device = device
     
     
     
     def Build(self):        
         
         # layer 1
-        conv1 = Convolution(filter_size=15,filter_params=self.filter_params)     
+        conv1 = Convolution(filter_size=15,filter_params=self.filter_params, device = self.device)     
         bpool1 = BlurPool(self.filters_1, filt_size=self.bpool_filter_size, stride=2)
         pool1 = nn.AvgPool2d(kernel_size=2)
 
@@ -189,7 +191,7 @@ class Expansion5LLinear:
                 pool5 = pool5,
             randproj5 = randproj5,
                 gpool = self.gpool,
-                last = last
+                last = last,
         )
     
 

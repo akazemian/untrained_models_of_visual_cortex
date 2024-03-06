@@ -43,8 +43,8 @@ class EncodingScore():
                  dataset: str,
                  region:str,
                  device:str,
-                subject=None, 
-                n_components = None, 
+                 subject=None, 
+                 n_components = None, 
                  best_layer=False):
         
         self.activations_identifier = activations_identifier

@@ -71,17 +71,18 @@ class FullyConnected5L:
 
     def __init__(self, 
                  image_size:int = 224,
-                 features_1:int = 108*112**2,
-                 features_2:int = 1000*53**2,
-                 features_3:int = 5000*25**2,
-                features_4:int = 5000*12**2,
-                features_5:int = 3000*6**2):    
+                 features_1:int = 108, #*112**2
+                 features_2:int = 1000, #*53**2
+                 features_3:int = 5000, #*25**2
+                features_4:int = 5000, #*12**2
+                features_5:int = 3000,device='cuda'): #*6**2
         
         self.features_1 = features_1
         self.features_2 = features_2
         self.features_3 = features_3
         self.features_4 = features_4
-        self.features_5 = features_5
+        self.features_5 = features_5*6**2
+        self.device = device
         
         self.filter_params = {'type':'curvature','n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]}
         self.input_dim = 3 * image_size**2
@@ -89,7 +90,7 @@ class FullyConnected5L:
     
     def Build(self):        
         
-        conv = Convolution(filter_size=15, filter_params=self.filter_params) 
+        conv = Convolution(filter_size=15, filter_params=self.filter_params, device = self.device) 
         lin1 = nn.Linear(self.input_dim, self.features_1)
         lin2 = nn.Linear(self.features_1, self.features_2)
         lin3 = nn.Linear(self.features_2, self.features_3)
