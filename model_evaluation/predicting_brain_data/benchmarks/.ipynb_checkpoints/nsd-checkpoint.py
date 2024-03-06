@@ -98,19 +98,16 @@ def nsd_scorer_subjects(activations_identifier: str,
 
         model= Ridge(alpha=best_alpha)
         
-        X_train = X_train.astype(np.float64)
-        X_test = X_test.astype(np.float64)
-        y_train = y_train.astype(np.float64)
-        y_test = y_test.astype(np.float64)
+        X_train = X_train.astype(np.float32)
+        X_test = X_test.astype(np.float32)
+        y_train = y_train.astype(np.float32)
+        y_test = y_test.astype(np.float32)
     
         model.fit(X_train, y_train)
+        gc.collect()
         y_predicted = model.predict(X_test)
         
-        iden = activations_identifier.split('subject=')
-        
-        print(f'{iden[0]}{region}_{iden[1]}.pkl')
-        
-        with open(os.path.join(PREDS_PATH,f'{iden[0]}{region}_{iden[1]}.pkl'), 'wb') as file:
+        with open(os.path.join(PREDS_PATH,f'{activations_identifier}_{region}_{subject}.pkl'), 'wb') as file:
                 pickle.dump(y_predicted, file)
                 
         r = pearson_r(torch.Tensor(y_test),torch.Tensor(y_predicted))

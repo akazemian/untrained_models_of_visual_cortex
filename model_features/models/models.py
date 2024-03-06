@@ -7,7 +7,6 @@ from model_features.models.alexnet import Alexnet
 from model_features.models.alexnet_untrained import AlexnetU
 from model_features.models.expansion import Expansion5L
 from model_features.models.fully_connected import FullyConnected5L
-from model_features.models.expansion_linear import Expansion5LLinear
 from model_features.models.expansion_fully_random import FullyRandom5L
 from model_features.models.ViT import CustomViT
 
@@ -72,12 +71,12 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
         case 'expansion_linear':
             match layers:
                 case 3:
-                    return Expansion3LLinear(filters_3=features).Build()
+                    return Expansion3L(filters_3=features, non_linearity='none').Build()
                 case 5:
-                    return Expansion5LLinear(filters_5=features).Build()
+                    return Expansion5L(filters_5=features, non_linearity='none').Build()
     
     
-        case 'fully_connected_wavelet':
+        case 'fully_connected':
             match layers:
                 case 3:
                     return FullyConnected3L(features_3=features).Build()
@@ -117,8 +116,13 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
                     return AlexnetU().Build()
                 
         case 'ViT_wavelet':
-            return ViTBase(use_wavelets=True, out_features = features, block = 11).Build()
+            return CustomViT(use_wavelets=True, out_features = features, block = 11).Build()
     
+                
+        case 'ViT':
+            return CustomViT(use_wavelets=False, out_features = features, block = 11).Build()
+            
+            
         case 'fully_random':
             return FullyRandom5L(filters_1=random_filters, filters_5=features).Build()
             

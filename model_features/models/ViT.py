@@ -156,7 +156,7 @@ class VisTransformer(nn.Module):
 class CustomModel(nn.Module):
     def __init__(self, block:int, 
                  conv:nn.Module,
-                 model:nn.Module, 
+                 vit:nn.Module, 
                  last:nn.Module, 
                  use_wavelets:bool,
                  device:str='cuda'):
@@ -164,16 +164,7 @@ class CustomModel(nn.Module):
 
         self.block = block
         self.conv = conv
-        self.model = VisTransformer(
-            img_size=224,
-            patch_size=16,
-            in_chans=in_channels,
-            embed_dim=EMBED_DIM,
-            depth=len(untrained_model.blocks),  # more layers
-            num_heads=NUM_HEADS,  # more attention heads
-            mlp_ratio=int(OUT_FEATURES/EMBED_DIM),
-            new_embed_dim=out_features
-        )
+        self.vit = vit
         self.last = last
 
         self.use_wavelets = use_wavelets
@@ -192,24 +183,22 @@ class CustomModel(nn.Module):
 
     def register_hooks(self):
         # Register hooks on each transformer block with the correct index
-        for i, blk in enumerate(self.model.model.blocks):
+        for i, blk in enumerate(self.vit.blocks):
             blk.register_forward_hook(lambda m, inp, out, idx=i: self._hook_fn(idx, m, inp, out))
 
     def forward(self, x):
         x = x.to(self.device)
-        self.model.to(self.device)
+        self.vit.to(self.device)
         
         if self.use_wavelets:
             x = self.conv(x)
-            print(x.shape)
         
-        _ = self.model(x)  # Perform the forward pass to populate activations
+        _ = self.vit(x)  # Perform the forward pass to populate activations
 
         # Use activations from a specific layer
         activations = self.activations.get(f'block_{self.block}', None)
         if activations is not None:
             x = self.last(activations)
-            print(x.shape)
         else:
             raise ValueError(f"No activations found for block {self.block}")
 
@@ -227,21 +216,31 @@ class CustomViT:
         self.use_wavelets = use_wavelets
         self.filter_params = {'type':'curvature','n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]}
         self.num_filters = self.filter_params['n_ories']*self.filter_params['n_curves']*len(self.filter_params['gau_sizes']*len(self.filter_params['spatial_fre']))*3
+        self.in_channels = self.num_filters if self.use_wavelets else 3
+        
         self.device = device
                 
     def Build(self):
     
-        conv = Convolution(filter_size=15, filter_params=self.filter_params)  
+        conv = Convolution(filter_size=15, filter_params=self.filter_params, device = self.device)  
         
-        in_channels = self.num_filters if self.use_wavelets else 3
-        model = TimmViT(in_channels = in_channels, out_features = self.out_features)
+        vit = VisTransformer(
+            img_size=224,
+            patch_size=16,
+            in_chans=self.in_channels,
+            embed_dim=EMBED_DIM,
+            depth=len(untrained_model.blocks),  # more layers
+            num_heads=NUM_HEADS,  # more attention heads
+            mlp_ratio=int(OUT_FEATURES/EMBED_DIM),
+            new_embed_dim= self.out_features
+        )
         
         last = Output()
         
         return CustomModel(block=self.block,
                          use_wavelets =self.use_wavelets,
                          conv = conv,
-                         model = model,
+                         vit = vit,
                          last = last)
 
 

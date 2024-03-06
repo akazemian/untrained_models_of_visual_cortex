@@ -9,7 +9,7 @@ class NonLinearity(nn.Module):
         super().__init__()
     
         self.operation = operation
-        self.operation_type = ['zscore', 'leaky_relu', 'relu', 'gelu', 'abs', 'none']
+        self.operation_type = ['zscore', 'leaky_relu', 'relu', 'gelu', 'abs', 'elu','none']
 
     
     def forward(self,x):
@@ -25,6 +25,11 @@ class NonLinearity(nn.Module):
                 return x_norm
 
 
+            case 'elu':
+                nl = nn.ELU(alpha=1.0)
+                return nl(x)
+        
+        
             case 'leaky_relu': 
                 nl = nn.LeakyReLU()
                 return nl(x)

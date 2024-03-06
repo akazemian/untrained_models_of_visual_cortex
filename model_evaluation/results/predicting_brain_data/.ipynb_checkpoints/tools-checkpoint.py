@@ -1,194 +1,248 @@
-import xarray as xr
-import numpy as np
-import torch
-import matplotlib.pyplot as plt
+import os
 import sys
-import torchvision 
+ROOT = os.getenv('BONNER_ROOT_PATH')
+sys.path.append(ROOT)
+from image_tools.loading import load_image_paths, get_image_labels
+from config import CACHE, NSD_SAMPLE_IMAGES
 import pandas as pd
+import xarray as xr
+import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import rcParams
-import os 
-import sys
-sys.path.append(os.getenv('BONNER_ROOT_PATH'))
+import torch
+from model_evaluation.predicting_brain_data.benchmarks.majajhong import load_majaj_data
+from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
+from model_evaluation.predicting_brain_data.benchmarks.nsd import filter_activations
+from model_features.models.models import load_iden
+import pickle
+from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
+from model_evaluation.predicting_brain_data.benchmarks.majajhong import load_majaj_data
+from model_evaluation.predicting_brain_data.regression.regression import pearson_r
+from tqdm import tqdm
+import numpy as np
+import numpy as np
+from scipy.spatial.distance import pdist, squareform
+from scipy.stats import spearmanr
+import torch
+import pickle
+from config import CACHE, NSD_NEURAL_DATA      
+SHARED_IDS_PATH = os.path.join(ROOT, 'image_tools','nsd_ids_shared')
+SHARED_IDS = pickle.load(open(SHARED_IDS_PATH, 'rb'))
+SHARED_IDS = [image_id.strip('.png') for image_id in SHARED_IDS]
+PREDS_PATH = '/data/atlas/.cache/beta_predictions'
+BOOTSTRAP_RESULTS_PATH = '/home/akazemi3/Desktop/untrained_models_of_visual_cortex/model_evaluation/results/predicting_brain_data/bootstrap_data'
 
-from image_tools.processing import *
-from image_tools.loading import *
-from model_evaluation.utils import get_activations_iden
-from model_evaluation.utils import get_best_layer_iden
+superscript_map = {
+    "0": "\u2070",
+    "1": "\u00B9",
+    "2": "\u00B2",
+    "3": "\u00B3",
+    "4": "\u2074",
+    "5": "\u2075",
+    "6": "\u2076",
+    "7": "\u2077",
+    "8": "\u2078",
+    "9": "\u2079",
+}
 
-from config import CACHE
+
+def compute_similarity_matrix(features):
+    """
+    Compute the similarity matrix (using Pearson correlation) for a set of features.
+    """
+    # Compute the pairwise distances (using correlation) and convert to similarity
+    return 1 - squareform(pdist(features, 'correlation'))
 
 
+def rsa(features1, features2):
+    """
+    Perform Representational Similarity Analysis between two sets of features.
+    """
+    # Compute similarity matrices for both sets of features
+    sim_matrix_1 = compute_similarity_matrix(features1)
+    sim_matrix_2 = compute_similarity_matrix(features2)
+
+    # Flatten the upper triangular part of the matrices
+    upper_tri_indices = np.triu_indices_from(sim_matrix_1, k=1)
+    sim_matrix_1_flat = sim_matrix_1[upper_tri_indices]
+    sim_matrix_2_flat = sim_matrix_2[upper_tri_indices]
+
+    # Compute the Spearman correlation between the flattened matrices
+    correlation, p_value = spearmanr(sim_matrix_1_flat, sim_matrix_2_flat)
+
+    return correlation, p_value
 
 
+def pearson_r_(x, y):
+    """
+    Compute Pearson correlation coefficients for batches of bootstrap samples.
+
+    Parameters:
+    x (torch.Tensor): A 3D tensor of shape (n_bootstraps, n_samples, n_features).
+    y (torch.Tensor): A 3D tensor of shape (n_bootstraps, n_samples, n_features).
+
+    Returns:
+    torch.Tensor: 1D tensor of Pearson correlation coefficients for each bootstrap.
+    """
+    # Ensure the input tensors are of the same shape
+    if x.shape != y.shape:
+        raise ValueError("Input tensors must have the same shape")
+
+    # Mean-centering the data
+    x_mean = torch.mean(x, dim=2, keepdim=True)
+    y_mean = torch.mean(y, dim=2, keepdim=True)
+    x = x - x_mean
+    y = y - y_mean
+
+    # Calculating Pearson Correlation Coefficient
+    sum_sq_x = torch.sum(x ** 2, axis=2)
+    sum_sq_y = torch.sum(y ** 2, axis=2)
+    sum_coproduct = torch.sum(x * y, axis=2)
+    denominator = torch.sqrt(sum_sq_x * sum_sq_y)
+
+    # Avoid division by zero
+    denominator = torch.where(denominator != 0, denominator, torch.ones_like(denominator))
+
+    r_values = sum_coproduct / denominator
+
+    # Average across the samples in each bootstrap
+    mean_r_values = torch.mean(r_values, axis=1)
+
+    return mean_r_values
 
 
-def make_pandas_df(data_dict, dataset, regions, subjects, gpool):
+def to_superscript(number):
+    return ''.join(superscript_map.get(char, char) for char in str(number))
+
+
+def write_powers(power):
+
+    base = 10
+    
+    if power < 0:
+        # For negative powers, use the superscript minus sign (⁻) followed by the power
+        power_str = "\u207B" + to_superscript(abs(power))
+    else:
+        power_str = to_superscript(power)
+    
+    return f"{base}{power_str}"
+
+
+def make_pandas_df(identifier, subjects, features=None, names=None):
     
     df = pd.DataFrame()
     index = 0        
     
-    for model_name, model_info in data_dict.items():
+    data = xr.open_dataset(os.path.join(CACHE,'encoding_scores_torch',identifier), engine='h5netcdf')
+
+    for subject in subjects:
+        subject_data = data.where(data.subject == subject, drop=True)
+        mean_r = subject_data.r_value.values.mean()
+
+        df_tmp =  pd.DataFrame({'score':mean_r,
+                                'iden':identifier,
+                                'subject':subject},index=[index])
+        if features is not None:
+            df_tmp['features'] = str(features)
         
-        if model_info == None:
+        if names is not None:
+            df_tmp['names'] = names
             
-            for region in regions:
-                scores_iden = get_best_layer_iden(model_name, dataset, region, gpool)
-                data = xr.open_dataset(os.path.join(CACHE,'encoding_scores_torch',scores_iden), engine='h5netcdf')
-
-                for subject in subjects:
-                    subject_data = data.where(data.subject == subject, drop=True)
-                    mean_r = subject_data.r_value.values.mean()
-
-                    df_tmp =  pd.DataFrame({'score':mean_r,
-                                            'model':model_name,
-                                            'iden':model_name,
-                                            'n_layers':None,
-                                            'num_features':None,
-                                            'region':region,
-                                            'subject':subject},index=[index])                
-                    df = pd.concat([df,df_tmp])
-                    index+=1
-                    
-        else:
-            for region in regions:
-                scores_iden = get_activations_iden(model_info, dataset) + '_' + region 
-                data = xr.open_dataset(os.path.join(CACHE,'encoding_scores_torch',scores_iden), engine='h5netcdf')
-
-                for subject in subjects:
-                    subject_data = data.where(data.subject == subject, drop=True)
-                    mean_r = subject_data.r_value.values.mean()
-
-                    df_tmp =  pd.DataFrame({'score':mean_r,
-                                            'model':model_name,
-                                            'iden':model_info['iden'],
-                                            'n_layers':model_info['num_layers'],
-                                            'num_features':model_info['num_features'],
-                                            'region':region,
-                                            'subject':subject},index=[index])
-                    df = pd.concat([df,df_tmp])
-                    index+=1
+        df = pd.concat([df,df_tmp])
+        index+=1
 
     return df
 
 
+def get_bootstrap_data(models, features,  layers, subjects,
+                       dataset, region, all_sampled_indices, file_name, 
+                       init_types=['kaiming_uniform'], nl_types=['relu'],
+                       principal_components = [None], l1_random_filters=[None], batch_size=50, n_bootstraps=1000):
 
     
-
-def scores_vs_num_features(df, x_axis, width=None, palette=None, subjects=False):
-
-    if subjects:
-        return sns.scatterplot(x = df[x_axis], 
-                       y = df['score'], 
-                       style = df.subject,
-                       hue= df.iden, 
-                       s= 150,   
-                       palette = palette)
-    
-    
-    else:
-        return sns.barplot(x = df[x_axis], 
-                       y = df['score'], 
-                       hue=df.iden, 
-                       palette = palette, 
-                       errorbar="sd",  
-                       width=width)
-
-
-
-def compare_models(df, palette=None, color = None, width=None, subjects=False):
-
-    
-    if color is not None:
-        if subjects:
-            return sns.scatterplot(x = df.iden, 
-                           y = df['score'],
-                           color=color,
-                           s=150,
-                           style = df.subject,
-                          )            
-            
-        else:
-            return sns.barplot(x = df.iden, 
-                           y = df['score'],
-                           errorbar="sd",
-                           width=width,
-                           palette=palette,
-                           style = df.subject,
-                          )
-    
-    else:    
-        if subjects:
-            return sns.scatterplot(x = df.iden, 
-                           y = df['score'],
-                           palette=palette, 
-                           s=150,
-                           style = df.subject,
-                          )  
-        else:
-            return sns.barplot(x = df.iden, 
-                           y = df['score'], 
-                           hue = df.iden, 
-                           errorbar="sd",  
-                           width=width, 
-                           palette=palette, 
-                           dodge=False)           
-            
-
-    
-def plot_results(data_dict, plot_type, dataset, regions, ylim, params,
-                 show_legend=False, 
-                 gpool=True, 
-                 name_dict=None, 
-                 file_name=None,
-                 x_axis=None,
-                 *args, **kwargs):    
-    
-    assert plot_type in ['scores_vs_num_features','compare_models'], f"choose one of {['scores_vs_num_features','compare_models']} as the plot type"
-    
-    plt.clf()
-    
-    if dataset == 'naturalscenes':
-        subjects = [i for i in range(8)]
-    
-    elif dataset == 'majajhong':
-        subjects = ['Tito','Chabo']
+    data_dict = {'model':[],'features':[],'l1_random_filters':[],'pcs':[], 'init_type':[], 'nl_type':[],
+                 'score':[], 'lower':[],'upper':[]}
+    mean_scores = []
+    lower_bound = []
+    upper_bound = []              
         
-    sns.set_context(context='talk')    
     
-    rcParams['figure.figsize'] = params        
-    
-    df = make_pandas_df(data_dict, dataset, regions, subjects, gpool)
-    
-    if name_dict is not None:
-        df['iden'] = df['iden'].map(name_dict)
-    
-    if x_axis is not None:
-        df[x_axis] = df[x_axis].apply(lambda x: str(x))
-    
-    match plot_type:
-        case 'scores_vs_num_features':
-            ax1 = scores_vs_num_features(df, x_axis, *args, **kwargs)
-        case 'compare_models':
-            ax1 = compare_models(df, *args, **kwargs)
-            
-            
-    if show_legend:
-        ax1.legend(fontsize=30,loc='upper left')
-    else:
-        ax1.get_legend().remove()
-        
-    plt.rc('xtick', labelsize=16) 
-    plt.rc('ytick', labelsize=16) 
-    plt.ylabel('Correlation (Pearson r)', fontsize=18)
-    plt.xlabel('')
-    plt.ylabel(size=25,ylabel='Correlation (Pearson r)')    
-    plt.xticks(size=25)
-    plt.yticks(size=25)
-    plt.ylim(ylim)
-    
-    if file_name is not None:
-        plt.savefig(f'{file_name}.png', bbox_inches='tight', dpi=300, transparent=True) 
-        
+    for f in features:
 
-    
+        for r_f in l1_random_filters:
+
+            for c in principal_components:
+            
+                for model_name in models:
+
+                    for nl in nl_types:
+
+                        for init in init_types:
+        
+                            try:
+                                    
+                                activations_identifier = load_iden(model_name=model_name, features=f, layers=layers, random_filters=r_f, dataset=dataset)
+                                if c is not None:
+                                    activations_identifier = activations_identifier + f'_principal_components={c}'
+                                
+                                if nl != 'relu':
+                                    activations_identifier = activations_identifier + '_' + nl
+                                
+                                if init != 'kaiming_uniform':
+                                    activations_identifier = activations_identifier + '_' + init
+                                    
+                                print(activations_identifier)
+                                score_sum = np.zeros(n_bootstraps)
+                
+                                for s in tqdm(subjects):
+                
+                                        # load preds and y_true
+                                        r_values = []
+                                        with open(os.path.join(PREDS_PATH,f'{activations_identifier}_{region}_{s}.pkl'), 'rb') as file:
+                                            preds = torch.Tensor(pickle.load(file))
+                
+                                        if 'naturalscenes' in dataset:
+                                            ids_test, neural_data_test, var_name_test = load_nsd_data(mode ='shared', subject = s, region = region)           
+                                            test = torch.Tensor(neural_data_test[var_name_test].values)
+            
+                                        else:
+                                            test = load_majaj_data(s, region, 'test')
+                                            
+                                        
+                                        # Vectorized bootstrapping
+                                        all_sampled_preds = preds[all_sampled_indices]
+                                        all_sampled_tests = test[all_sampled_indices]
+                
+                                        i = 0
+                                        batch = batch_size
+                                        while i < n_bootstraps:
+                                            # Compute Pearson r for all bootstraps at once
+                                            mean_r_values = pearson_r_(all_sampled_tests[i:i+batch,:,:].cuda(), 
+                                                                       all_sampled_preds[i:i+batch,:,:].cuda())
+                                            r_values.extend(mean_r_values.tolist())
+                                            i += batch
+                
+                                        score_sum += r_values
+                
+                                bootstrap_dist = score_sum/len(subjects)
+                
+                                data_dict['model'].append(model_name)
+                                data_dict['features'].append(str(f))
+                                data_dict['l1_random_filters'].append(r_f)
+                                data_dict['pcs'].append(str(c))
+                                data_dict['init_type'].append(init)
+                                data_dict['nl_type'].append(nl)
+                                data_dict['score'].append(np.mean(bootstrap_dist))
+                                data_dict['lower'].append(np.percentile(bootstrap_dist, 2.5))
+                                data_dict['upper'].append(np.percentile(bootstrap_dist, 97.5))
+            
+                            except FileNotFoundError:
+                                print('FILE NOT FOUND',activations_identifier,region)
+                                pass
+        
+    df = pd.DataFrame.from_dict(data_dict)
+        
+    with open(os.path.join(BOOTSTRAP_RESULTS_PATH,f'bootstrap-results-{file_name}-{dataset}-{region}-df.pkl'), 'wb') as file:
+        pickle.dump(df,file)
+            
+    return df
