@@ -40,6 +40,7 @@ def load_iden(model_name, dataset, block = None, features=None, layers=None, ran
                 case 'best':
                     return f'{model_name}_gpool=False_dataset={dataset}'
     
+    
     elif 'ViT' in model_name:
             return f'{model_name}_features={features}_dataset={dataset}'
             #return f'{model_name}_block={block}_dataset={dataset}'
@@ -54,34 +55,37 @@ def load_iden(model_name, dataset, block = None, features=None, layers=None, ran
             
     
     
+def load_full_iden(model_name, feature, layers, random_filter, dataset, 
+                   component=None, non_linearity='relu', initializer='kaiming_uniform'):
     
+    
+    identifier = load_iden(model_name=model_name, features=feature, layers=layers, random_filters=random_filter,
+                           dataset=dataset)
+    if component is not None:
+        identifier += f'_principal_components={component}'
+    if non_linearity != 'relu':
+        identifier += f'_{non_linearity}'
+    if initializer != 'kaiming_uniform':
+        identifier += f'_{initializer}'
+    
+    return identifier
+
+
     
 def load_model(model_name, block = None, features=None, layers=None, random_filters=None):
     
     match model_name:
         
         case 'expansion':
-            match layers:
-                case 3:
-                    return Expansion3L(filters_3=features).Build()
-                case 5:
-                    return Expansion5L(filters_5=features).Build()
+            return Expansion5L(filters_5=features).Build()
     
     
         case 'expansion_linear':
-            match layers:
-                case 3:
-                    return Expansion3L(filters_3=features, non_linearity='none').Build()
-                case 5:
-                    return Expansion5L(filters_5=features, non_linearity='none').Build()
+                return Expansion5L(filters_5=features, non_linearity='none').Build()
     
     
         case 'fully_connected':
-            match layers:
-                case 3:
-                    return FullyConnected3L(features_3=features).Build()
-                case 5:
-                    return FullyConnected5L(features_5=features).Build()
+                return FullyConnected5L(features_5=features).Build()
         
         case '_alexnet':
             
@@ -97,7 +101,6 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
                     return Alexnet(features_layer =9).Build()
                 case 5:
                     return Alexnet().Build()
-                
                     
 
         case 'alexnet_untrained':
@@ -114,23 +117,15 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
                     return AlexnetU(features_layer =9).Build()
                 case 5:
                     return AlexnetU().Build()
-                
-        case 'ViT_wavelet':
-            return CustomViT(use_wavelets=True, out_features = features, block = 11).Build()
+
     
-                
         case 'ViT':
             return CustomViT(use_wavelets=False, out_features = features, block = 11).Build()
             
-            
+    
         case 'fully_random':
             return FullyRandom5L(filters_1=random_filters, filters_5=features).Build()
             
             
-        # case 'ViT_fixed_pos':
-        #     return ViTBase(fixed_pos_encoding=True, block = block).Build()
-        
-#         case 'ViT_large_embed':
-#             return ViTLarge(out_features=features).Build()    
-        
+
     return

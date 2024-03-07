@@ -27,6 +27,16 @@ DEVICE = 'cuda'
 COMPONENTS = [1000]
 print('computing PCs')
 
+
+
+
+
+
+
+
+
+
+
 for model_name in MODELS:
     
     i = 0

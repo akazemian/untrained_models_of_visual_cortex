@@ -18,7 +18,7 @@ import gc
 DATASET = 'naturalscenes'
 REGIONS = ['early visual stream', 'ventral visual stream','midventral visual stream']
 
-MODEL_NAME = '_alexnet'    
+MODEL_NAME = 'alexnet'    
 DEVICE = 'cpu'
 
 

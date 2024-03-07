@@ -22,6 +22,8 @@ from model_features.utils import cache, register_pca_hook
 
 PATH_TO_PCA = os.path.join(CACHE,'pca')
 
+
+
 class PytorchWrapper:
     def __init__(self, model, identifier, device, forward_kwargs=None): 
         
@@ -95,7 +97,8 @@ class PytorchWrapper:
     
 
     
-    
+
+
 def batch_activations(model: nn.Module, 
                       image_labels: list,
                       layer_names:list, 

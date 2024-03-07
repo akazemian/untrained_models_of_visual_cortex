@@ -9,7 +9,7 @@ from model_evaluation.predicting_brain_data.regression.scorer import EncodingSco
 from model_features.activation_extractor import Activations
 import gc
 from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
-from model_features.models.models import load_model, load_iden
+from model_features.models.models import load_model, load_full_iden
 # from model_features.models.expansion_no_bp import Expansion5LNoBP
 
 # define local variables
@@ -35,19 +35,16 @@ LAYERS = 5
 
 
 for region in REGIONS:
-    
     print(region)
         
     for model_name in MODELS:
-        
         print(model_name)
         
         for features in FEATURES:
-            
             for random_filters in FILTERS:
     
                 
-                activations_identifier = load_iden(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS, dataset=DATASET)
+                activations_identifier = load_full_iden(model_name=model_name, features=features, random_filters = random_filters, layers=layers, dataset=DATASET)
                 print(activations_identifier)
                 
                 model = load_model(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS)
