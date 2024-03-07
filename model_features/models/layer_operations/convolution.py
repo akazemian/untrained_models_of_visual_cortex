@@ -1,4 +1,4 @@
-from model_features.layer_operations.preset_filters import filters
+from layer_operations.preset_filters import filters
 from torch.nn import functional as F
 import math
 import torch
@@ -35,9 +35,7 @@ class Convolution(nn.Module):
         in_channels = x.shape[1]
         weights = filters(in_channels=1, kernel_size=self.filter_size, filter_params=self.filter_params).to(self.device)
         
-        
         # for RGB input (the preset L1 filters are repeated across the 3 channels)
-            
         convolved_tensor = []
         for i in range(in_channels):
             channel_image = x[:, i:i+1, :, :]

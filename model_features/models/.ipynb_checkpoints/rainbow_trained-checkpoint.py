@@ -1,5 +1,5 @@
-from model_features.models.layer_operations.output import Output
-from model_features.models.learned_scaterring.main import load_model
+from layer_operations.output import Output
+from learned_scaterring.main import load_model
 import torch
 from torch import nn
 

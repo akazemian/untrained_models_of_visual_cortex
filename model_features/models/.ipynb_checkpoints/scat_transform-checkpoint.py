@@ -1,6 +1,6 @@
-from model_features.models.layer_operations.sparse_random_proj import SparseRandomProjection
-from model_features.models.layer_operations.output import Output
-from model_features.models.layer_operations.random_proj import RandomProjection
+from layer_operations.sparse_random_proj import SparseRandomProjection
+from layer_operations.output import Output
+from layer_operations.random_proj import RandomProjection
 import torch
 from torch import nn
 from kymatio.torch import Scattering2D
