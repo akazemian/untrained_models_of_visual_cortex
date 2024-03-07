@@ -18,7 +18,7 @@ pip install -r requirements.txt
 ```
 
 
-Below is an example of how to use it the expansion model. Alternatively, you can navigate to 'main.ipynb` for an example.
+Below is an example of how to use the expansion model. Alternatively, you can navigate to 'main.ipynb` for an example.
 
 1. Import the model
 ```python
@@ -35,13 +35,13 @@ X = troch.Tensor(1,3,224,224)
 expansion_model = Expansion5L(self, 
                               filters_5 = 3000, # number of filters in the last convolution layer of the mdoel
                               init_type = 'kaiming_uniform', # initialization type used for random filters
-                              non_linearity:str='relu',
-                              gpool = False, # whether global pooling is applied oto the output 
+                              non_linearity:str='relu', * type of non-linear activation function used in all model layers
+                              gpool = False, # whether global pooling is applied to the output 
                               device=device).Build()
 
 ```
 
-4. Extract model features
+4. Extract image features
 ```python
 features = expansion_model(X)
 ```
