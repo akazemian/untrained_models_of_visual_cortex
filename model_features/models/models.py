@@ -2,13 +2,13 @@ import warnings
 warnings.filterwarnings('ignore')
 import os
 import sys
-ROOT = os.getenv('BONNER_ROOT_PATH')
-from model_features.models.alexnet import Alexnet
-from model_features.models.alexnet_untrained import AlexnetU
-from model_features.models.expansion import Expansion5L
-from model_features.models.fully_connected import FullyConnected5L
-from model_features.models.expansion_fully_random import FullyRandom5L
-from model_features.models.ViT import CustomViT
+ROOT = os.getenv('MODELS_ROOT_PATH')
+from alexnet import Alexnet
+from alexnet_untrained import AlexnetU
+from expansion import Expansion5L
+from fully_connected import FullyConnected5L
+from expansion_fully_random import FullyRandom5L
+from ViT import CustomViT
 
 
 def load_iden(model_name, dataset, block = None, features=None, layers=None, random_filters=None):
