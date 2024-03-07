@@ -9,7 +9,7 @@ torch.cuda.manual_seed(42)
   
 
     
-class Model5L(nn.Module):
+class Model(nn.Module):
     
 
     def __init__(self,
@@ -142,7 +142,7 @@ class Expansion5L:
         nl = NonLinearity(self.non_linearity)
         last = Output()
 
-        return Model5L(
+        return Model(
             conv1, pool1, conv2, pool2, conv3, pool3, conv4, pool4, conv5, pool5, nl, self.gpool, last
         )
 
