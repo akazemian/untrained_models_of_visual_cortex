@@ -10,7 +10,7 @@ from model_evaluation.predicting_brain_data.regression.scorer import EncodingSco
 from model_features.activation_extractor import Activations
 import gc
 from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
-from model_features.models.models import load_model, load_iden
+from model_features.models.models import load_model, load_full_iden
 from model_features.models.expansion import ExpansionNoWeightShare
 from model_features.models.expansion import Expansion5L
 
@@ -22,20 +22,19 @@ from model_features.models.expansion import Expansion5L
 DATASET = 'majajhong'
 REGIONS = ['IT']
 
-NL = ['gelu','elu','abs','leaky_relu']
+NON_LINEARITIES = ['gelu','elu','abs','leaky_relu']
 
 for region in REGIONS:
     
     print(region)
                         
-    for nl in NL:
+    for non_linearity in NON_LINEARITIES:
                 
                         
-                activations_identifier = load_iden(model_name='expansion', features=3000, random_filters = None, layers=5, dataset=DATASET)
-                activations_identifier = activations_identifier + '_' + nl
+                activations_identifier = load_full_iden(model_name='expansion', features=3000, random_filters = None, layers=5, dataset=DATASET, non_linearity=non_linearity)
                 print(activations_identifier)
                 
-                model = Expansion5L(filters_5 = 3000, non_linearity=nl).Build()
+                model = Expansion5L(filters_5 = 3000, non_linearity=non_linearity).Build()
 
 
                 Activations(model=model,

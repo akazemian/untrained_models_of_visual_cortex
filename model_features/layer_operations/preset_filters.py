@@ -151,7 +151,7 @@ def filters(in_channels:int = None,
  
     """
         
-    assert filter_params['type'] in ['curvature', 'gabor'], "the only available filter type is curvature"
+    assert filter_params['type'] in ['curvature', 'gabor'], "filter type not found"
 
     if filter_params['type'] == 'curvature':
 
