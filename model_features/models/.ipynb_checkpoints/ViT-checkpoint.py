@@ -4,7 +4,7 @@ import torch
 from torch import nn
 import pickle
 import os
-from model_features.layer_operations.convolution import Convolution
+from model_features.models.layer_operations.convolution import Convolution
 import timm
 #from timm.models.vision_transformer import VisionTransformer
 from model_features.layer_operations.output import Output
