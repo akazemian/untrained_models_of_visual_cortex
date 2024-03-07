@@ -1,29 +1,28 @@
 # Modeling the brain using an untrained CNN with a rich representational space
 
-The expansion model is a learning-free convolutional neural network based on high-dimensional random sampling. To use the model as an encoding model of visual cortex for your own data, please follow the steps incuded in section 0 followed by those in section 1.  
+The expansion model is a learning-free convolutional neural network based on high-dimensional random sampling. To use the model as an encoding model of visual cortex for your own data, please follow the steps incuded in section 1.  
 
 
-# 0. Setup
+# 1. The (dimensionality) Expansion Model
 
-- Clone this repository to a local directrory. 
+- Please download (only) the folder models (/model_features/models).
+
+- Add the the follwoing line to your list of environment variables:
 ```
-git clone https://github.com/akazemian/random_models_of_visual_cortex.git
+export MODELS_ROOT_PATH='/where/you/download/the/folder>'
 ```
-- Install requieremnts
+
+- Navigate to the folder and install requieremnts:
 ```
 pip install -r requirements.txt 
 ```
-- Add the the follwoing line to your list of environment variables:
-```
-export BONNER_ROOT_PATH='<local path to this repo>'
-```
 
-# 1. The (dimensionality) Expansion Model
-Below is an example of how to use it the expansion model. Alternatively, you can navigate to `model_features/models/main.ipynb` for an example.
+
+Below is an example of how to use it the expansion model. Alternatively, you can navigate to 'main.ipynb` for an example.
 
 1. Import the model
 ```python
-from model_features.models.expansion_3_layers import Expansion
+from expansion import Expansion5L
 ```
 
 2. Import preprocessed images as a torch tensor. Below is a random tensor of size NxCxHxW.
@@ -33,8 +32,7 @@ X = troch.Tensor(1,3,224,224)
 
 3. Instantiate the model
 ```python
-expansion = Expansion()
-expansion_model = expansion.Build()
+expansion_model = Expansion().Build()
 ```
 
 4. Extract model features
