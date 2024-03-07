@@ -1,9 +1,9 @@
 import torch
 from torch import nn
 
-from model_features.layer_operations.convolution import Convolution, initialize_conv_layer
-from model_features.layer_operations.output import Output
-from model_features.layer_operations.nonlinearity import NonLinearity
+from model_features.models.layer_operations.convolution import Convolution, initialize_conv_layer
+from model_features.models.layer_operations.output import Output
+from model_features.models.layer_operations.nonlinearity import NonLinearity
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)                        
   
@@ -123,7 +123,7 @@ class Expansion5L:
         
 
     def create_layer(self, in_filters, out_filters, kernel_size, stride, pool_kernel, pool_stride=None):
-        conv = nn.Conv2d(in_filters, out_filters, kernel_size=kernel_size, bias=False)
+        conv = nn.Conv2d(in_filters, out_filters, kernel_size=kernel_size, bias=False).to(self.device)
         initialize_conv_layer(conv, self.init_type)
         pool = nn.AvgPool2d(kernel_size=pool_kernel, stride=pool_stride)
         return conv, pool
@@ -147,64 +147,4 @@ class Expansion5L:
         )
 
 
-
-
-
-class ExpansionNoWeightShare:
-    def __init__(self, 
-                 filter_params:dict = {'type':'curvature','n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
-                 filters_2:int=1000,
-                 filters_3:int=3000,
-                 filters_4:int=5000,
-                 filters_5:int=30000,
-                 init_type:str = 'kaiming_uniform',
-                 bpool_filter_size:int=4,
-                 gpool:bool=False,
-                 non_linearity:str='relu'):    
-        
-        
-        self.filter_params = filter_params
-        
-        if self.filter_params['type'] == 'curvature':
-            self.filters_1 = self.filter_params['n_ories']*self.filter_params['n_curves']*len(self.filter_params['gau_sizes']*len(self.filter_params['spatial_fre']))*3
-        else:
-            self.filters_1 = self.filter_params['n_ories']*self.filter_params['num_scales']*3
-        
-        self.filters_2 = filters_2
-        self.filters_3 = filters_3
-        self.filters_4 = filters_4
-        self.filters_5 = filters_5
-        self.init_type = init_type
-        self.bpool_filter_size = bpool_filter_size
-        self.gpool = gpool
-        self.non_linearity = non_linearity
-        
-
-    def create_layer(self, in_filters, out_filters, kernel_size, stride, pool_kernel, pool_stride):
-        
-        conv = NonSharedConv2d(in_filters, out_filters, kernel_size, stride=1, padding=0)
-        bpool = BlurPool(out_filters, filt_size=self.bpool_filter_size, stride=stride)
-        pool = nn.AvgPool2d(kernel_size=pool_kernel, stride=pool_stride)
-        return conv, bpool, pool
-
-    def Build(self):
-        # layer 1
-        conv1 = Convolution(filter_size=15, filter_params=self.filter_params)
-        bpool1, pool1 = BlurPool(self.filters_1, filt_size=self.bpool_filter_size, stride=2), nn.AvgPool2d(kernel_size=2)
-
-        # layer 2 to 5
-        conv2, bpool2, pool2 = self.create_layer(self.filters_1, self.filters_2, (7, 7), 2, 2, 1)
-        conv3, bpool3, pool3 = self.create_layer(self.filters_2, self.filters_3, (5, 5), 2, 2, 1)
-        conv4, bpool4, pool4 = self.create_layer(self.filters_3, self.filters_4, (3, 3), 2, 2, 1)
-        conv5, bpool5, pool5 = self.create_layer(self.filters_4, self.filters_5, (3, 3), 2, 5, 1)
-
-        nl = NonLinearity(self.non_linearity)
-        last = Output()
-
-        return Model5L(
-            conv1, bpool1, pool1, conv2, bpool2, pool2, conv3, bpool3, pool3, conv4, bpool4, pool4, conv5, bpool5, pool5, nl, self.gpool, last
-        )
-
-    
-    
     

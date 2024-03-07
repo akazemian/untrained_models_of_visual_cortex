@@ -4,7 +4,7 @@ import torch
 from torch import nn
 import pickle
 import os
-from model_features.layer_operations.output import Output
+from model_features.models.layer_operations.output import Output
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 model = torchvision.models.alexnet(pretrained=True)

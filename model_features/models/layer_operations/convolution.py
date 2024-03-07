@@ -30,6 +30,8 @@ class Convolution(nn.Module):
     
     def forward(self,x):
             
+        x = x.to(self.device)
+        
         in_channels = x.shape[1]
         weights = filters(in_channels=1, kernel_size=self.filter_size, filter_params=self.filter_params).to(self.device)
         
@@ -39,7 +41,7 @@ class Convolution(nn.Module):
         convolved_tensor = []
         for i in range(in_channels):
             channel_image = x[:, i:i+1, :, :]
-            channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2)).to(self.device)
+            channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2))
             convolved_tensor.append(channel_convolved)
         x = torch.cat(convolved_tensor, dim=1)    
     
