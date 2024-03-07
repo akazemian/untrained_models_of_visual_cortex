@@ -33,7 +33,7 @@ X = troch.Tensor(1,3,224,224)
 3. Instantiate the model
 ```python
 expansion_model = Expansion5L(self, 
-                              filters_5 = 3000, # number of filters in the last convolution layer of the mdoel
+                              filters_5 = 3000, # number of filters in the last convolution layer of the model
                               init_type = 'kaiming_uniform', # initialization type used for random filters
                               non_linearity:str='relu', # type of non-linear activation function used in all model layers
                               gpool = False, # whether global pooling is applied to the output 
