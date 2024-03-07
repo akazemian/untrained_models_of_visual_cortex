@@ -32,7 +32,13 @@ X = troch.Tensor(1,3,224,224)
 
 3. Instantiate the model
 ```python
-expansion_model = Expansion().Build()
+expansion_model = Expansion5L(self, 
+                              filters_5 = 3000, # number of filters in the last convolution layer of the mdoel
+                              init_type = 'kaiming_uniform', # initialization type used for random filters
+                              non_linearity:str='relu',
+                              gpool = False, # whether global pooling is applied oto the output 
+                              device=device).Build()
+
 ```
 
 4. Extract model features
@@ -46,7 +52,7 @@ The ouput is a tensor of size NxP, where N is the number of image and P is the n
 # 2. Predicting Human fMRI Responses to Natural Scenes
 
 Data:
-The Natural Scenes Dataset human fMRI dataset (Allen et al., 2022) can be downloaded here. 
+The Natural Scenes Dataset human fMRI dataset (Allen et al., 2022) can be downloaded [here](https://naturalscenesdataset.org/). 
 
 Preprocessing:
 We use the NSD single-trial betas, preprocessed in 1.8-mm volume space and denoised using the GLMdenoise technique (version 3; “betas_fithrf_GLMdenoise_RR”) (Kay et al., 2013). We converted the betas to z-scores within each scanning session and computed the average betas for each NSD stimulus across repetitions. 
@@ -55,7 +61,7 @@ We use the NSD single-trial betas, preprocessed in 1.8-mm volume space and denoi
 # 3. Predicting Macaque Single Cell Responses to Objects 
 
 Data:
-The monkey electrophysiology dataset (Majaj et al., 2015) can be downloaded here. 
+The monkey electrophysiology dataset (Majaj et al., 2015) is available as part of the [Brain-score GitHub package](https://github.com/brain-score):. 
 
 Preprocessing:
 We use the average response to stimuli across repetitions. 
