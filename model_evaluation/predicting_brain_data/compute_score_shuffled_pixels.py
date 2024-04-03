@@ -54,7 +54,7 @@ for region in REGIONS:
                 EncodingScore(activations_identifier=activations_identifier,
                            dataset=DATASET,
                            region=region,
-                           device= 'cuda').get_scores(iden= activations_identifier + '_' + region)
+                           device= 'cpu').get_scores(iden= activations_identifier + '_' + region)
 
                 gc.collect()
 

@@ -75,6 +75,7 @@ class Model5L(nn.Module):
         
         #layer 5
         x = self.conv5(x)  
+        x = self.nl(x) 
         x = self.pool5(x)  
         
         if self.gpool: # global pool

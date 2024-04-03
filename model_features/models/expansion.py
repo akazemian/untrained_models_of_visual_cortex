@@ -28,7 +28,7 @@ class Model(nn.Module):
                 last: nn.Module,
                 ):
         
-        super(Model5L, self).__init__()
+        super(Model, self).__init__()
         
         
         self.conv1 = conv1 
@@ -75,13 +75,13 @@ class Model(nn.Module):
         
         #layer 5
         x = self.conv5(x)  
+        x = self.nl(x) 
         x = self.pool5(x)  
         
         if self.gpool: # global pool
             H = x.shape[-1]
             gmp = nn.AvgPool2d(H) 
             x = gmp(x)
-
         
         x = self.last(x) # final layer
         
@@ -122,7 +122,7 @@ class Expansion5L:
         self.device = device
         
 
-    def create_layer(self, in_filters, out_filters, kernel_size, stride, pool_kernel, pool_stride=None):
+    def create_layer(self, in_filters, out_filters, kernel_size, stride=1, pool_kernel=2, pool_stride=None):
         conv = nn.Conv2d(in_filters, out_filters, kernel_size=kernel_size, bias=False).to(self.device)
         initialize_conv_layer(conv, self.init_type)
         pool = nn.AvgPool2d(kernel_size=pool_kernel, stride=pool_stride)
@@ -134,10 +134,10 @@ class Expansion5L:
         pool1 =  nn.AvgPool2d(kernel_size=2)
 
         # layer 2 to 5
-        conv2, pool2 = self.create_layer(self.filters_1, self.filters_2, (7, 7), 2, 2)
-        conv3, pool3 = self.create_layer(self.filters_2, self.filters_3, (5, 5), 2, 2)
-        conv4, pool4 = self.create_layer(self.filters_3, self.filters_4, (3, 3), 2, 2)
-        conv5, pool5 = self.create_layer(self.filters_4, self.filters_5, (3, 3), 2, 4, 1)
+        conv2, pool2 = self.create_layer(self.filters_1, self.filters_2, (7, 7), 1, 2)
+        conv3, pool3 = self.create_layer(self.filters_2, self.filters_3, (5, 5), 1, 2)
+        conv4, pool4 = self.create_layer(self.filters_3, self.filters_4, (3, 3), 1, 2)
+        conv5, pool5 = self.create_layer(self.filters_4, self.filters_5, (3, 3), 1, 4, 1)
 
         nl = NonLinearity(self.non_linearity)
         last = Output()

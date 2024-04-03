@@ -14,20 +14,21 @@ from model_features.models.models import load_model, load_full_iden
 
 # define local variables
 
-# DATASET = 'naturalscenes'
-# REGIONS = ['ventral visual stream','midventral visual stream', 'early visual stream'] 
-# FEATURES = [3,30,300,3000]
+DATASET = 'naturalscenes'
+REGIONS = ['ventral visual stream']#,'midventral visual stream', 'early visual stream'] 
+FEATURES = [3,30,300,3000]
 #FEATURES = [12, 12*5, 12*50]
 
 
 DATASET = 'majajhong'
-REGIONS = ['V4','IT']
+#REGIONS = ['V4','IT']
+REGIONS = ['IT']
 FEATURES = [3,30,300,3000,30000]
-#FEATURES = [12, 12*5, 12*50, 12*500]
+FEATURES = [12, 12*5, 12*50, 12*500]
 
 
 # MODELS = ['ViT']
-MODELS = ['expansion','expansion_linear']#,'fully_connected']
+MODELS = ['expansion_linear']#,'fully_connected']
 
 
 FILTERS = [None]
@@ -44,7 +45,7 @@ for region in REGIONS:
             for random_filters in FILTERS:
     
                 
-                activations_identifier = load_full_iden(model_name=model_name, features=features, random_filters = random_filters, layers=layers, dataset=DATASET)
+                activations_identifier = load_full_iden(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS, dataset=DATASET)
                 print(activations_identifier)
                 
                 model = load_model(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS)
@@ -53,13 +54,13 @@ for region in REGIONS:
                         layer_names=['last'],
                         dataset=DATASET,
                         device= 'cuda',
-                        batch_size = 40).get_array(activations_identifier) 
+                        batch_size = 50).get_array(activations_identifier) 
 
 
                 EncodingScore(activations_identifier=activations_identifier,
                            dataset=DATASET,
                            region=region,
-                           device= 'cuda').get_scores(iden= activations_identifier + '_' + region)
+                           device= 'cpu').get_scores(iden= activations_identifier + '_' + region)
 
                 gc.collect()
 

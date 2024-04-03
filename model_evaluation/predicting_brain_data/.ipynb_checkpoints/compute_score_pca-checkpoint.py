@@ -13,23 +13,23 @@ from model_features.models.models import load_model, load_iden
 import numpy as np
 # define local variables
 
-# DATASET = 'naturalscenes'
-# REGIONS = ['ventral visual stream'] #'early visual stream',
-# FEATURES = [3,30,300,3000]
+MODELS = ['expansion']
+LAYERS = 5
+
+
+DATASET = 'naturalscenes'
+REGIONS = ['ventral visual stream'] #'early visual stream',
+FEATURES = [3,30,300,3000]
 #FEATURES = [12,12*5,12*50]
 
 
 
-DATASET = 'majajhong'
-REGIONS = ['IT']
-#FEATURES = [3,30,300,3000,30000]
-FEATURES = [30000]
+# DATASET = 'majajhong'
+# REGIONS = ['IT']
+# FEATURES = [3,30,300,3000,30000]
+#FEATURES = [30000]
 #FEATURES = [12,12*5,12*50,12*500]
 
-
-#MODELS = ['ViT']
-MODELS = ['fully_connected']
-LAYERS = 5
 
 for region in REGIONS:
     print(region)
@@ -58,7 +58,7 @@ for region in REGIONS:
                             hook='pca',
                             pca_iden = activations_identifier + f'_components={TOTAL_COMPONENTS}',
                             n_components=n_components,
-                            batch_size = 10).get_array(activations_identifier + f'_principal_components={n_components}') 
+                            batch_size = 30).get_array(activations_identifier + f'_principal_components={n_components}') 
     
     
                     EncodingScore(activations_identifier=activations_identifier + f'_principal_components={n_components}',

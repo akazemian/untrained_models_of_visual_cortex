@@ -25,7 +25,7 @@ layers = 5
 
 # define models in a dict
 model_name = 'expansion'
-model_name = '_alexnet'
+#model_name = '_alexnet'
 
 
 activations_identifier = load_iden(model_name=model_name, dataset=DATASET, features=features, layers=layers) + f'_principal_components=1000'

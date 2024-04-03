@@ -15,6 +15,7 @@ warnings.filterwarnings('ignore')
 import random    
 random.seed(0)
 import scipy.stats as st
+from pathlib import Path
 
 
 ROOT = os.getenv('BONNER_ROOT_PATH')
@@ -30,108 +31,59 @@ TEST_IDS =  pickle.load(open(os.path.join(ROOT,'model_evaluation/predicting_brai
 PREDS_PATH = '/data/atlas/.cache/beta_predictions'
     
     
-    
-    
-def majajhong_scorer_cv(activations_identifier: str, 
-                       region: str):
-
-        
-        ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
-                                coords={'subject': (['r_values'], []),
-                                        'region': (['r_values'], [])
-                                         })
-
-        
-        X = load_activations(activations_identifier)
-        
-        pbar = tqdm(total = 2)
-        for subject in tqdm(SUBJECTS):
-
-            y = load_majaj_data(subject= subject, region= region)
-
-            y_true, y_predicted = regression_cv(x=X, y=y, model = Ridge(alpha=1))
-
-            r = torch.stack(
-                [
-                    pearson_r(y_true_, y_predicted_)
-                    for y_true_, y_predicted_ in zip(y_true, y_predicted)
-                ]
-            ).mean(dim=0)
-
-            ds_tmp = xr.Dataset(data_vars=dict(r_value=(["r_values"], r)),
-                            coords={'subject': (['r_values'], [subject for i in range(len(r))]),
-                                    'region': (['r_values'], [region for i in range(len(r))])
-                                     })
-                
-            ds = xr.concat([ds,ds_tmp],dim='r_values')   
-            pbar.update(1)
-
-        ds['name'] = activations_identifier + '_' + region + '_cv'
-        return ds           
-        
-        
-        
-
-        
-        
+            
         
 def majajhong_scorer(activations_identifier: str, 
                        region: str,
                        device:str):
 
-        
-        ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
-                                coords={'subject': (['r_values'], []),
-                                        'region': (['r_values'], [])
-                                         })
-
-        
         X_train = load_activations(activations_identifier, mode = 'train')
         X_test = load_activations(activations_identifier, mode = 'test')
         
         pbar = tqdm(total = 2)
+        
         for subject in tqdm(SUBJECTS):
 
-            y_train = load_majaj_data(subject= subject, region= region, mode = 'train')
-            y_test = load_majaj_data(subject= subject, region= region, mode = 'test')
-
-
-            regression = TorchRidgeGCV(
-                alphas=ALPHA_RANGE,
-                fit_intercept=True,
-                scale_X=False,
-                scoring='pearsonr',
-                store_cv_values=False,
-                alpha_per_target=False,
-                device = device)
+            file_path = Path(PREDS_PATH) / f'{activations_identifier}_{region}_{subject}.pkl'
             
-            regression.fit(X_train, y_train)
-            best_alpha = float(regression.alpha_)
-            print('best alpha:',best_alpha)
-
-
-            y_true, y_predicted = regression_shared_unshared(x_train=X_train,
-                                                         x_test=X_test,
-                                                         y_train=y_train,
-                                                         y_test=y_test,
-                                                         model= Ridge(alpha=best_alpha))
-            
-            with open(os.path.join(PREDS_PATH,f'{activations_identifier}_{region}_{subject}.pkl'), 'wb') as file:
-                pickle.dump(y_predicted, file)
-            
-            r = pearson_r(y_true,y_predicted)
-            print(r.mean())
-
-            ds_tmp = xr.Dataset(data_vars=dict(r_value=(["r_values"], r)),
-                            coords={'subject': (['r_values'], [subject for i in range(len(r))]),
-                                    'region': (['r_values'], [region for i in range(len(r))])
-                                     })
+            if not file_path.exists():
+                print('saving ',file_path)
                 
-            ds = xr.concat([ds,ds_tmp],dim='r_values')   
+                y_train = load_majaj_data(subject= subject, region= region, mode = 'train')
+                y_test = load_majaj_data(subject= subject, region= region, mode = 'test')
+    
+    
+                regression = TorchRidgeGCV(
+                    alphas=ALPHA_RANGE,
+                    fit_intercept=True,
+                    scale_X=False,
+                    scoring='pearsonr',
+                    store_cv_values=False,
+                    alpha_per_target=False,
+                    device = device)
+                
+                regression.fit(X_train, y_train)
+                best_alpha = float(regression.alpha_)
+                print('best alpha:',best_alpha)
+    
+    
+                y_true, y_predicted = regression_shared_unshared(x_train=X_train,
+                                                             x_test=X_test,
+                                                             y_train=y_train,
+                                                             y_test=y_test,
+                                                             model= Ridge(alpha=best_alpha))
+                
+    
+    
+                with open(file_path, 'wb') as file:
+                    pickle.dump(y_predicted, file)
+            
+            else:
+                print(file_path, ' exists')
+            
             pbar.update(1)
-
-        ds['name'] = activations_identifier + '_' + region 
-        return ds           
+            
+        return           
         
         
         
@@ -181,12 +133,6 @@ def get_best_model_layer(activations_identifier, region, device):
     
     
 def majajhong_get_best_layer_scores(activations_identifier: list, region: str, device:str):
-    
-        ds = xr.Dataset(data_vars=dict(r_value=(["r_values"], [])),
-                                coords={'subject': (['r_values'], []),
-                                        'region': (['r_values'], [])
-                                         })
-
 
         best_layer, best_alphas = get_best_model_layer(activations_identifier, region, device)            
         
@@ -195,30 +141,29 @@ def majajhong_get_best_layer_scores(activations_identifier: list, region: str, d
 
         for subject in tqdm(range(len(SUBJECTS))):
             
-            y_train = load_majaj_data(subject= SUBJECTS[subject], region= region, mode = 'train')
-            y_test = load_majaj_data(subject= SUBJECTS[subject], region= region, mode = 'test')
-
-            y_true, y_predicted = regression_shared_unshared(x_train=X_train,
-                                                             x_test=X_test,
-                                                             y_train=y_train,
-                                                             y_test=y_test,
-                                                             model= Ridge(alpha=best_alphas[subject]))
-            r = pearson_r(y_true,y_predicted)
-
-           
-            with open(os.path.join(PREDS_PATH,f'alexnet_gpool=False_dataset=majajhong_{region}_{SUBJECTS[subject]}.pkl'), 'wb') as file:
-                pickle.dump(y_predicted, file)
+            file_path = Path(PREDS_PATH) / f'alexnet_gpool=False_dataset=majajhong_{region}_{SUBJECTS[subject]}.pkl'
+            if not file_path.exists():
+                print('saving ',file_path)
                 
-            ds_tmp = xr.Dataset(data_vars=dict(r_value=(["r_values"], r)),
-                            coords={'subject': (['r_values'], [SUBJECTS[subject] for i in range(len(r))]),
-                                    'region': (['r_values'], [region for i in range(len(r))])
-                                     })
                 
-            ds = xr.concat([ds,ds_tmp],dim='r_values')   
-        
+                y_train = load_majaj_data(subject= SUBJECTS[subject], region= region, mode = 'train')
+                y_test = load_majaj_data(subject= SUBJECTS[subject], region= region, mode = 'test')
+    
+                y_true, y_predicted = regression_shared_unshared(x_train=X_train,
+                                                                 x_test=X_test,
+                                                                 y_train=y_train,
+                                                                 y_test=y_test,
+                                                                 model= Ridge(alpha=best_alphas[subject]))
+               
+    
+                with open(file_path, 'wb') as file:
+                        pickle.dump(y_predicted, file)
+            else:
+                print(file_path, ' exists')
+            
+            pbar.update(1)
 
-        ds['name'] = best_layer + '_' + region + '_' + 'best_layer'
-        return ds       
+        return       
         
         
             

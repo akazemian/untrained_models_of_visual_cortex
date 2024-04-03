@@ -39,6 +39,7 @@ class Convolution(nn.Module):
         convolved_tensor = []
         for i in range(in_channels):
             channel_image = x[:, i:i+1, :, :]
+            #channel_convolved = F.conv2d(channel_image, weight= weights, padding=0, stride = 3)
             channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2))
             convolved_tensor.append(channel_convolved)
         x = torch.cat(convolved_tensor, dim=1)    

@@ -12,18 +12,18 @@ from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
 from model_features.models.models import load_model, load_full_iden
 # from model_features.models.expansion_no_bp import Expansion5LNoBP
 
-# define local variables
-# DATASET = 'naturalscenes'
-# REGIONS = ['ventral visual stream']
-# FEATURES = [3,30,300,3000]
+#define local variables
+DATASET = 'naturalscenes'
+REGIONS = ['ventral visual stream']
+FEATURES = [3,30,300,3000]
 
-DATASET = 'majajhong'
-REGIONS = ['IT']
-FEATURES = [3,30,300,3000,30000]
+# DATASET = 'majajhong'
+# REGIONS = ['IT']
+# FEATURES = [3,30,300,3000,30000]
 
 MODELS = ['fully_random']
 
-FILTERS = [30,300,3000]
+FILTERS = [3000]
 LAYERS = 5
 
 
@@ -46,13 +46,13 @@ for region in REGIONS:
                         layer_names=['last'],
                         dataset=DATASET,
                         device= 'cuda',
-                        batch_size = 2).get_array(activations_identifier) 
+                        batch_size = 10).get_array(activations_identifier) 
 
 
                 EncodingScore(activations_identifier=activations_identifier,
                            dataset=DATASET,
                            region=region,
-                           device= 'cuda').get_scores(iden= activations_identifier + '_' + region)
+                           device= 'cpu').get_scores(iden= activations_identifier + '_' + region)
 
                 gc.collect()
 

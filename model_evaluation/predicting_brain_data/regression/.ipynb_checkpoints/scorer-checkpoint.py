@@ -4,8 +4,8 @@ import xarray as xr
 import numpy as np
 import torch
 import os
-from ..benchmarks.nsd import nsd_scorer, nsd_scorer_subjects, nsd_get_best_layer_scores, nsd_scorer_principal_components
-from ..benchmarks.majajhong import majajhong_scorer, majajhong_get_best_layer_scores, majajhong_scorer_cv
+from ..benchmarks.nsd import nsd_scorer, nsd_get_best_layer_scores
+from ..benchmarks.majajhong import majajhong_scorer, majajhong_get_best_layer_scores
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -14,27 +14,6 @@ from config import CACHE
 import functools
 import gc
     
-def cache(file_name_func):
-
-    def decorator(func):
-        
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-
-            file_name = file_name_func(*args, **kwargs) 
-            cache_path = os.path.join(CACHE, file_name)
-            
-            if os.path.exists(cache_path):
-                return 
-            
-            result = func(self, *args, **kwargs)
-            result.to_netcdf(cache_path, engine='h5netcdf')
-            gc.collect()
-            return 
-
-        return wrapper
-    return decorator
-
 
 
 class EncodingScore():
@@ -59,13 +38,7 @@ class EncodingScore():
         if not os.path.exists(os.path.join(CACHE,'encoding_scores_torch')):
             os.mkdir(os.path.join(CACHE,'encoding_scores_torch'))
 
-
-    @staticmethod
-    def cache_file(iden):
-        return os.path.join('encoding_scores_torch',iden)
     
-    
-    @cache(cache_file)
     def get_scores(self, iden):       
                      
         """
@@ -93,28 +66,12 @@ class EncodingScore():
             
             case 'naturalscenes' | 'naturalscenes_shuffled':
                 if self.best_layer:
-                    ds = nsd_get_best_layer_scores(activations_identifier= self.activations_identifier, 
+                    nsd_get_best_layer_scores(activations_identifier= self.activations_identifier, 
                                                    region= self.region,
                                                   device = self.device)                  
                 else:
-                    if self.subject is not None:
-                                                
-                        ds = nsd_scorer_subjects(activations_identifier = self.activations_identifier, 
-                                    region = self.region,
-                                    device = self.device,
-                                    subject = self.subject)
                         
-                        
-                    elif self.n_components is not None:
-                        
-                        ds = nsd_scorer_principal_components(activations_identifier = self.activations_identifier, 
-                                    region = self.region,
-                                    device = self.device,
-                                    n_components = self.n_components)
-                    else:                         
-                        
-                        
-                        ds = nsd_scorer(activations_identifier = self.activations_identifier, 
+                    nsd_scorer(activations_identifier = self.activations_identifier, 
                                     region = self.region,
                                     device = self.device)
                         
@@ -124,25 +81,18 @@ class EncodingScore():
             case 'majajhong' | 'majajhong_shuffled':
                 
                 if self.best_layer:
-                    ds = majajhong_get_best_layer_scores(activations_identifier= self.activations_identifier, 
+                    majajhong_get_best_layer_scores(activations_identifier= self.activations_identifier, 
                                                          region= self.region,
                                                          device = self.device)                  
                 
-                elif self.n_components is not None:
-                        
-                        ds = majajhong_scorer_principal_components(activations_identifier = self.activations_identifier, 
-                                    region = self.region,
-                                    device = self.device,
-                                    n_components = self.n_components)
-                
                 else:
 
-                    ds = majajhong_scorer(activations_identifier = self.activations_identifier, 
+                    majajhong_scorer(activations_identifier = self.activations_identifier, 
                                         region = self.region,
                                         device = self.device)        
    
 
-        return ds
+        return 
 
 
     

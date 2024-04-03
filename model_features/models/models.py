@@ -2,7 +2,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import os
 import sys
-ROOT = os.getenv('MODELS_ROOT_PATH')
+sys.path.append(os.getenv('MODELS_ROOT_PATH'))
 from alexnet import Alexnet
 from alexnet_untrained import AlexnetU
 from expansion import Expansion5L
@@ -55,11 +55,11 @@ def load_iden(model_name, dataset, block = None, features=None, layers=None, ran
             
     
     
-def load_full_iden(model_name, feature, layers, random_filter, dataset, 
+def load_full_iden(model_name, features, layers, random_filters, dataset, 
                    component=None, non_linearity='relu', initializer='kaiming_uniform'):
     
     
-    identifier = load_iden(model_name=model_name, features=feature, layers=layers, random_filters=random_filter,
+    identifier = load_iden(model_name=model_name, features=features, layers=layers, random_filters=random_filters,
                            dataset=dataset)
     if component is not None:
         identifier += f'_principal_components={component}'

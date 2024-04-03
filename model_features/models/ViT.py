@@ -7,7 +7,7 @@ import os
 from layer_operations.convolution import Convolution
 import timm
 #from timm.models.vision_transformer import VisionTransformer
-from model_features.layer_operations.output import Output
+from layer_operations.output import Output
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 
@@ -108,6 +108,7 @@ class PatchEmbedding(nn.Module):
         x = self.proj(x)  # [B, E, H, W]
         x = x.flatten(2)  # [B, E, N]
         x = x.transpose(1, 2)  # [B, N, E]
+        print('patch embed shape',x.shape)
         return x
         
         
@@ -136,6 +137,7 @@ class VisTransformer(nn.Module):
                     nn.ReLU()))
             else:
                 self.blocks.append(CustomViTBlock(in_chans, new_embed_dim, num_heads, mlp_ratio))
+            
     
 
     def forward(self, x):
@@ -148,6 +150,7 @@ class VisTransformer(nn.Module):
 
         for blk in self.blocks:
             x = blk(x)
+            print('block output shape',x.shape)
 
         return x
 
@@ -202,6 +205,7 @@ class CustomModel(nn.Module):
         else:
             raise ValueError(f"No activations found for block {self.block}")
 
+        print('final output shape',x.shape)
         return x
     
 
