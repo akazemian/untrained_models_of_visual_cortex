@@ -4,6 +4,8 @@ from torch import nn
 from layer_operations.convolution import Convolution, initialize_conv_layer
 from layer_operations.output import Output
 from layer_operations.nonlinearity import NonLinearity
+import math
+
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)                        
   
@@ -93,7 +95,8 @@ class Model(nn.Module):
 
 class Expansion5L:
     def __init__(self, 
-                 filter_params:dict = {'type':'curvature','n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
+                 filters_1_type:str='curvature',
+                 filters_1_params:dict = {'n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
                  filters_2:int=1000,
                  filters_3:int=3000,
                  filters_4:int=5000,
@@ -103,13 +106,17 @@ class Expansion5L:
                  non_linearity:str='relu',
                 device:str='cuda'):    
         
+        self.filters_1_type = filters_1_type
+        self.filters_1_params = filters_1_params
         
-        self.filter_params = filter_params
+        match self.filters_1_type:
         
-        if self.filter_params['type'] == 'curvature':
-            self.filters_1 = self.filter_params['n_ories']*self.filter_params['n_curves']*len(self.filter_params['gau_sizes']*len(self.filter_params['spatial_fre']))*3
-        else:
-            self.filters_1 = self.filter_params['n_ories']*self.filter_params['num_scales']*3
+            case 'curvature':
+                self.filters_1 = self.filters_1_params['n_ories']*self.filters_1_params['n_curves']*len(self.filters_1_params['gau_sizes']*len(self.filters_1_params['spatial_fre']))*3
+            case 'gabor':
+                self.filters_1 = self.filters_1_params['n_ories']*self.filters_1_params['num_scales']*3
+            case 'random':
+                self.filters_1 = self.filters_1_params['filters']
         
         self.filters_2 = filters_2
         self.filters_3 = filters_3
@@ -122,16 +129,20 @@ class Expansion5L:
         self.device = device
         
 
-    def create_layer(self, in_filters, out_filters, kernel_size, stride=1, pool_kernel=2, pool_stride=None):
-        conv = nn.Conv2d(in_filters, out_filters, kernel_size=kernel_size, bias=False).to(self.device)
+    def create_layer(self, in_filters, out_filters, kernel_size, stride=1, pool_kernel=2, pool_stride=None,padding=0):
+        conv = nn.Conv2d(in_filters, out_filters, kernel_size=kernel_size, stride= stride, padding = padding, bias=False).to(self.device)
         initialize_conv_layer(conv, self.init_type)
         pool = nn.AvgPool2d(kernel_size=pool_kernel, stride=pool_stride)
         return conv, pool
 
     def Build(self):
+        
         # layer 1
-        conv1 = Convolution(filter_size=15, filter_params=self.filter_params, device = self.device)
-        pool1 =  nn.AvgPool2d(kernel_size=2)
+        if self.filters_1_type != 'random':
+            conv1 = Convolution(filter_size=15, filter_type=self.filters_1_type, filter_params=self.filters_1_params, device = self.device)
+            pool1 =  nn.AvgPool2d(kernel_size=2)
+        else:
+            conv1, pool1 = self.create_layer(3, self.filters_1, (15, 15), 1, 2, padding = math.floor(15 / 2))
 
         # layer 2 to 5
         conv2, pool2 = self.create_layer(self.filters_1, self.filters_2, (7, 7), 1, 2)

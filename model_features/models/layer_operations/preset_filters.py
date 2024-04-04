@@ -126,9 +126,10 @@ class GaborFilters(nn.Module):
 
     
     
-def filters(in_channels:int = None,
-            filter_params:dict = None,
-            kernel_size:int = None):
+def filters(in_channels:int,
+            filter_type:str,
+            filter_params:dict,
+            kernel_size:int):
 
     """
     Returns the filters given the filter type
@@ -151,9 +152,9 @@ def filters(in_channels:int = None,
  
     """
         
-    assert filter_params['type'] in ['curvature', 'gabor'], "filter type not found"
+    assert filter_type in ['curvature', 'gabor'], "filter type not found"
 
-    if filter_params['type'] == 'curvature':
+    if filter_type == 'curvature':
 
         curve = CurvatureFilters(
             in_channels=in_channels,
@@ -165,7 +166,7 @@ def filters(in_channels:int = None,
         return curve()
     
     
-    elif filter_params['type'] == 'gabor':
+    elif filter_type == 'gabor':
         gabor = GaborFilters(
                  in_channels=in_channels,
                  n_ories=filter_params['n_ories'],

@@ -13,6 +13,7 @@ class Convolution(nn.Module):
     
     def __init__(self, 
                  device:str,
+                 filter_type:str,
                  filter_params:dict=None,
                  filter_size:int=None,
                 ):
@@ -20,6 +21,7 @@ class Convolution(nn.Module):
         super().__init__()
         
 
+        self.filter_type = filter_type
         self.filter_size = filter_size
         self.filter_params = filter_params
         self.device = device
@@ -33,7 +35,7 @@ class Convolution(nn.Module):
         x = x.to(self.device)
         
         in_channels = x.shape[1]
-        weights = filters(in_channels=1, kernel_size=self.filter_size, filter_params=self.filter_params).to(self.device)
+        weights = filters(in_channels=1, kernel_size=self.filter_size, filter_type = self.filter_type, filter_params=self.filter_params).to(self.device)
         
         # for RGB input (the preset L1 filters are repeated across the 3 channels)
         convolved_tensor = []
@@ -53,6 +55,10 @@ class Convolution(nn.Module):
         
 def initialize_conv_layer(conv_layer, initialization):
     
+    init_type = ['kaiming_uniform', 'kaiming_normal', 'orthogonal', 'xavier_uniform', 'xavier_normal', 'uniform','normal']
+
+    assert initialization in init_type, f'invalid initialization type, choose one of {init_type}'
+        
     match initialization:
         
         case 'kaiming_uniform':
@@ -75,10 +81,8 @@ def initialize_conv_layer(conv_layer, initialization):
             
         case 'normal':
             torch.nn.init.normal_(conv_layer.weight)     
-            
-        case _:
-            raise ValueError(f"Unsupported initialization type: {initialization}.")      
-        
+
+    return
 
         
         
