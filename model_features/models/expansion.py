@@ -67,7 +67,6 @@ class Model(nn.Module):
         x = x.to(self.device)
         #layer 1 
         x = self.conv1(x)  # conv 
-        print(x.shape)
         x = self.nl(x) # non linearity 
         x = self.pool1(x) # anti-aliasing blurpool  
         
