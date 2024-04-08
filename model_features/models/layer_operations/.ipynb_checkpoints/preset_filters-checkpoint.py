@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 import cv2
-
+import pywt
     
 class CurvatureFilters(nn.Module):
 
@@ -173,4 +173,26 @@ def filters(in_channels:int,
                  num_scales = filter_params['num_scales'],
                  filt_size=kernel_size)
         return gabor()
+
+
+
+# Function to generate biorthogonal wavelet filters
+def generate_discrete_wavelet_family(wavelet_family='bior'):
+    
+    wavelet_list = [i for i in pywt.wavelist() if wavelet_family in i]
+    filter_list = []
+    for wavelet_name in wavelet_list:
+        wavelet = pywt.Wavelet(wavelet_name)
+        #wavelet = pywt.ContinuousWavelet(wavelet_name)
+        dec_lo = np.asarray(wavelet.dec_lo)  # Reverse low-pass decomposition filter
+        dec_hi = np.asarray(wavelet.dec_hi)  # Reverse high-pass decomposition filter
+    
+        # Combine the decomposition and reconstruction filters to form the convolutional filters
+        dec_filter_lo = np.outer(dec_lo, dec_lo).astype(np.float32)
+        dec_filter_hi = np.outer(dec_hi, dec_hi).astype(np.float32)
+    
+        filters_lo_hi = np.stack([dec_filter_lo,dec_filter_hi])
+        filter_list.append(torch.from_numpy(filters_lo_hi).unsqueeze(1))
         
+    
+    return filter_list

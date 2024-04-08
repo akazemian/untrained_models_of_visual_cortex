@@ -152,7 +152,7 @@ def get_bootstrap_data(models, features, layers, subjects, dataset, region, all_
                             try:
                                 identifier = load_full_iden(model_name, feature, layers, random_filter, dataset,
                                                                  component, nonlinearity, initializer)
-                                #identifier = identifier + '_corrected'
+                                identifier = identifier + '_batchnorm'
                                 bootstrap_distribution = compute_bootstrap_distribution(identifier, subjects, region,
                                                                                         all_sampled_indices, batch_size,
                                                                                         n_bootstraps, dataset)

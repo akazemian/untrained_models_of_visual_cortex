@@ -124,7 +124,7 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
             
     
         case 'fully_random':
-            return FullyRandom5L(filters_1=random_filters, filters_5=features).Build()
+            return Expansion5L(filters_1_type='random',filters_1_params={'filters':random_filters},filters_5=features).Build()
             
             
 

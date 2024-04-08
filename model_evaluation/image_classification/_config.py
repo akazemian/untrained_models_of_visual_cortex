@@ -2,7 +2,7 @@ import pickle
 import os
 import sys
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
-from image_tools.loading import load_places_cat_names, load_places_cat_labels
+from image_tools.loading import load_places_cat_ids, load_places_cat_labels
 from config import PLACES_IMAGES
 import random
 random.seed(42)
@@ -26,5 +26,5 @@ else:
 CAT_LABELS = load_places_cat_labels()
 CAT_LABELS_SUBSET = {k: v for k, v in CAT_LABELS.items() if v in CAT_SUBSET}
 VAL_IMAGES_SUBSET = list(CAT_LABELS_SUBSET.keys())
-CAT_NAMES = load_places_cat_names()
+CAT_NAMES = load_places_cat_ids()
     

@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from layer_operations.convolution import Convolution, initialize_conv_layer
+from layer_operations.convolution import WaveletConvolution, initialize_conv_layer
 from layer_operations.output import Output
 from layer_operations.blurpool import BlurPool
 from layer_operations.nonlinearity import NonLinearity
@@ -138,7 +138,7 @@ class Expansion5LLinear:
     def Build(self):        
         
         # layer 1
-        conv1 = Convolution(filter_size=15,filter_params=self.filter_params, device = self.device)     
+        conv1 = WaveletConvolution(filter_size=15,filter_params=self.filter_params, device = self.device)     
         bpool1 = BlurPool(self.filters_1, filt_size=self.bpool_filter_size, stride=2)
         pool1 = nn.AvgPool2d(kernel_size=2)
 

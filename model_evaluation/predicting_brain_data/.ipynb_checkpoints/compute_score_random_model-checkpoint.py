@@ -13,13 +13,13 @@ from model_features.models.models import load_model, load_full_iden
 # from model_features.models.expansion_no_bp import Expansion5LNoBP
 
 #define local variables
-DATASET = 'naturalscenes'
-REGIONS = ['ventral visual stream']
-FEATURES = [3,30,300,3000]
+# DATASET = 'naturalscenes'
+# REGIONS = ['ventral visual stream']
+# FEATURES = [3,30,300,3000]
 
-# DATASET = 'majajhong'
-# REGIONS = ['IT']
-# FEATURES = [3,30,300,3000,30000]
+DATASET = 'majajhong'
+REGIONS = ['IT']
+FEATURES = [3,30,300,3000,30000]
 
 MODELS = ['fully_random']
 
@@ -38,6 +38,7 @@ for region in REGIONS:
             for random_filters in FILTERS:
                 
                 activations_identifier = load_full_iden(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS, dataset=DATASET)
+                activations_identifier += '_test'
                 print(activations_identifier)
                 
                 model = load_model(model_name=model_name, features=features, random_filters = random_filters, layers=LAYERS)

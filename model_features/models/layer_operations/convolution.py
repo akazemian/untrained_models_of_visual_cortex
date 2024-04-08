@@ -1,4 +1,4 @@
-from layer_operations.preset_filters import filters
+from layer_operations.preset_filters import filters, generate_discrete_wavelet_family
 from torch.nn import functional as F
 import math
 import torch
@@ -6,9 +6,11 @@ torch.manual_seed(42)
 from torch import nn
 import numpy as np
 
+discrete_wavelets = ['bior', 'coif', 'db', 'dmey', 'haar', 'rbio', 'sym']
+cont_wavelets = ['cmor' , 'shan' , 'fbsp' ,'cgau' ,'gaus' ,'mexh' ,'morl']
 
 
-class Convolution(nn.Module):
+class WaveletConvolution(nn.Module):
     
     
     def __init__(self, 
@@ -35,20 +37,41 @@ class Convolution(nn.Module):
         x = x.to(self.device)
         
         in_channels = x.shape[1]
-        weights = filters(in_channels=1, kernel_size=self.filter_size, filter_type = self.filter_type, filter_params=self.filter_params).to(self.device)
+        
+        convolved_tensor = []
+        
+        if self.filter_type in ['curvature','gabor']:
+            weights = filters(in_channels=1, kernel_size=self.filter_size, filter_type = self.filter_type, filter_params=self.filter_params).to(self.device)
+            for i in range(in_channels):
+                    channel_image = x[:, i:i+1, :, :]
+                    channel_convolved = F.conv2d(channel_image, weight= weights.to(self.device), padding=weights.shape[-1] // 2 - 1)
+                    convolved_tensor.append(channel_convolved)
+                    
+        elif self.filter_type in discrete_wavelets:
+            weights= generate_discrete_wavelet_family(wavelet_family=self.filter_type)
+            
+            for weights in weights:
+                for i in range(in_channels):
+                    channel_image = x[:, i:i+1, :, :]
+                    channel_convolved = F.conv2d(channel_image, weight= weights.to(self.device), padding=weights.shape[-1] // 2 - 1)
+                    convolved_tensor.append(channel_convolved)
+
+        elif self.filter_type in cont_wavelets:
+            weights= generate_continuous_wavelet_filters(wavelet_family=self.filter_type, num_scales=3)
+            
+            for weights in weights:
+                for i in range(in_channels):
+                    channel_image = x[:, i:i+1, :, :]
+                    channel_convolved = F.conv2d(channel_image, weight= weights.to(self.device), padding=weights.shape[-1] // 2 - 1)
+                    convolved_tensor.append(channel_convolved)
+            
+            
         
         # for RGB input (the preset L1 filters are repeated across the 3 channels)
-        convolved_tensor = []
-        for i in range(in_channels):
-            channel_image = x[:, i:i+1, :, :]
-            #channel_convolved = F.conv2d(channel_image, weight= weights, padding=0, stride = 3)
-            channel_convolved = F.conv2d(channel_image, weight= weights, padding=math.floor(weights.shape[-1] / 2))
-            convolved_tensor.append(channel_convolved)
-        x = torch.cat(convolved_tensor, dim=1)    
-    
-
-        return x
-    
+        
+        x = torch.cat(convolved_tensor, dim=1)   
+ 
+        return x    
 
 
 

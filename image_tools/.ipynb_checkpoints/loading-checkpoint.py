@@ -147,7 +147,7 @@ def load_places_cat_labels():
  
     
     
-def load_places_cat_names():
+def load_places_cat_ids():
     """
     Load category names for the places dataset.
 

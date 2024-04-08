@@ -20,7 +20,7 @@ FILTERS_1_DICT = {
 device = 'cuda'
 
 #layer 1 vars
-filters_1_type = 'curvature' #one of ['curvature','gabor','random']
+filters_1_type = 'curvature' # can do one of ['curvature','gabor','random']
 filters_1_params = FILTERS_1_DICT[filters_1_type]
 
 #layer 2 vars
@@ -30,11 +30,11 @@ filters_3=3000
 #layer 4 vars
 filters_4=5000
 #layer 5 vars
-filters_5=30000 #one of [30,3000,30000]
+filters_5=[3, 30,3000,30000] # VARIABLE
 
 # other vars
-init_type:str = 'kaiming_uniform' # one of ['kaiming_uniform', 'uniform']
-non_linearity= 'relu' # one of ['relu', 'elu','none']
+init_type = ['kaiming_uniform', 'uniform'] # VARIABLE
+non_linearity= ['relu', 'elu','none'] # VARIABLE
 gpool=False # if there is global max pooling on for the model output, default (False) makes use of spatial information
 
 

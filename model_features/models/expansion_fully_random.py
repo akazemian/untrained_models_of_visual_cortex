@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from layer_operations.convolution import Convolution, initialize_conv_layer
+from layer_operations.convolution import initialize_conv_layer
 from layer_operations.output import Output
 from layer_operations.nonlinearity import NonLinearity
 torch.manual_seed(42)

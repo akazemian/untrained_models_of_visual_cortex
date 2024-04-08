@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from layer_operations.convolution import Convolution, initialize_conv_layer
+from layer_operations.convolution import WaveletConvolution, initialize_conv_layer
 from layer_operations.output import Output
 from layer_operations.nonlinearity import NonLinearity
 torch.manual_seed(42)
@@ -116,7 +116,7 @@ class Expansion5L:
 
     def Build(self):
         # layer 1
-        conv1 = Convolution(filter_size=15, filter_params=self.filter_params, device = self.device)
+        conv1 = WaveletConvolution(filter_size=15, filter_params=self.filter_params, device = self.device)
 
         # layer 2 to 5
         conv2 = self.create_layer(self.filters_1, self.filters_2, (7, 7),1)
