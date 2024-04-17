@@ -4,7 +4,7 @@ import torch
 from torch import nn
 import pickle
 import os
-from layer_operations.convolution import Convolution
+from layer_operations.convolution import WaveletConvolution
 import timm
 #from timm.models.vision_transformer import VisionTransformer
 from layer_operations.output import Output
@@ -226,7 +226,7 @@ class CustomViT:
                 
     def Build(self):
     
-        conv = Convolution(filter_size=15, filter_params=self.filter_params, device = self.device)  
+        conv = WaveletConvolution(filter_size=15, filter_params=self.filter_params, device = self.device)  
         
         vit = VisTransformer(
             img_size=224,

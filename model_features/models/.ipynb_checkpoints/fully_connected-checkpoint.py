@@ -1,4 +1,3 @@
-from layer_operations.convolution import Convolution
 from layer_operations.output import Output
 from layer_operations.nonlinearity import NonLinearity
 import torch
