@@ -1,5 +1,7 @@
 # High performing untrained models of primate visual cortex
 
+![The expansion model architecture](expansion_model.png)
+
 The expansion model is a learning-free convolutional neural network based on compressession in the spatial domain and expansion in the feature domain. To use the model for your own data, please follow the steps incuded in section 1.  
 
 
