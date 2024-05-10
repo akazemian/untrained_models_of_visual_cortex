@@ -1,18 +1,14 @@
-# Modeling the brain using an untrained CNN with a rich representational space
+# High performing untrained models of primate visual cortex
 
-The expansion model is a learning-free convolutional neural network based on high-dimensional random sampling. To use the model as an encoding model of visual cortex for your own data, please follow the steps incuded in section 1.  
+The expansion model is a learning-free convolutional neural network based on compressession in the spatial domain and expansion in the feature domain. To use the model for your own data, please follow the steps incuded in section 1.  
 
 
-# 1. The (dimensionality) Expansion Model
+# 1. The (feature) Expansion Model
 
 - Please download (only) the folder models (/model_features/models).
+- 
 
-- Add the the follwoing line to your list of environment variables:
-```
-export MODELS_ROOT_PATH='/where/you/download/the/folder>'
-```
-
-- Navigate to the folder and install requieremnts:
+- Navigate to the repo folder and install requieremnts:
 ```
 pip install -r requirements.txt 
 ```
@@ -32,12 +28,8 @@ X = troch.Tensor(1,3,224,224)
 
 3. Instantiate the model
 ```python
-expansion_model = Expansion5L(self, 
-                              filters_5 = 3000, # number of filters in the last convolution layer of the model
-                              init_type = 'kaiming_uniform', # initialization type used for random filters
-                              non_linearity:str='relu', # type of non-linear activation function used in all model layers
-                              gpool = False, # whether global pooling is applied to the output 
-                              device=device).Build()
+expansion_model = Expansion5L(filters_5 = 3000, # number of filters in the last convolution layer of the model
+                              device='cuda').Build()
 
 ```
 
@@ -70,7 +62,7 @@ We use the average response to stimuli across repetitions.
 # 4. Image Classification 
 
 Data:
-The Places dataset (Zhou et al, 2018) can be downloaded [here](http://places.csail.mit.edu/).
+The Places dataset (Zhou et al, 2018) can be downloaded [here](http://places2.csail.mit.edu/)
 
 
   
