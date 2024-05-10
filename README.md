@@ -39,7 +39,7 @@ expansion_model = Expansion5L(filters_5 = 3000, # number of filters in the last 
 features = expansion_model(X)
 ```
 
-The ouput is a tensor of size NxP, where N is the number of image and P is the number of features in the last layer of the model.
+The ouput is a tensor of size NxP, where N = the number of image and P = the number of features in the last layer of the model.
 
 
 # 2. Predicting Human fMRI Responses to Natural Scenes
