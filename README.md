@@ -21,7 +21,8 @@ Below is an example of how to use the expansion model. Alternatively, you can na
 from expansion import Expansion5L
 ```
 
-2. Import preprocessed images as a torch tensor. Below is a random tensor of size NxCxHxW.
+2. Import (preprocessed) images as a torch tensor. Below is a random image tensor of size NxCxHxW. Where N = number of images, C = number of channels, H = height of the image, W = width of the image.
+   
 ```python
 X = troch.Tensor(1,3,224,224)
 ```
