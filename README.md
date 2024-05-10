@@ -8,7 +8,7 @@ The expansion model is a learning-free convolutional neural network based on com
 - Please download (only) the folder models (/model_features/models).
   
 
-- Navigate to the repo folder and install requieremnts:
+- Navigate to the repo folder and install requirements:
 ```
 pip install -r requirements.txt 
 ```
