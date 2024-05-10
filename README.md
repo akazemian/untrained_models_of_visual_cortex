@@ -68,7 +68,7 @@ We use the average response to stimuli across repetitions.
 The Places dataset (Zhou et al, 2018) can be downloaded [here](http://places2.csail.mit.edu/)
 
 
-# References:
+# References
 
 Allen, E. J., St-Yves, G., Wu, Y., Breedlove, J. L., Prince, J. S., Dowdle, L. T., Nau, M., Caron, B., Pestilli, F., Charest, I., Hutchinson, J. B., Naselaris, T., & Kay, K. (2022). A massive 7T fMRI dataset to bridge cognitive neuroscience and artificial intelligence. Nature Neuroscience, 25(1), 116–126. https://doi.org/10.1038/s41593-021-00962-x 
 
