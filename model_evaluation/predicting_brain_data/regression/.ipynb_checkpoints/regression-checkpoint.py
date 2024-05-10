@@ -1,5 +1,3 @@
-
-
 from collections.abc import Iterable
 from tqdm import tqdm
 import numpy as np

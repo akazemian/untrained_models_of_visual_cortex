@@ -15,7 +15,7 @@ from tqdm import tqdm
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 from scipy.stats import spearmanr
-
+import gc
 
 from model_evaluation.predicting_brain_data.benchmarks.majajhong import load_majaj_data
 from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
@@ -29,7 +29,9 @@ from config import CACHE, NSD_NEURAL_DATA
 SHARED_IDS_PATH = os.path.join(ROOT, 'image_tools','nsd_ids_shared')
 SHARED_IDS = pickle.load(open(SHARED_IDS_PATH, 'rb'))
 SHARED_IDS = [image_id.strip('.png') for image_id in SHARED_IDS]
-PREDS_PATH = '/data/atlas/.cache/beta_predictions'
+PREDS_PATH = '/data/atlas/.cache/beta_predictions_new'
+TEST_PATH = '/data/atlas/.cache/test_data'
+
 BOOTSTRAP_RESULTS_PATH = '/home/akazemi3/Desktop/untrained_models_of_visual_cortex/model_evaluation/results/predicting_brain_data/bootstrap_data'
 
 
@@ -136,29 +138,31 @@ def write_powers(power):
 
 
 
-def get_bootstrap_data(models, features, layers, subjects, dataset, region, all_sampled_indices, file_name,
-                       init_types=['kaiming_uniform'], nl_types=['relu'], principal_components=[None],
-                       l1_random_filters=[None], batch_size=50, n_bootstraps=1000):
+
+def get_bootstrap_data(model_name, features, layers, subjects, dataset, region, all_sampled_indices, file_name,
+                       init_types=['kaiming_uniform'], non_linearities=['relu'], principal_components=[None],
+                       batch_size=3, n_bootstraps=1000, device='cuda'):
     
-    data_dict = {'model': [], 'features': [], 'l1_random_filters': [], 'pcs': [], 'init_type': [], 'nl_type': [],
+    data_dict = {'model': [], 'features': [], 'pcs': [], 'init_type': [], 'nl_type': [],
                  'score': [], 'lower': [], 'upper': []}
     
     for feature in features:
-        for random_filter in l1_random_filters:
-            for component in principal_components:
-                for model_name in models:
-                    for nonlinearity in nl_types:
-                        for initializer in init_types:
-                            try:
-                                identifier = load_full_iden(model_name, feature, layers, random_filter, dataset,
-                                                                 component, nonlinearity, initializer)
-                                bootstrap_distribution = compute_bootstrap_distribution(identifier, subjects, region,
+        for component in principal_components:
+            for non_linearity in non_linearities:
+                for init_type in init_types:
+                    try:
+                        identifier = load_full_iden(model_name, feature, layers, dataset,
+                                                                 component, non_linearity, init_type)
+                        bootstrap_dist = compute_bootstrap_distribution(identifier, subjects, region,
                                                                                         all_sampled_indices, batch_size,
-                                                                                        n_bootstraps, dataset)
-                                update_data_dict(data_dict, model_name, feature, random_filter, component, initializer,
-                                                 nonlinearity, bootstrap_distribution)
-                            except FileNotFoundError:
-                                print(f'File not found: {identifier}, region: {region}')
+                                                                                        n_bootstraps, dataset, device)
+                        update_data_dict(data_dict, model_name, feature, component, init_type, non_linearity, bootstrap_dist)
+
+                        del bootstrap_dist, identifier
+                        gc.collect()
+                                
+                    except FileNotFoundError:
+                        print(f'File not found: {identifier}, region: {region}')
 
     df = pd.DataFrame.from_dict(data_dict)
     save_results(df, file_name, dataset, region)
@@ -166,27 +170,38 @@ def get_bootstrap_data(models, features, layers, subjects, dataset, region, all_
 
 
 
-def compute_bootstrap_distribution(identifier, subjects, region, all_sampled_indices, batch_size, n_bootstraps, dataset):
-    score_sum = np.zeros(n_bootstraps)
+def compute_bootstrap_distribution(identifier, subjects, region, all_sampled_indices, batch_size, n_bootstraps, dataset, device):
+    score_sum = torch.zeros(n_bootstraps).to(device)
     for subject in tqdm(subjects):
         preds, test = load_data(identifier, region, subject, dataset)
         all_sampled_preds = preds[all_sampled_indices]
         all_sampled_tests = test[all_sampled_indices]
-        score_sum += batch_pearson_r(all_sampled_tests, all_sampled_preds, batch_size, n_bootstraps)
+        score_sum += batch_pearson_r(all_sampled_tests, all_sampled_preds, batch_size, n_bootstraps, device)
+        
+        del preds, test, all_sampled_preds, all_sampled_tests
+        gc.collect()
+        
     return score_sum / len(subjects)
 
 
 
-def batch_pearson_r(all_sampled_tests, all_sampled_preds, batch_size, n_bootstraps):
-    r_values = []
+def batch_pearson_r(all_sampled_tests, all_sampled_preds, batch_size, n_bootstraps, device):
+    #r_values = []
+    r_values = torch.Tensor([])
     i = 0
     while i < n_bootstraps:
         # Compute Pearson r for all bootstraps at once
-        mean_r_values = pearson_r_(all_sampled_tests[i:i + batch_size, :, :].cuda(),
-                                   all_sampled_preds[i:i + batch_size, :, :].cuda())
-        r_values.extend(mean_r_values.tolist())
+        mean_r_values = pearson_r_(all_sampled_tests[i:i + batch_size, :, :].to(device),
+                                   all_sampled_preds[i:i + batch_size, :, :].to(device))
+        r_values = torch.concat((r_values.to(device), mean_r_values))
+        #r_values.extend(mean_r_values.tolist())
         i += batch_size
-    return np.array(r_values)
+        
+        del mean_r_values
+        gc.collect()
+        
+    return r_values
+
 
 
 def load_data(identifier, region, subject, dataset):
@@ -200,112 +215,24 @@ def load_data(identifier, region, subject, dataset):
         test = load_majaj_data(subject, region, 'test')
     return preds, test
 
-def update_data_dict(data_dict, model_name, feature, random_filter, component, initializer, nonlinearity, bootstrap_dist):
+def update_data_dict(data_dict, model_name, feature, component, init_type, non_linearity, bootstrap_dist):
     data_dict['model'].append(model_name)
     data_dict['features'].append(str(feature))
-    data_dict['l1_random_filters'].append(random_filter)
     data_dict['pcs'].append(str(component))
-    data_dict['init_type'].append(initializer)
-    data_dict['nl_type'].append(nonlinearity)
-    data_dict['score'].append(np.mean(bootstrap_dist))
-    data_dict['lower'].append(np.percentile(bootstrap_dist, 2.5))
-    data_dict['upper'].append(np.percentile(bootstrap_dist, 97.5))
+    data_dict['init_type'].append(init_type)
+    data_dict['nl_type'].append(non_linearity)
+    data_dict['score'].append(torch.mean(bootstrap_dist))
+    data_dict['lower'].append(percentile(bootstrap_dist, 2.5))
+    data_dict['upper'].append(percentile(bootstrap_dist, 97.5))
     
     
 def save_results(df, file_name, dataset, region):
     with open(os.path.join(BOOTSTRAP_RESULTS_PATH, f'bootstrap-results-{file_name}-{dataset}-{region}-df.pkl'), 'wb') as file:
         pickle.dump(df, file)
 
-        
-# def get_bootstrap_data(models, features,  layers, subjects,
-#                        dataset, region, all_sampled_indices, file_name, 
-#                        init_types=['kaiming_uniform'], nl_types=['relu'],
-#                        principal_components = [None], l1_random_filters=[None], batch_size=50, n_bootstraps=1000):
+def percentile(t, q):
 
-    
-#     data_dict = {'model':[],'features':[],'l1_random_filters':[],'pcs':[], 'init_type':[], 'nl_type':[],
-#                  'score':[], 'lower':[],'upper':[]}
-#     mean_scores = []
-#     lower_bound = []
-#     upper_bound = []              
-        
-    
-#     for f in features:
+    k = 1 + round(.01 * float(q) * (t.numel() - 1))
+    result = t.view(-1).kthvalue(k).values.item()
+    return result
 
-#         for r_f in l1_random_filters:
-
-#             for c in principal_components:
-            
-#                 for model_name in models:
-
-#                     for nl in nl_types:
-
-#                         for init in init_types:
-        
-#                             try:
-                                    
-#                                 activations_identifier = load_iden(model_name=model_name, features=f, layers=layers, random_filters=r_f, dataset=dataset)
-#                                 if c is not None:
-#                                     activations_identifier = activations_identifier + f'_principal_components={c}'
-                                
-#                                 if nl != 'relu':
-#                                     activations_identifier = activations_identifier + '_' + nl
-                                
-#                                 if init != 'kaiming_uniform':
-#                                     activations_identifier = activations_identifier + '_' + init
-                                    
-#                                 print(activations_identifier)
-#                                 score_sum = np.zeros(n_bootstraps)
-                
-#                                 for s in tqdm(subjects):
-                
-#                                         # load preds and y_true
-#                                         r_values = []
-#                                         with open(os.path.join(PREDS_PATH,f'{activations_identifier}_{region}_{s}.pkl'), 'rb') as file:
-#                                             preds = torch.Tensor(pickle.load(file))
-                
-#                                         if 'naturalscenes' in dataset:
-#                                             ids_test, neural_data_test, var_name_test = load_nsd_data(mode ='shared', subject = s, region = region)           
-#                                             test = torch.Tensor(neural_data_test[var_name_test].values)
-            
-#                                         else:
-#                                             test = load_majaj_data(s, region, 'test')
-                                            
-                                        
-#                                         # Vectorized bootstrapping
-#                                         all_sampled_preds = preds[all_sampled_indices]
-#                                         all_sampled_tests = test[all_sampled_indices]
-                
-#                                         i = 0
-#                                         batch = batch_size
-#                                         while i < n_bootstraps:
-#                                             # Compute Pearson r for all bootstraps at once
-#                                             mean_r_values = pearson_r_(all_sampled_tests[i:i+batch,:,:].cuda(), 
-#                                                                        all_sampled_preds[i:i+batch,:,:].cuda())
-#                                             r_values.extend(mean_r_values.tolist())
-#                                             i += batch
-                
-#                                         score_sum += r_values
-                
-#                                 bootstrap_dist = score_sum/len(subjects)
-                
-#                                 data_dict['model'].append(model_name)
-#                                 data_dict['features'].append(str(f))
-#                                 data_dict['l1_random_filters'].append(r_f)
-#                                 data_dict['pcs'].append(str(c))
-#                                 data_dict['init_type'].append(init)
-#                                 data_dict['nl_type'].append(nl)
-#                                 data_dict['score'].append(np.mean(bootstrap_dist))
-#                                 data_dict['lower'].append(np.percentile(bootstrap_dist, 2.5))
-#                                 data_dict['upper'].append(np.percentile(bootstrap_dist, 97.5))
-            
-#                             except FileNotFoundError:
-#                                 print('FILE NOT FOUND',activations_identifier,region)
-#                                 pass
-        
-#     df = pd.DataFrame.from_dict(data_dict)
-        
-#     with open(os.path.join(BOOTSTRAP_RESULTS_PATH,f'bootstrap-results-{file_name}-{dataset}-{region}-df.pkl'), 'wb') as file:
-#         pickle.dump(df,file)
-            
-#     return df

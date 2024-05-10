@@ -10,8 +10,8 @@ import xarray as xr
 import numpy as np
 # local libraries
 sys.path.append(os.getenv('BONNER_ROOT_PATH'))
-from model_evaluation.image_classification._config import VAL_IMAGES_SUBSET
-from model_evaluation.image_classification.tools import PairwiseClassification, normalize, get_Xy, cv_performance
+from image_tools.loading import load_places_cat_labels
+from model_evaluation.image_classification.tools import get_Xy, cv_performance
 from model_features.activation_extractor import Activations
 from config import CACHE
 from model_features.models.models import load_model, load_iden
@@ -25,11 +25,11 @@ layers = 5
 
 # define models in a dict
 model_name = 'expansion'
-#model_name = '_alexnet'
+model_name = '_alexnet'
 
 
 activations_identifier = load_iden(model_name=model_name, dataset=DATASET, features=features, layers=layers) + f'_principal_components=1000'
-pca_iden = load_iden(model_name=model_name, dataset='places_test', features=features, layers=layers)  + f'_components=1000'
+pca_iden = load_iden(model_name=model_name, dataset='places_train', features=features, layers=layers)  + f'_components=1000'
 
 model = load_model(model_name=model_name, features = features, layers=layers)
 
@@ -44,19 +44,14 @@ Activations(model=model,
 
 data = xr.open_dataset(os.path.join(CACHE,'activations',activations_identifier))
 data = data.set_xindex('stimulus_id')
-#data_subset = data.sel(stimulus_id = VAL_IMAGES_SUBSET)
 
+cat_labels = load_places_cat_labels()
 X, y = get_Xy(data)
-score = cv_performance(X, y)
+score = cv_performance(X, y, cat_labels)
 print(activations_identifier, ':', score)
-with open(os.path.join(CACHE,'classification',activations_identifier),'wb') as f:
+
+with open(os.path.join(CACHE,'classification',activations_identifier+'_stratified'),'wb') as f:
     pickle.dump(score,f)
-
-# get pairwise classification performance
-# PairwiseClassification().get_performance(iden = activations_identifier + '_normalized', 
-#                                         data = data_subset)
-
-
 
 
 

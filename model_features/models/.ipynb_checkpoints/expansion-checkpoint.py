@@ -6,7 +6,7 @@ sys.path.append(ROOT)
 import torch
 from torch import nn
 
-from layer_operations.convolution import WaveletConvolution, initialize_conv_layer, discrete_wavelets
+from layer_operations.convolution import WaveletConvolution, initialize_conv_layer
 from layer_operations.output import Output
 from layer_operations.nonlinearity import NonLinearity
 import math
@@ -106,8 +106,7 @@ class Model(nn.Module):
 
 class Expansion5L:
     def __init__(self, 
-                 filters_1_type:str='curvature',
-                 filters_1_params:dict = {'n_ories':12,'n_curves':3,'gau_sizes':(5,),'spatial_fre':[1.2]},
+                 filters_1=None,
                  filters_2:int=1000,
                  filters_3:int=3000,
                  filters_4:int=5000,
@@ -117,21 +116,7 @@ class Expansion5L:
                  non_linearity:str='relu',
                 device:str='cuda'):    
         
-        self.filters_1_type = filters_1_type
-        self.filters_1_params = filters_1_params
-        
-        
-        if self.filters_1_type == 'curvature':
-            self.filters_1 = self.filters_1_params['n_ories']*self.filters_1_params['n_curves']*len(self.filters_1_params['gau_sizes']*len(self.filters_1_params['spatial_fre']))*3
-        elif self.filters_1_type == 'gabor':
-            self.filters_1 = self.filters_1_params['n_ories']*self.filters_1_params['num_scales']*3
-        elif self.filters_1_type == 'random':
-            self.filters_1 = self.filters_1_params['filters']
-        elif self.filters_1_type in discrete_wavelets:
-            wavelet_list = [i for i in pywt.wavelist() if self.filters_1_type in i] 
-            self.filters_1 =  len(wavelet_list) * 2 * 3
-                
-        
+        self.filters_1 = filters_1 
         self.filters_2 = filters_2
         self.filters_3 = filters_3
         self.filters_4 = filters_4
@@ -152,9 +137,10 @@ class Expansion5L:
     def Build(self):
         
         # layer 1
-        if self.filters_1_type != 'random':
-            conv1 = WaveletConvolution(filter_size=15, filter_type=self.filters_1_type, filter_params=self.filters_1_params, device = self.device)
+        if self.filters_1 == None:
+            conv1 = WaveletConvolution(filter_size=15, filter_type='curvature', device = self.device)
             pool1 =  nn.AvgPool2d(kernel_size=2)
+            self.filters_1 = conv1.layer_size
         else:
             conv1, pool1 = self.create_layer(3, self.filters_1, (15, 15), 1, 2, padding = math.floor(15 / 2))
 

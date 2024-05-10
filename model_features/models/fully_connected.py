@@ -11,7 +11,6 @@ class Model5L(nn.Module):
     
     
     def __init__(self,
-                conv: nn.Module,
                  lin1: nn.Module,
                  lin2: nn.Module,
                  lin3: nn.Module,
@@ -23,7 +22,6 @@ class Model5L(nn.Module):
         
         super(Model5L, self).__init__()
         
-        self.conv = conv
         self.lin1 = lin1
         self.lin2 = lin2
         self.lin3 = lin3
@@ -37,9 +35,6 @@ class Model5L(nn.Module):
     def forward(self, x:nn.Module): 
        
         N = x.shape[0]
-        
-        # x = self.conv(x)
-        # print(x.shape)
 
         x = self.lin1(x.reshape(N,-1))  # linear layer
         x = self.nl(x)
@@ -89,7 +84,6 @@ class FullyConnected5L:
     
     def Build(self):        
         
-        conv = Convolution(filter_size=15, filter_params=self.filter_params, device = self.device) 
         lin1 = nn.Linear(self.input_dim, self.features_1)
         lin2 = nn.Linear(self.features_1, self.features_2)
         lin3 = nn.Linear(self.features_2, self.features_3)
@@ -100,5 +94,5 @@ class FullyConnected5L:
         nl = NonLinearity('relu')
         last = Output()
         
-        return Model5L(conv, lin1, lin2, lin3, lin4, lin5, nl, last)
+        return Model5L(lin1, lin2, lin3, lin4, lin5, nl, last)
     

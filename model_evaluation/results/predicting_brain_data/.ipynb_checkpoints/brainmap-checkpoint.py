@@ -380,58 +380,58 @@ def convert_dataarray_to_nifti1image(
 
 
 
-def average_across_brains(
-    scores_path:str, 
-    resolution: str,
-    interpolation_type: str,
-    ):
+# def average_across_brains(
+#     scores_path:str, 
+#     resolution: str,
+#     interpolation_type: str,
+#     ):
     
-    s= 0 
-    data = process_data_to_plot(scores_path = scores_path, subject = s)
-    mni = transform_volume_to_mni(
-            data=reshape_dataarray_to_brain(
-                data=data,
-                subject=s,
-                resolution=resolution,
-            ),
-            subject=s,
-            source_space=f"func{resolution[:-2]}",
-            interpolation_type=interpolation_type,
-        )
+#     s= 0 
+#     data = process_data_to_plot(scores_path = scores_path, subject = s)
+#     mni = transform_volume_to_mni(
+#             data=reshape_dataarray_to_brain(
+#                 data=data,
+#                 subject=s,
+#                 resolution=resolution,
+#             ),
+#             subject=s,
+#             source_space=f"func{resolution[:-2]}",
+#             interpolation_type=interpolation_type,
+#         )
     
-    for s in range(1,8):
-        data = process_data_to_plot(scores_path = scores_path, subject = s)
-        mni += transform_volume_to_mni(
-            data=reshape_dataarray_to_brain(
-                data=data,
-                subject=s,
-                resolution=resolution,
-            ),
-            subject=s,
-            source_space=f"func{resolution[:-2]}",
-            interpolation_type=interpolation_type,
-        )
+#     for s in range(1,8):
+#         data = process_data_to_plot(scores_path = scores_path, subject = s)
+#         mni += transform_volume_to_mni(
+#             data=reshape_dataarray_to_brain(
+#                 data=data,
+#                 subject=s,
+#                 resolution=resolution,
+#             ),
+#             subject=s,
+#             source_space=f"func{resolution[:-2]}",
+#             interpolation_type=interpolation_type,
+#         )
         
-    return mni/8
+#     return mni/8
 
 
-def load_model_for_brain(
-    scores_path:str, 
-    resolution: str,
-    interpolation_type: str,
-    ):
+# def load_model_for_brain(
+#     scores_path:str, 
+#     resolution: str,
+#     interpolation_type: str,
+#     ):
     
-    data = process_data_to_plot(scores_path = scores_path, subject = subject)
-    return transform_volume_to_mni(
-            data=reshape_dataarray_to_brain(
-                data=data,
-                subject=subject,
-                resolution=resolution,
-            ),
-            subject=subject,
-            source_space=f"func{resolution[:-2]}",
-            interpolation_type=interpolation_type,
-        )
+#     data = process_data_to_plot(scores_path = scores_path, subject = subject)
+#     return transform_volume_to_mni(
+#             data=reshape_dataarray_to_brain(
+#                 data=data,
+#                 subject=subject,
+#                 resolution=resolution,
+#             ),
+#             subject=subject,
+#             source_space=f"func{resolution[:-2]}",
+#             interpolation_type=interpolation_type,
+#         )
 
 
 
@@ -470,15 +470,4 @@ def plot_brain_map(
 
 
 
-def process_data_to_plot(scores_path, subject):
-
-    data = xr.open_dataset(scores_path,engine='h5netcdf')
-    data = data.where(data.subject==subject,drop=True)
-    data = data.drop_vars(["subject",'region','name']).to_array()
-    data.x.values = data.x.values.astype(int)
-    data.y.values = data.y.values.astype(int)
-    data.z.values = data.z.values.astype(int)
-    data = data.drop('variable').squeeze()
-    
-    return data
 

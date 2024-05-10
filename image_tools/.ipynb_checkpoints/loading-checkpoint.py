@@ -50,19 +50,20 @@ def load_places_val_images():
     return sorted(images_paths)
     
     
-def load_places_test_images():
+def load_places_train_images():
     from config import PLACES_IMAGES
-    """
-    Loads the file paths of validation images from the PLACES_IMAGES directory.
-
-    Returns:
-        list: A sorted list of full paths to the validation images.
-    """
-        
-    with open('/home/akazemi3/Desktop/untrained_models_of_visual_cortex/image_tools/places_test_ids_sample=3000', 'rb') as file:
-        images_paths = pickle.load(file)
     
-    return sorted(images_paths)
+    images_paths = []
+    base_dir = os.path.join(PLACES_IMAGES,'train_images_subset')
+    
+    subdirs = [os.path.join(base_dir, d) for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))]
+
+    for subdir in subdirs:
+        # List all files in the subdirectory, including their full paths
+        images_paths.extend([os.path.join(subdir, f) for f in os.listdir(subdir) if os.path.isfile(os.path.join(subdir, f))])
+
+    return base_dir, sorted(images_paths)
+
     
 
     
@@ -91,10 +92,10 @@ def load_image_paths(name, *args, **kwargs):
         case 'places_val':
             return load_places_val_images()
     
-        case 'places_test':
-            return load_places_test_images()
-      
-    
+        case 'places_train':
+            return load_places_train_images()
+
+
 
 def get_image_labels(dataset, images):
     
@@ -113,15 +114,15 @@ def get_image_labels(dataset, images):
     match dataset:
         
         case 'naturalscenes' | 'naturalscenes_shuffled':
-            return [os.path.basename(i).strip('.png') for i in images]
+            return [int(os.path.basename(i).strip('image.png')) for i in images]
         
         case 'majajhong' | 'majajhong_shuffled':
             from config import MAJAJ_NAME_DICT 
             name_dict = pd.read_csv(MAJAJ_NAME_DICT).set_index('image_file_name')['image_id'].to_dict()
             return [name_dict[os.path.basename(i)] for i in images]
         
-        case 'places_val' | 'places_test':
-            return [os.path.basename(i) for i in images]
+        case 'places_train':
+            return [multi_level_basename(i) for i in images]
                                                   
     
 
@@ -160,5 +161,21 @@ def load_places_cat_ids():
 
     return [cat_dict[i] for i in val_image_names]              
             
+
+
+def multi_level_basename(full_path, levels=2):
+    # Normalize the path first
+    full_path = os.path.normpath(full_path)
+
+    # Break the path into parts
+    path_parts = full_path.split(os.sep)
+
+    # Get the last 'levels' parts of the path
+    if len(path_parts) >= levels:
+        result = os.path.join(*path_parts[-levels:])
+    else:
+        result = os.path.join(*path_parts)
+
+    return result
 
 

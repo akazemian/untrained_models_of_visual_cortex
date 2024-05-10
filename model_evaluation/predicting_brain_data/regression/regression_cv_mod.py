@@ -4,10 +4,6 @@ The following is a modification of sklearn's ridge_gcv and is taken from Collin 
 """
 
 
-
-
-
-
 from scipy import sparse
 import numpy as np
 from sklearn.linear_model._ridge import  MultiOutputMixin, RegressorMixin

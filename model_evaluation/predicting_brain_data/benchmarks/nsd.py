@@ -31,7 +31,8 @@ SHARED_IDS = [image_id.strip('.png') for image_id in SHARED_IDS]
 SAMPLE_IDS = pickle.load(open(NSD_SAMPLE_IMAGES, 'rb'))
 SAMPLE_IDS = [image_id.strip('.png') for image_id in SAMPLE_IDS]
 
-PREDS_PATH = '/data/atlas/.cache/beta_predictions'
+#PREDS_PATH = '/data/atlas/.cache/beta_predictions'
+PREDS_PATH = '/data/atlas/.cache/beta_predictions_new'
 
 ALPHA_RANGE = [10**i for i in range(10)]
    
@@ -415,28 +416,26 @@ def load_nsd_data(mode: str, subject: int, region: str, return_data=True) -> tor
         A Tensor of Neural data, or Tensor of Neural data and stimulus ids
         
         """
-        if region not in ['general','V1','V2','V3','V4']:
-            ds = filter_roi(subject=subject,roi=region)
-            var_name = f'allen2021.natural_scenes.preprocessing=fithrf_GLMdenoise_RR.roi=general.z_score=session.average_across_reps=True.subject={subject}'
-            
-        else:
-            path = os.path.join(NSD_NEURAL_DATA,f'roi={region}/preprocessed/z_score=session.average_across_reps=True/subject={subject}.nc')
-            ds = xr.open_dataset(path, engine='h5netcdf')
-            var_name = f'allen2021.natural_scenes.preprocessing=fithrf_GLMdenoise_RR.roi={region}.z_score=session.average_across_reps=True.subject={subject}'
 
         
+        ds = xr.open_dataset(os.path.join(NSD_NEURAL_DATA,region,'preprocessed_new_1',f'subject={subject}.nc'),engine='h5netcdf')
+        var_name = 'beta'
+
+        # ds = filter_roi(subject=subject,roi=region)
+        # var_name = f'allen2021.natural_scenes.preprocessing=fithrf_GLMdenoise_RR.roi=general.z_score=session.average_across_reps=True.subject={subject}'
+            
         
         if mode == 'unshared':
-                mask = ~ds.presentation.stimulus_id.isin(SHARED_IDS)
+                mask = ~ds.presentation.stimulus.isin(SHARED_IDS)
                 ds = ds.sel(presentation=ds['presentation'][mask])
     
 
         elif mode == 'shared':
-                mask = ds.presentation.stimulus_id.isin(SHARED_IDS)
+                mask = ds.presentation.stimulus.isin(SHARED_IDS)
                 ds = ds.sel(presentation=ds['presentation'][mask])
             
             
-        ids = list(ds.presentation.stimulus_id.values)
+        ids = list(ds.presentation.stimulus.values)
             
         if return_data:
             return ids, ds, var_name
@@ -467,11 +466,17 @@ def filter_activations(data: xr.DataArray, ids: list) -> torch.Tensor:
         
         """
         
-        data = data.set_index({'presentation':'stimulus_id'})
-        activations = data.sel(presentation=ids)
-        activations = activations.sortby('presentation', ascending=True)
+       
+        #data = data.set_index({'presentation':'stimulus'})
+        #formatted_ids = [f"image{num:05d}" for num in ids]
+        #print('neural ids:',ids[:10])
+        #print('activation ids:',data.stimulus_id.values[:10])
+        data = data.where(data['stimulus_id'].isin(ids),drop=True)
 
-        return activations.values
+        #activations = data.sel(presentation=ids)
+        data = data.sortby('presentation', ascending=True)
+
+        return data.values
             
         
         

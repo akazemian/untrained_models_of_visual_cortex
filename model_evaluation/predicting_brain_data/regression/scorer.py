@@ -6,10 +6,6 @@ import torch
 import os
 from ..benchmarks.nsd import nsd_scorer, nsd_get_best_layer_scores
 from ..benchmarks.majajhong import majajhong_scorer, majajhong_get_best_layer_scores
-
-import warnings
-warnings.filterwarnings('ignore')
-sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from config import CACHE       
 import functools
 import gc

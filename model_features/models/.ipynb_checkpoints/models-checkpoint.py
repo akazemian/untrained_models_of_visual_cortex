@@ -4,14 +4,13 @@ import os
 import sys
 sys.path.append(os.getenv('MODELS_ROOT_PATH'))
 from alexnet import Alexnet
-from alexnet_untrained import AlexnetU
+# from alexnet_untrained import AlexnetU
 from expansion import Expansion5L
 from fully_connected import FullyConnected5L
-from expansion_fully_random import FullyRandom5L
-from ViT import CustomViT
+from vit import CustomViT
 
 
-def load_iden(model_name, dataset, block = None, features=None, layers=None, random_filters=None):
+def load_iden(model_name, dataset, block = None, features=None, layers=None):
     
     if model_name in ['expansion','fully_connected', 'expansion_linear']:
         
@@ -41,13 +40,12 @@ def load_iden(model_name, dataset, block = None, features=None, layers=None, ran
                     return f'{model_name}_gpool=False_dataset={dataset}'
     
     
-    elif 'ViT' in model_name:
+    elif 'vit' in model_name:
             return f'{model_name}_features={features}_dataset={dataset}'
-            #return f'{model_name}_block={block}_dataset={dataset}'
     
     
     elif 'fully_random' in model_name:
-            return f'{model_name}_{random_filters}_features={features}_layers={layers}_dataset={dataset}'
+            return f'{model_name}_3000_features={features}_layers={layers}_dataset={dataset}'
         
     
     else:
@@ -55,18 +53,18 @@ def load_iden(model_name, dataset, block = None, features=None, layers=None, ran
             
     
     
-def load_full_iden(model_name, features, layers, random_filters, dataset, 
-                   component=None, non_linearity='relu', initializer='kaiming_uniform'):
+def load_full_iden(model_name, features, layers, dataset, 
+                   components=None, non_linearity='relu', init_type='kaiming_uniform'):
     
     
-    identifier = load_iden(model_name=model_name, features=features, layers=layers, random_filters=random_filters,
+    identifier = load_iden(model_name=model_name, features=features, layers=layers, 
                            dataset=dataset)
-    if component is not None:
-        identifier += f'_principal_components={component}'
+    if components is not None:
+        identifier += f'_principal_components={components}'
     if non_linearity != 'relu':
         identifier += f'_{non_linearity}'
-    if initializer != 'kaiming_uniform':
-        identifier += f'_{initializer}'
+    if init_type != 'kaiming_uniform':
+        identifier += f'_{init_type}'
     
     return identifier
 
@@ -87,7 +85,7 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
         case 'fully_connected':
                 return FullyConnected5L(features_5=features).Build()
         
-        case '_alexnet':
+        case 'alexnet':
             
             match layers:
                 
@@ -119,12 +117,12 @@ def load_model(model_name, block = None, features=None, layers=None, random_filt
                     return AlexnetU().Build()
 
     
-        case 'ViT':
-            return CustomViT(use_wavelets=False, out_features = features, block = 11).Build()
+        case 'vit':
+            return CustomViT(out_features = features, block = 11).Build()
             
     
         case 'fully_random':
-            return Expansion5L(filters_1_type='random',filters_1_params={'filters':random_filters},filters_5=features).Build()
+            return Expansion5L(filters_1=3000,filters_5=features).Build()
             
             
 

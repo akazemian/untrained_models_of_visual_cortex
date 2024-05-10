@@ -16,10 +16,10 @@ from config import CACHE
 IDS_PATH = os.path.join(ROOT, 'image_tools','nsd_ids_unshared_sample=30000')
 NSD_UNSHARED_SAMPLE = [image_id.strip('.png') for image_id in pickle.load(open(IDS_PATH, 'rb'))]
 
-MODELS = ['expansion']
+MODELS = ['_alexnet']
 FEATURES = [3000]#[3,30,300,3000]
 #DATASET = 'naturalscenes'
-DATASET = 'places_test'
+DATASET = 'places_val
 DEVICE = 'cuda'
 #COMPONENTS = [100,1000,1000,1000]
 COMPONENTS = [1000]
