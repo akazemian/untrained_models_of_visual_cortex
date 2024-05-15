@@ -7,7 +7,7 @@ The expansion model is a learning-free convolutional neural network based on com
 
 # 1. The (feature) Expansion Model
 
-- Please download (only) the folder models (/model_features/models).
+- Please download (only) the folder models (/model_features/models). This is easily done using https://download-directory.github.io/.
   
 
 - Navigate to the repo folder and install requirements:
