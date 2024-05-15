@@ -4,9 +4,8 @@ import xarray as xr
 from sklearn.decomposition import PCA
 import functools
 import pickle
-sys.path.append(os.getenv('BONNER_ROOT_PATH'))
-from config import CACHE
 import torch
+from config import CACHE
 
 
 
@@ -20,9 +19,9 @@ def cache(file_name_func):
             file_name = file_name_func(*args, **kwargs) 
             cache_path = os.path.join(CACHE, file_name)
             
-            # if os.path.exists(cache_path):
-            #     print('pca results are already saved in cache')
-            #     return 
+            if os.path.exists(cache_path):
+                print('pca results are already saved in cache')
+                return 
             
             result = func(self, *args, **kwargs)
             with open(cache_path,'wb') as f:

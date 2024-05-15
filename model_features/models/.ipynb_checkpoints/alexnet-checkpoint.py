@@ -2,36 +2,22 @@ import sys
 import torchvision
 import torch
 from torch import nn
-import pickle
-import os
 from layer_operations.output import Output
+
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
-model = torchvision.models.alexnet(pretrained=True)
-
-
+alexnet_trained = torchvision.models.alexnet(pretrained=True)
 
 class Model(nn.Module):
-    
-    
-    def __init__(self,
-                features_layer: str,
-                last:nn.Module,
-                 gpool: bool=False,
-                ):
-        
+    """Pretrained alexnet with layer extraction"""
+    def __init__(self, features_layer: int, last:nn.Module) -> None:
         super(Model, self).__init__()
-        
-
         self.features_layer = features_layer
-        self.gpool = gpool
         self.last = last
+        self.device =  device
         
-        
-    def forward(self, x):
-                
-        
-        # extract activations from 
+    def forward(self, x) -> torch.Tensor:
+        """Forward pass through the network, extracting activations from specific layer"""
         activation = {}
         def get_activation(name):
             def hook(model, input, output):
@@ -39,37 +25,16 @@ class Model(nn.Module):
             return hook
 
         model.features[self.features_layer].register_forward_hook(get_activation(f'features.{self.features_layer}'))
-        model.to('cuda')
-        output = model(x.cuda())
-        
-        x = activation[f'features.{self.features_layer}']   
-                    
-        if self.gpool:
-            H = x.shape[-1]
-            gmp = nn.MaxPool2d(H)
-            x = gmp(x)
+        model.to(self.device)
+        output = model(x.to(self.device))
+        x = activation[f'features.{self.features_layer}']           
+        return self.last(x)   
 
-        x = self.last(x)
-        
-        return x    
-
-
-    
-    
-    
 class Alexnet:
-
-    
-    def __init__(self, features_layer:str = 12, gpool:int = False):
-    
+    """Constructing alexnet with the same structure as the expansion model"""
+    def __init__(self, features_layer:str = 12, , device: str = 'cuda') -> None:
         self.features_layer = features_layer
-        self.gpool = gpool
-    
-    def Build(self):
-    
+    def build(self):
+        """Builds the model folliwng the expansion model configuration"""
         last = Output()
-        
-        return Model(    
-                features_layer = self.features_layer,
-                gpool = self.gpool,
-                last = last)
+        return Model(self.features_layer, last, self.device)

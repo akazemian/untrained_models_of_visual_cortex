@@ -2,52 +2,56 @@ import torch
 from torch import nn
 import numpy as np
 
+OPERATION_TYPES = ['zscore', 'leaky_relu', 'relu', 'gelu', 'abs', 'elu', 'none']
 
 class NonLinearity(nn.Module):
-    
-    def __init__(self,operation):
+    """
+    A neural network module to apply various non-linear operations to input tensors.
+
+    Attributes:
+        operation (str): The type of non-linear operation to apply (e.g., 'zscore', 'relu').
+        operation_type (list): A list of supported non-linear operations.
+    """
+    def __init__(self, operation: str) -> None:
         super().__init__()
-    
         self.operation = operation
-        self.operation_type = ['zscore', 'leaky_relu', 'relu', 'gelu', 'abs', 'elu','none']
+        self.operation_type = OPERATION_TYPES
 
-    
-    def forward(self,x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass of the non-linearity module that applies the specified operation to the input tensor.
 
-        assert self.operation in self.operation_type, f'invalid operation type, choose one of {self.operation_type}'
-        
+        Args:
+            x (torch.Tensor): The input tensor to which the non-linearity will be applied.
+
+        Returns:
+            torch.Tensor: The tensor after the non-linearity has been applied.
+
+        Raises:
+            AssertionError: If the operation specified is not supported.
+        """
+        assert self.operation in self.operation_type, f'Invalid operation type, choose one of {self.operation_type}'
+
         match self.operation:
-
             case 'zscore':
                 std = x.std(dim=1, keepdims=True)
                 mean = x.mean(dim=1, keepdims=True)
-                x_norm = (x - mean)/std
-                return x_norm
-
+                return (x - mean) / std
 
             case 'elu':
-                nl = nn.ELU(alpha=1.0)
-                return nl(x)
-        
+                return nn.ELU(alpha=1.0)(x)
         
             case 'leaky_relu': 
-                nl = nn.LeakyReLU()
-                return nl(x)
-
+                return nn.LeakyReLU()(x)
 
             case 'relu': 
-                nl = nn.ReLU()
-                return nl(x)
-
+                return nn.ReLU()(x)
             
             case 'gelu': 
-                nl = nn.GELU()
-                return nl(x)
+                return nn.GELU()(x)
 
-            
             case 'abs': 
                 return x.abs()
             
-            
             case 'none': 
-                return x         
+                return x

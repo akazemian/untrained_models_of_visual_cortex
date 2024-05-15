@@ -13,7 +13,6 @@ import pickle
 import sys
 import functools
 
-ROOT = os.getenv('BONNER_ROOT_PATH')
 sys.path.append(ROOT)
 from image_tools.loading import load_image_paths, get_image_labels
 from image_tools.processing import ImageProcessor
