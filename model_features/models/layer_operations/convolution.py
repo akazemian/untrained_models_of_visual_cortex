@@ -1,8 +1,8 @@
 from torch import nn
 import torch
 from torch.nn import functional as F
-import pywt
 from typing import Optional, Dict
+
 from .preset_filters import filters  
 
 torch.manual_seed(42)

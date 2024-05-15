@@ -1,7 +1,7 @@
-import sys
 import torchvision
 import torch
 from torch import nn
+
 from layer_operations.output import Output
 
 torch.manual_seed(0)

@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-import numpy as np
 
 OPERATION_TYPES = ['zscore', 'leaky_relu', 'relu', 'gelu', 'abs', 'elu', 'none']
 
