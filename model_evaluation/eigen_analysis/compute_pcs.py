@@ -1,7 +1,7 @@
 import xarray as xr
 from model_features.activation_extractor import Activations
 from model_evaluation.eigen_analysis.utils import _PCA
-from model_features.models.models import load_model, load_identifier, load_full_identifier
+from model_features.models.utils import load_model, load_identifier, load_full_identifier
 from model_evaluation.predicting_brain_data.benchmarks.nsd import filter_activations   
 from model_evaluation.predicting_brain_data.benchmarks.majajhong import load_activations  
 from config import CACHE 

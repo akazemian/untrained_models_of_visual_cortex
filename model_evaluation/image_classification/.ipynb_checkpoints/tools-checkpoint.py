@@ -22,12 +22,9 @@ from sklearn.metrics import confusion_matrix
 import torch
 from tqdm import tqdm
 import pickle
-import sys
-import os
 import functools
 
 # local vars
-sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from image_tools.loading import load_places_cat_labels
 from config import CACHE
 

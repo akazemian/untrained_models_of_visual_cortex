@@ -1,7 +1,4 @@
-import os
-import sys
-ROOT = os.getenv('BONNER_ROOT_PATH')
-sys.path.append(ROOT)
+
 from image_tools.loading import load_image_paths, get_image_labels
 from config import CACHE, NSD_SAMPLE_IMAGES
 import pandas as pd
@@ -20,7 +17,7 @@ import gc
 from model_evaluation.predicting_brain_data.benchmarks.majajhong import load_majaj_data
 from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
 from model_evaluation.predicting_brain_data.benchmarks.nsd import filter_activations
-from model_features.models.models import load_full_iden
+from model_features.models.utils import load_full_iden
 from model_evaluation.predicting_brain_data.regression.regression import pearson_r
 from config import CACHE, NSD_NEURAL_DATA      
 

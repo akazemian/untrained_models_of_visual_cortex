@@ -3,7 +3,7 @@ from model_evaluation.predicting_brain_data.regression.scorer import EncodingSco
 from model_features.activation_extractor import Activations
 import gc
 from model_evaluation.predicting_brain_data.benchmarks.nsd import load_nsd_data
-from model_features.models.models import load_model, load_full_iden
+from model_features.models.utils import load_model, load_full_iden
 from configs import model_cfg as cfg
 from model_evaluation.results.predicting_brain_data.tools import get_bootstrap_data
 import numpy as np       

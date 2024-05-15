@@ -1,7 +1,7 @@
 from image_tools.processing import *
 from model_evaluation.predicting_brain_data.regression.scorer import EncodingScore
 from model_features.activation_extractor import Activations
-from model_features.models.models import load_model, load_iden
+from model_features.models.utils import load_model, load_iden
 from model_evaluation.results.predicting_brain_data.tools import get_bootstrap_data
 import gc
 

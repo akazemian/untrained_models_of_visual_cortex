@@ -2,7 +2,10 @@ import torch
 from torch import nn
 import pickle
 import timm
+from typing import Any
+
 from layer_operations.output import Output
+
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 
@@ -108,7 +111,6 @@ class PatchEmbedding(nn.Module):
         x = self.proj(x)
         x = x.flatten(2)
         x = x.transpose(1, 2)
-        print('patch embed shape', x.shape)
         return x
 
 
@@ -139,7 +141,6 @@ class VisTransformer(nn.Module):
         x = x + self.pos_embed
         for blk in self.blocks:
             x = blk(x)
-            print('block output shape', x.shape)
         return x
 
 
@@ -181,7 +182,7 @@ class CustomViT:
     """
     Builder class for creating a custom Vision Transformer model.
     """
-    def __init__(self, out_features:int, block:int=11, device:str='cuda'):
+    def __init__(self, out_features:int=600, block:int=11, device:str='cuda'):
         self.block_num = block
         self.out_features = out_features
         self.device = device

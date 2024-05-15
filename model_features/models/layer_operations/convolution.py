@@ -118,7 +118,7 @@ def get_layer_size(kernel_type: str, kernel_params: Dict) -> int:
         ValueError: If the kernel type is not supported.
     """
     if kernel_type == 'curvature':
-        return kernel_params['n_ories'] * kernel_params['n_curves'] * len(kernel_params['gau_sizes']) * len(kernel_params['spatial_fre']) * INPUT_CHANNELSs
+        return kernel_params['n_ories'] * kernel_params['n_curves'] * len(kernel_params['gau_sizes']) * len(kernel_params['spatial_fre']) * INPUT_CHANNELS
     elif kernel_type == 'gabor':
         return kernel_params['n_ories'] * kernel_params['num_scales'] * INPUT_CHANNELS
     else:

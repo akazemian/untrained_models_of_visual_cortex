@@ -9,12 +9,11 @@ import pickle
 import xarray as xr
 import numpy as np
 # local libraries
-sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 from image_tools.loading import load_places_cat_labels
 from model_evaluation.image_classification.tools import get_Xy, cv_performance
 from model_features.activation_extractor import Activations
 from config import CACHE
-from model_features.models.models import load_model, load_iden
+from model_features.models.utils import load_model, load_iden
 
 
 # local vars

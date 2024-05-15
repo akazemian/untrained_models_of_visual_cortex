@@ -14,7 +14,6 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.features_layer = features_layer
         self.last = last
-        self.device =  device
         
     def forward(self, x) -> torch.Tensor:
         """Forward pass through the network, extracting activations from specific layer"""
@@ -24,17 +23,16 @@ class Model(nn.Module):
                 activation[name] = output.detach().cuda()
             return hook
 
-        model.features[self.features_layer].register_forward_hook(get_activation(f'features.{self.features_layer}'))
-        model.to(self.device)
-        output = model(x.to(self.device))
+        alexnet_trained.features[self.features_layer].register_forward_hook(get_activation(f'features.{self.features_layer}'))
+        output = alexnet_trained(x)
         x = activation[f'features.{self.features_layer}']           
         return self.last(x)   
 
-class Alexnet:
+class AlexNet:
     """Constructing alexnet with the same structure as the expansion model"""
-    def __init__(self, features_layer:str = 12, , device: str = 'cuda') -> None:
+    def __init__(self, features_layer:str = 12) -> None:
         self.features_layer = features_layer
     def build(self):
         """Builds the model folliwng the expansion model configuration"""
         last = Output()
-        return Model(self.features_layer, last, self.device)
+        return Model(self.features_layer, last)

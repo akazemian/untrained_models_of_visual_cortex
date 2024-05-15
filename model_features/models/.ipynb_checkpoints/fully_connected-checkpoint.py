@@ -10,7 +10,7 @@ torch.cuda.manual_seed(42)
 class Model5L(nn.Module):
     """MLP architecture consisting of 5 layers."""
     def __init__(self, lin1: nn.Module, lin2: nn.Module, lin3: nn.Module, lin4: nn.Module,
-                 lin5: nn.Module, nl: nn.Module, last: nn.Module, device: str) -> None:
+                 lin5: nn.Module, nl: nn.Module, last: nn.Module) -> None:
         super(Model5L, self).__init__()
         self.lin1 = lin1
         self.lin2 = lin2
@@ -19,11 +19,10 @@ class Model5L(nn.Module):
         self.lin5 = lin5
         self.nl = nl
         self.last = last
-        self.device = torch.device(device)
+        
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through the network, applying each layer sequentially."""
-        x = x.to(self.device)
         x = x.flatten(1, -1)
         # Processing layers 1 to 5
         for i in range(1, 6):
@@ -37,14 +36,13 @@ class Model5L(nn.Module):
 class FullyConnected5L:
     """Constructing the 5-layer MLP."""
     def __init__(self, image_size:int = 224, features_1:int = 108, features_2:int = 1000, 
-                 features_3:int = 5000, features_4:int = 5000, features_5:int = 3000, device='cuda') -> None:
+                 features_3:int = 5000, features_4:int = 5000, features_5:int = 3000) -> None:
         self.features_1 = features_1
         self.features_2 = features_2
         self.features_3 = features_3
         self.features_4 = features_4
         self.features_5 = features_5 * 6**2
         self.input_dim = 3 * image_size**2
-        self.device = device
     
     def build(self) -> Model5L:        
         """Builds the complete model using specified layer sizes."""
@@ -56,4 +54,4 @@ class FullyConnected5L:
         nl = NonLinearity('relu')
         last = Output()
         
-        return Model5L(lin1, lin2, lin3, lin4, lin5, nl, last, self.device)
+        return Model5L(lin1, lin2, lin3, lin4, lin5, nl, last,)

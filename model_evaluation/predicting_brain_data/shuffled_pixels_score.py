@@ -1,7 +1,6 @@
 from model_evaluation.predicting_brain_data.regression.scorer import EncodingScore
 from model_features.activation_extractor import Activations
-from model_features.models.models import load_full_iden
-from model_features.models.models import load_model, load_full_iden
+from model_features.models.utils import load_model, load_full_iden
 from configs import analysis_cfg as cfg
 from model_evaluation.results.predicting_brain_data.tools import get_bootstrap_data
 
