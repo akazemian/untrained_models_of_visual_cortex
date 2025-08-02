@@ -1,0 +1,2 @@
+,model,features,pcs,init_type,nl_type,score,lower,upper
+0,resnet50_trained,None,False,kaiming_uniform,relu,tensor(0.3735),0.36714309453964233,0.38026702404022217

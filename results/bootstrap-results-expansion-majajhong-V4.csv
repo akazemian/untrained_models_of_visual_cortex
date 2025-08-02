@@ -1,0 +1,6 @@
+,model,features,pcs,init_type,nl_type,score,lower,upper
+0,expansion,3,False,kaiming_uniform,relu,tensor(0.3852),0.3675229847431183,0.40256911516189575
+1,expansion,30,False,kaiming_uniform,relu,tensor(0.4953),0.47962215542793274,0.5102419853210449
+2,expansion,300,False,kaiming_uniform,relu,tensor(0.5619),0.5484467148780823,0.5748857259750366
+3,expansion,3000,False,kaiming_uniform,relu,tensor(0.5869),0.5742776393890381,0.5993993282318115
+4,expansion,30000,False,kaiming_uniform,relu,tensor(0.5921),0.5794421434402466,0.6050277352333069

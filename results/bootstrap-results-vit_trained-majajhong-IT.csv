@@ -1,0 +1,2 @@
+,model,features,pcs,init_type,nl_type,score,lower,upper
+0,vit_trained,None,False,kaiming_uniform,relu,tensor(0.6195),0.6091128587722778,0.6296656131744385
