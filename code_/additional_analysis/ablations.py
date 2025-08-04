@@ -67,9 +67,8 @@ def main():
     ALL_SAMPLED_INDICES = np.random.choice(N_ROWS, (N_BOOTSTRAPS, N_ROWS), replace=True) # Sample indices for all 
     variations = ['256_features','lrp', 'no_relu', 'no_sp']
 
-    for region in cfg[args.dataset]['regions']:
-                    
-        for variation in variations:
+    for variation in variations:
+        for region in cfg[args.dataset]['regions']:
             
             for features in cfg[args.dataset]['models'][args.model]['features']:
 
