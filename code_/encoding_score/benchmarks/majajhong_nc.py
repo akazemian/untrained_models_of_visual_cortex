@@ -7,7 +7,7 @@ import pickle
 import os
 import argparse
 
-from config import MAJAJ_FULL_DATA, RESULTS
+from config import MAJAJ_RAW_DATA, RESULTS
 from code_.tools.utils import timeit, setup_logging
 
 def split_half_reliability_across_stimuli(
@@ -103,7 +103,7 @@ def main():
 
     args = parser.parse_args()
     
-    ds = xr.open_dataset(MAJAJ_FULL_DATA)
+    ds = xr.open_dataset(MAJAJ_RAW_DATA)
     ds_chabo = ds.where((ds["animal"] == "Chabo") & (ds["region"] == args.region), drop=True)
     ds_tito  = ds.where((ds["animal"] == "Tito")  & (ds["region"] == args.region), drop=True)
 
