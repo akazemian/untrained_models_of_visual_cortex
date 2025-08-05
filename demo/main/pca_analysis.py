@@ -24,7 +24,7 @@ def main():
         parser.add_argument(
         "--dataset",
         type=str,
-        required=True,
+        default='majajhing_demo',
         help="Name of the dataset (e.g., 'majajhong')"
         )
         parser.add_argument(
