@@ -28,7 +28,7 @@ The expansion model is a learning-free convolutional neural network based on com
 The code has been tested on Fedora Linux 39 as well as RHEL 9.3. 
 
 ### Python version
-The code has been tested on Python==3.10.14
+The code has been tested on Python==3.12
 
 ### Python dependencies
 The following is a list of python libraries with version numbers required to run all scripts:
@@ -56,14 +56,14 @@ cupy-cuda12x
 
 ## Using the Expansion model
 
-- Please download (only) the folder ```/code/model_activations/models```. This is easily done using https://download-directory.github.io/.
+- Please download (only) the folder ```/code/model_activations/models```. You can use https://download-directory.github.io/.
   
 
 - Navigate to the repo folder, then install the requirements:
 ```
-conda create -n expansion_model python==3.10.14
-conda activate expansion_model
-pip install -r requirements.txt 
+conda create -n expansion_project python==3.12
+conda activate expansion_project
+pip install -e .
 ```
 
 Below is an example of how to use the expansion model. Alternatively, you can navigate to 'main.ipynb` for an example.
@@ -97,7 +97,7 @@ The ouput is a tensor of size NxP, where N = the number of image and P = the num
 
 ### Initial setup
 
-First, download the data used in all analysis [here](https://www.dropbox.com/scl/fo/ow0v17ldsax4iddtp82aj/AEwkme4Crdi0d80hv2zigC8?rlkey=ne57t05d1dkgotkymtxxyigzm&st=pbuh26zf&dl=0) and unzip each dataset folder. The download may take a while (~15 minutes) given the size of the datasets (~30 GB). To run only the demo, download the majajhong and places folders.
+First, download the data used in all analysis [here](https://drive.google.com/drive/folders/1e2r25DbYPpsC8wnMadWvwAnwz6xvWWVg?usp=sharing) and unzip each dataset folder. The download may take a while (~15 minutes) given the size of the datasets (~30 GB). To run only the demo, download the majajhong and places folders.
 
 
 Clone this repository and navigate to the repository folder.
@@ -110,9 +110,9 @@ In the root directory, open ```.env``` and set the path for the ```CACHE``` and 
 
 Install required packages (<1 minute)
 ```
-conda create -n expansion_project python==3.10.14
+conda create -n expansion_project python==3.12
 conda activate expansion_project
-pip install .
+pip install -e .
 ```
 
 ## Running the demo
