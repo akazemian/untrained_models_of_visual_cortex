@@ -25,12 +25,12 @@ def main():
         parser.add_argument(
         "--dataset",
         type=str,
-        required=True,
+        default='majajhong_demo',
         help="Name of the dataset (e.g., 'majajhong')"
         )
         parser.add_argument(
         "--batch_size",
-        default=5,
+        default=50,
         type=str,
         help="Batch size"
         )
@@ -86,7 +86,7 @@ def main():
                         file_name = ANALYSIS,
                         region=cfg[args.dataset]['regions'],
                         all_sampled_indices=ALL_SAMPLED_INDICES,
-                        device='cpu',
+                        device=args.device,
                         n_bootstraps=N_BOOTSTRAPS,
 
                         )    

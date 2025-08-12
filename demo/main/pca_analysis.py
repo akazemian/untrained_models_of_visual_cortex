@@ -11,10 +11,7 @@ from code_.eigen_analysis.compute_pcs import compute_model_pcs
 from code_.model_activations.configs import analysis_cfg as cfg     
 from dotenv import load_dotenv
 from code_.tools.utils import timeit, setup_logging
-
-load_dotenv()
-
-CACHE = os.getenv("CACHE")
+from config import CACHE
 
 @timeit
 def main():
@@ -24,7 +21,7 @@ def main():
         parser.add_argument(
         "--dataset",
         type=str,
-        default='majajhing_demo',
+        default='majajhong_demo',
         help="Name of the dataset (e.g., 'majajhong')"
         )
         parser.add_argument(
@@ -50,7 +47,7 @@ def main():
         N_BOOTSTRAPS = 100
         N_ROWS = cfg[args.dataset]['test_data_size']
         ALL_SAMPLED_INDICES = np.random.choice(N_ROWS, (N_BOOTSTRAPS, N_ROWS), replace=True) # Sample indices for all 
-        TOTAL_COMPONENTS = 100  
+        TOTAL_COMPONENTS = 1000
         INCREMENTAL = False
                 
         for features in cfg[args.dataset]['analysis']['pca']['features']:
@@ -68,7 +65,7 @@ def main():
                                                 args.dataset, TOTAL_COMPONENTS, 'cpu', incremental=INCREMENTAL)
                 
                 # set the number of components, if features are on the order of 10^2, compoennts are also max = 100, otherwise components = 1000
-                N_COMPONENTS = [1,10,100] if features*36 <= 100 else [1,10,100,1000] 
+                N_COMPONENTS = [1,10,100] if features*36 < 1000 else [1,10,100,1000] 
                 
                 for n_components in N_COMPONENTS:
                 

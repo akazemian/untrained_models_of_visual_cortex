@@ -44,12 +44,12 @@ def main():
     parser.add_argument(
         "--dataset",
         type=str,
-        required=True,
+        default='majajhong_demo',
         help="Name of the dataset (e.g., 'majajhong')"
     )
     parser.add_argument(
         "--batch_size",
-        default=5,
+        default=50,
         type=str,
         help="Batch size"
     )
@@ -97,7 +97,7 @@ def main():
                         layer_names=['last'],
                         dataset=args.dataset,
                         device= args.device,
-                        batch_size = 50).get_array(activations_identifier) 
+                        batch_size = int(args.batch_size)).get_array(activations_identifier) 
 
                 EncodingScore(activations_identifier=activations_identifier,
                         dataset=args.dataset,
@@ -115,7 +115,8 @@ def main():
                     file_name = args.model + '_' + variation,
                     region=region,
                     all_sampled_indices=ALL_SAMPLED_INDICES,
-                    device=args.device)
+                    device=args.device,
+                    n_bootstraps=N_BOOTSTRAPS)
                 
 
 if __name__ == "__main__":

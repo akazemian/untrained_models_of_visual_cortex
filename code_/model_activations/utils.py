@@ -3,12 +3,9 @@ import functools
 import pickle
 import torch
 import gc
-
-from dotenv import load_dotenv
-load_dotenv()
     
 # env paths
-CACHE = os.getenv("CACHE")
+from config import CACHE
 
 def register_pca_hook(x: torch.Tensor, pca_file_name: str, n_components, 
                       device) -> torch.Tensor:
@@ -49,6 +46,7 @@ def cache(file_name_func):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
             file_name = file_name_func(*args, **kwargs) 
+            print('------------current cache is: ------------', CACHE)
             cache_path = os.path.join(CACHE, file_name)
             if os.path.exists(cache_path):
                 print('activations are already saved in cache')

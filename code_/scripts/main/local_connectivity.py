@@ -80,7 +80,7 @@ def main():
                 layers = cfg[args.dataset]['models'][args.model]['layers'],
                 dataset=args.dataset,
                 subjects=cfg[args.dataset]['subjects'],
-                file_name = 'suffleds-pixels',
+                file_name = args.model,
                 region=cfg[args.dataset]['regions'],
                 all_sampled_indices=ALL_SAMPLED_INDICES,
                 device=args.device,

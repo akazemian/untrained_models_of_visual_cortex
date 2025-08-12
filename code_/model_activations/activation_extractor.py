@@ -11,17 +11,14 @@ import torch
 from torch.autograd import Variable
 from tqdm import tqdm
 from torch import nn
-from dotenv import load_dotenv
-load_dotenv()
     
 # env paths
-CACHE = os.getenv("CACHE")
+from config import CACHE
 from code_.tools.loading import load_image_data
 from code_.tools.processing import ImageProcessor
 from code_.model_activations.utils import cache, register_pca_hook
 
 SUBMODULE_SEPARATOR = '.'
-PATH_TO_PCA = os.path.join(CACHE,'pca')
 
 
 class PytorchWrapper:

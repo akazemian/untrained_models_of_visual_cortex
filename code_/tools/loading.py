@@ -1,11 +1,9 @@
 import os
 import csv
 import pickle
-from dotenv import load_dotenv
 from code_.tools.processing import ImageProcessor
 
-load_dotenv()
-DATA = os.getenv("DATA")
+from config import DATA
 
 
 def load_things_images():

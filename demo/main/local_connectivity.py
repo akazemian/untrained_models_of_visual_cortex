@@ -28,13 +28,13 @@ def main():
         parser.add_argument(
         "--dataset",
         type=str,
-        default='majajhing_demo',
+        default='majajhong_demo_shuffled',
         help="Name of the dataset (e.g., 'majajhong')"
         )
         parser.add_argument(
         "--batch_size",
         type=str,
-        default=16,
+        default=50,
         help="Name of the dataset (e.g., 'majajhong')"
         )
         parser.add_argument(
@@ -80,7 +80,7 @@ def main():
                 layers = cfg[args.dataset]['models'][args.model]['layers'],
                 dataset=args.dataset,
                 subjects=cfg[args.dataset]['subjects'],
-                file_name = 'suffleds-pixels',
+                file_name = args.model,
                 region=cfg[args.dataset]['regions'],
                 all_sampled_indices=ALL_SAMPLED_INDICES,
                 device=args.device,

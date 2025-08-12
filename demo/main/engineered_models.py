@@ -19,12 +19,12 @@ def main():
     parser.add_argument(
         "--dataset",
         type=str,
-        default='majajhing_demo',
+        default='majajhong_demo',
         help="Name of the dataset (e.g., 'majajhong')"
     )
     parser.add_argument(
         "--batch_size",
-        default=5,
+        default=16,
         type=str,
         help="Batch size"
     )
@@ -81,7 +81,7 @@ def main():
                     layers = cfg[args.dataset]['models'][model_name]['layers'],
                     dataset=args.dataset, 
                     subjects = cfg[args.dataset]['subjects'],
-                    file_name = 'TEST_BITCH_' + model_name,
+                    file_name = model_name,
                     region=region,
                     all_sampled_indices=ALL_SAMPLED_INDICES,
                     device=args.device,

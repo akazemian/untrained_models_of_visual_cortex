@@ -252,6 +252,8 @@ def load_majaj_data(subject: str, region: str, mode: bool = None) -> torch.Tenso
         match mode:            
             case 'all':
                 pass
+            case 'all':
+                pass
             case 'train':
                 neural_data = neural_data.where(neural_data.stimulus_id.isin(MAJAJ_TRAIN_IDS),drop=True)
             case 'test':

@@ -3,13 +3,13 @@ import logging
 from pathlib import Path
 import os
 import pickle
-from dotenv import load_dotenv
-load_dotenv()
+from pathlib import Path
+# ----------------------------- SET THESE PATHS ----------------------------- 
+DATA = '/data/atlas/repo_data'
+CACHE = '/data/atlas/expansion_cache'
 
-# ----------------------------- Dir paths  ----------------------------- 
-DATA = os.getenv("DATA")
-CACHE = os.getenv("CACHE")
-ROOT = os.getenv("ROOT")
+#---------------------------------------------------------------------------
+ROOT = Path(__file__).resolve().parent
 PREDS_PATH = os.path.join(CACHE,'neural_preds')
 RESULTS = os.path.join(ROOT, 'results')
 PCA_PATH = os.path.join(CACHE,'pca')
@@ -42,8 +42,6 @@ THINGS_TEST_IDS = pickle.load(open(os.path.join(DATA,'things_test_ids'), "rb"))
 
 # Places dataset for image classification 
 PLACES_IMAGES = '/data/atlas/datasets/places' # places 
-
-
 
 # ----------------------------- Variables  ----------------------------- 
 

@@ -14,11 +14,8 @@ import torch.nn.functional as F
 # sys.path.append(os.getenv('BONNER_ROOT_PATH'))
 import torch.nn as nn
 
-from dotenv import load_dotenv
-load_dotenv()
-    
-# env paths
-CACHE = os.getenv("CACHE")
+from config import CACHE
+
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 

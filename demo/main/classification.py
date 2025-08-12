@@ -13,14 +13,8 @@ from code_.image_classification.tools import get_Xy, cv_performance_demo
 from code_.model_activations.configs import analysis_cfg as cfg     
 from code_.eigen_analysis.compute_pcs import compute_model_pcs
 from code_.tools.utils import timeit, setup_logging
-from dotenv import load_dotenv
+from config import CACHE
 
-load_dotenv()
-
-CACHE = os.getenv("CACHE")
-
-train_data = 'places_train_demo'
-val_data = 'places_val_demo'
 
 @timeit
 def main():
@@ -35,13 +29,13 @@ def main():
         parser.add_argument(
         "--device",
         type=str,
-        default="cpu",
+        default="cuda",
         help="Device to use (e.g., 'cuda' or 'cpu')"
         )
         args = parser.parse_args()
 
-        TOTAL_COMPONENTS = n_components = 1000  
-
+        TOTAL_COMPONENTS = n_components = 100 
+        train_data, val_data = 'places_train_demo', 'places_val_demo'
         models = ['expansion', 'alexnet_trained']
 
         for model_name in models:

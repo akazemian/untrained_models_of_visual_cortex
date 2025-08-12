@@ -19,7 +19,8 @@ model_cfg = {
             "fully_connected": {"features": [108, 1080, 10800, 108000], "layers": 5},
             "fully_random": {"features": [3, 30, 300, 3000], "layers": 5},
         },
-        "regions": ["early visual stream", "midventral visual stream", "ventral visual stream"],
+        "regions": ["early visual stream",
+         "midventral visual stream", "ventral visual stream"],
         "subjects": [i for i in range(8)],
         "test_data_size": 872
     },
@@ -37,13 +38,13 @@ model_cfg = {
     },
     "majajhong_demo": {
         "models": {
-            "vit": {"features": [12], "layers": None},
-            "expansion": {"features": [3], "layers": 5},
-            "fully_connected": {"features": [3], "layers": 5},
-            "fully_random": {"features": [3], "layers": 5},
-             "expansion_linear": {"features": [3], "layers": 5},
+            "vit": {"features": [12, 12 * 5, 12 * 50], "layers": None},
+            "expansion": {"features": [3, 30, 300], "layers": 5},
+            "fully_connected": {"features": [108, 1080, 10800], "layers": 5},
+            "fully_random": {"features": [3, 30, 300], "layers": 5},
+             "expansion_linear": {"features": [3, 30, 300], "layers": 5},
         },
-        "regions": ["IT"],
+        "regions": ["V4","IT"],
         "subjects": ["Tito", "Chabo"],
         "test_data_size": 10
     },
@@ -118,9 +119,9 @@ analysis_cfg = {
     "majajhong_demo": {
         "analysis": {
             "activation_function": {"features": [3], "layers": 5},
-            "pca": {"features": [3], "layers": 5},
+            "pca": {"features": [3, 30, 300], "layers": 5},
             "non_linearities": {"features": [3], "layers": 5, "variations": ["relu", "gelu", "elu", "abs", "leaky_relu"]},
-            "init_types": {"features": [3], "layers": 5, 
+            "init_types": {"features": [3, 30, 300], "layers": 5, 
                            "variations": ["kaiming_uniform", "kaiming_normal", "xavier_uniform", "xavier_normal", "orthogonal"]}
         },
         "regions": "IT",
@@ -129,7 +130,7 @@ analysis_cfg = {
     },
     "majajhong_demo_shuffled": {
         "models": {
-            "expansion": {"features": [3], "layers": 5}
+            "expansion": {"features": [3, 30, 300], "layers": 5}
         },
         "regions": "IT",
         "subjects": ["Tito", "Chabo"],

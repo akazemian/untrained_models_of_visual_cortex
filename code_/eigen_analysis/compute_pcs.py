@@ -7,13 +7,7 @@ from dotenv import load_dotenv
 from code_.model_activations.loading import load_model, load_full_identifier
 from code_.model_activations.activation_extractor import Activations
 from code_.eigen_analysis.utils import _PCA
-# from config import setup_logging
-
-# setup_logging()
-load_dotenv()
-
-CACHE = os.getenv("CACHE")
-DATA = os.getenv("DATA")
+from config import CACHE, DATA
 
 def compute_model_pcs(model_name:str, features:int, layers:int, batch_size:int,
                       dataset:str, components:int, device:str, incremental=False):
@@ -22,7 +16,6 @@ def compute_model_pcs(model_name:str, features:int, layers:int, batch_size:int,
                                                   features=features, 
                                                   layers=layers, 
                                                   dataset=dataset)
-    print('test that this is running!!!!')
     #load model
     model = load_model(model_name=model_name, 
                        features=features, 

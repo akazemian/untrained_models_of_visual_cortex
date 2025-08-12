@@ -86,7 +86,7 @@ def compute_rsa_nsd(iden, region):
     return sum(rsa_all)/len(rsa_all) # mean accross subjects
 
 
-def compute_rsa_majajhong(iden, region):
+def compute_rsa_majajhong(iden, region, demo=False):
     """
     Computes similarity between neural data and activations for each feature in features_list.
     
@@ -100,9 +100,10 @@ def compute_rsa_majajhong(iden, region):
     # Loop over each feature and compute the similarity
         # Load the activations using the feature value
     SUBJECTS = ['Chabo','Tito']
-    activations = load_activations(
-        activations_identifier=iden, 
-        mode='all')
+    if demo:
+        activations = load_activations(activations_identifier=iden, mode='train_demo')
+    else:
+        activations = load_activations(activations_identifier=iden, mode='all')
     
     rdm = RDM()
     rsa = RSA(metric='pearsonr')
@@ -110,7 +111,10 @@ def compute_rsa_majajhong(iden, region):
     rsa_all = []
     for subject in tqdm(SUBJECTS):
         # Compute RDM for neural data once, since it doesn't change across features
-        neural_data = load_majaj_data(mode= 'all', subject = subject, region= region)
+        if demo:
+            neural_data = load_majaj_data(mode= 'train_demo', subject = subject, region= region)
+        else:
+            neural_data = load_majaj_data(mode= 'all', subject = subject, region= region)
         RDM_neural = rdm(neural_data)
     
         # Compute the RDM for the activations

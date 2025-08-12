@@ -10,16 +10,7 @@ import logging
 
 from sklearn.decomposition import PCA, IncrementalPCA
 from sklearn.preprocessing import StandardScaler
-# from cuml.decomposition import PCA
-
-from dotenv import load_dotenv
-
-# from config import setup_logging
-
-# setup_logging()
-load_dotenv()
-
-CACHE = os.getenv("CACHE")
+from config import CACHE
 
 
 def num_pcs_required(variance_ratio, explained_variance=0.99):    
