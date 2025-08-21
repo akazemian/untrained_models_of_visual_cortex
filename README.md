@@ -100,18 +100,11 @@ The ouput is a tensor of size NxP, where N = the number of image and P = the num
 
 # Running scripts 
 
-## Initial setup
+## Initial Setup
 
-Download the data used in all analysis [here](https://drive.google.com/drive/folders/1e2r25DbYPpsC8wnMadWvwAnwz6xvWWVg?usp=sharing) and unzip each dataset folder. The download may take a while given the size of the datasets (~100 GB). If you're only running the demo, download the `majajhong` and `places` folders.
+1. Download the data used in all analysis [here](https://drive.google.com/drive/folders/1e2r25DbYPpsC8wnMadWvwAnwz6xvWWVg?usp=sharing) and unzip each dataset folder. The download may take a while given the size of the datasets (~100 GB). If you're only running the demo, download the `majajhong` and `places` folders.
 
-
-Clone the repository then navigate to the repository folder.
-```
-git clone https://github.com/akazemian/untrained_models_of_visual_cortex.git
-cd untrained_models_of_visual_cortex
-```
-
-In the root directory, open `config` and set the pats for the `CACHE` (where intermediate results will be saved) and `DATA` (where the data was downloaded) folders. 
+2. In the root directory, open `config` and set the pats for the `CACHE` (where intermediate results will be saved) and `DATA` (where the data was downloaded) folders. 
 
 
 ## Running the demo
