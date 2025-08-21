@@ -104,13 +104,13 @@ The ouput is a tensor of size NxP, where N = the number of image and P = the num
 
 1. Download the data used in all analysis [here](https://drive.google.com/drive/folders/1e2r25DbYPpsC8wnMadWvwAnwz6xvWWVg?usp=sharing) and unzip each dataset folder. The download may take a while given the size of the datasets (~100 GB). If you're only running the demo, download the `majajhong` and `places` folders.
 
-2. In the root directory, open `config` and set the pats for the `CACHE` (where intermediate results will be saved) and `DATA` (where the data was downloaded) folders. 
+2. In the root directory, open `config` and set the paths for the `CACHE` (where intermediate results will be saved) and `DATA` (where the data was downloaded) folders. 
 
 
 ## Running the demo
 For analyses involving neural data, a subset of the majajhong dataset (50 images) is used. For image classification, a subset of the Places train (500 images) and validation set (500 images) is used. Further, only the smallest version of the untrained models are used. Running the demo scripts as shown below produces all demo results, and figures can be generated in `demo/notebooks`.
 
-(<5 minutes) To generate the main figures, run: 
+(<5 minutes) To generate the main results, run: 
 ```
 python -m demo.main.engineered_models
 python -m demo.supplementary.sota_models --model alexnet_trained
@@ -119,7 +119,7 @@ python -m demo.main.local_connectivity
 python -m demo.main.classification
 ```
 
-(5 minutes) To generate the supplementary figures, run: 
+(5 minutes) To generate the supplementary results, run: 
 ```
 python -m demo.supplementary.ablations 
 python -m demo.supplementary.init_type 
@@ -134,7 +134,7 @@ python -m demo.supplementary.pecent_variance_explained
 
 Navigate to the project directory and make sure to specify the dataset (`majajhong` or `naturalscenes`) when running the following. 
 
-For instance, to generate the main figures for `majajhong`, run: 
+For instance, to generate the main results for `majajhong`, run: 
 ```
 python -m code_.scripts.main.engineered_models --dataset majajhong
 python -m code_.scripts.supplementary.sota_models --model alexnet_trained --dataset majajhong
@@ -143,7 +143,7 @@ python -m code_.scripts.main.local_connectivity --dataset majajhong
 python -m code_.scripts.main.classification --dataset majajhong
 ```
 
-To generate the supplementary figures for `majajhong`, run: 
+To generate the supplementary results for `majajhong`, run: 
 ```
 python -m code_.scripts.supplementary.ablations --dataset majajhong
 python -m code_.scripts.supplementary.init_type --dataset majajhong
@@ -162,11 +162,11 @@ If there are any memory issues when running the above, try:
   
 # Generating figures
 
-Navigate to the `notebooks` folder. Here you will find notebooks for generating each figure individually. These are saved in the `figures` folder.
+Navigate to the `notebooks` folder. Here you will find notebooks for generating each figure individually. These are saved in the `figures` folder. If you're only running the demo, you can generate demo figures in `demo/notebooks`.
 
 # Information about the datasets:
 
-When generating the results, the stimuli and preprocessed neural data are downloaded using the DATA path set earlier. This is done to increase efficiency. Alternatively, information about how to download and process the raw data manually is described below. The code used for preprocessing the neural data can be found in `tools/neural_data_processing`
+When generating the results, the stimuli and preprocessed neural data are downloaded using the DATA path set earlier. This is done to increase efficiency. Alternatively, information about how to download and process the raw data manually is described below. The code used for preprocessing the neural data can be found in `code_/encoding_score/processing`
 
 ## The Majajhong dataset 
 
