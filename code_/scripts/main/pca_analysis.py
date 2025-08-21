@@ -68,7 +68,7 @@ def main():
                                                 args.dataset, TOTAL_COMPONENTS, 'cpu', incremental=INCREMENTAL)
                 
                 # set the number of components, if features are on the order of 10^2, compoennts are also max = 100, otherwise components = 1000
-                N_COMPONENTS = [1,10,100] if features*36 <= 100 else [1,10,100,1000] 
+                N_COMPONENTS = [1,10,100] if features*36 < 1000 else [1,10,100,1000] 
                 
                 for n_components in N_COMPONENTS:
                 

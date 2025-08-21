@@ -35,10 +35,8 @@ def main():
         help="Device to use (e.g., 'cuda' or 'cpu')"
     )
     args = parser.parse_args()
-    
-    MODELS = ['expansion']
 
-    # MODELS = ['fully_connected', 'vit' , 'expansion', 'fully_random', 'expansion_linear']
+    MODELS = ['fully_connected', 'vit' , 'expansion', 'fully_random', 'expansion_linear']
     N_BOOTSTRAPS = 1000
     N_ROWS = cfg[args.dataset]['test_data_size']
     ALL_SAMPLED_INDICES = np.random.choice(N_ROWS, (N_BOOTSTRAPS, N_ROWS), replace=True) # Sample indices for all 
@@ -71,24 +69,24 @@ def main():
                             batch_size = int(args.batch_size)).get_array(activations_identifier) 
 
 
-            #         EncodingScore(activations_identifier=activations_identifier,
-            #                 dataset=args.dataset,
-            #                 region=region,
-            #                 device= args.device).get_scores()
-            #         gc.collect()
+                    EncodingScore(activations_identifier=activations_identifier,
+                            dataset=args.dataset,
+                            region=region,
+                            device= args.device).get_scores()
+                    gc.collect()
 
             
-            # get_bootstrap_data(model_name= model_name,
-            #         features=cfg[args.dataset]['models'][model_name]['features'],
-            #         layers = cfg[args.dataset]['models'][model_name]['layers'],
-            #         dataset=args.dataset, 
-            #         subjects = cfg[args.dataset]['subjects'],
-            #         file_name = model_name,
-            #         region=region,
-            #         all_sampled_indices=ALL_SAMPLED_INDICES,
-            #         device=args.device,
-            #         n_bootstraps=N_BOOTSTRAPS,
-            #         )
+            get_bootstrap_data(model_name= model_name,
+                    features=cfg[args.dataset]['models'][model_name]['features'],
+                    layers = cfg[args.dataset]['models'][model_name]['layers'],
+                    dataset=args.dataset, 
+                    subjects = cfg[args.dataset]['subjects'],
+                    file_name = model_name,
+                    region=region,
+                    all_sampled_indices=ALL_SAMPLED_INDICES,
+                    device=args.device,
+                    n_bootstraps=N_BOOTSTRAPS,
+                    )
 
 
 if __name__ == "__main__":

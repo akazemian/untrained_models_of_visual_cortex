@@ -45,6 +45,10 @@ def compute_model_pcs(model_name:str, features:int, layers:int, batch_size:int,
         from code_.encoding_score.benchmarks.majajhong import load_activations
         data = load_activations(activations_identifier, mode = 'train')
     
+    elif dataset == 'majajhong_demo':
+        from code_.encoding_score.benchmarks.majajhong import load_activations
+        data = load_activations(activations_identifier, mode = 'train_demo')
+        
     else: 
         data = xr.open_dataarray(os.path.join(CACHE,'activations',activations_identifier),
                              engine='netcdf4')
