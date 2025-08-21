@@ -6,8 +6,8 @@ import pickle
 from pathlib import Path
 # ----------------------------- SET THESE PATHS ----------------------------- 
 DATA = '/data/atlas/repo_data'
-# CACHE = '/data/atlas/expansion_cache'
-CACHE = '/data/atlas/.repo_cache_10'
+CACHE = '/data/atlas/expansion_cache'
+# CACHE = '/data/atlas/.repo_cache_10'
 
 #---------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent

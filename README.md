@@ -11,7 +11,7 @@
 
 
 # Overview
-![The expansion model architecture](docs/model.png)
+![The expansion model architecture](model.png)
 
 The expansion model is a learning-free convolutional neural network based on compressession in the spatial domain and expansion in the feature domain. To use the model for your own data, please follow the steps incuded in section 1. To reproduce the results from our bioarxiv preprint, refer to section 2. 
 
@@ -54,11 +54,6 @@ cupy-cuda12x
 
 # Installation guide
 
-## Using the Expansion model
-
-- Please download (only) the folder ```/code/model_activations/models```. You can use https://download-directory.github.io/.
-  
-
 - Navigate to the repo folder, then install the requirements:
 ```
 conda create -n expansion_project python==3.12
@@ -66,7 +61,9 @@ conda activate expansion_project
 pip install -e .
 ```
 
-Below is an example of how to use the expansion model. Alternatively, you can navigate to 'main.ipynb` for an example.
+# Using the Expansion model
+
+Below is an example of how to use the expansion model. Alternatively, you can navigate to 'notebooks/main.ipynb` for an example.
 
 1. Import the model
 ```python
@@ -93,27 +90,21 @@ features = expansion_model(X)
 
 The ouput is a tensor of size NxP, where N = the number of image and P = the number of features in the last layer of the model.
 
-## Entire repository
+# Replicating results in the repository
 
-### Initial setup
+## Initial setup
 
-First, download the data used in all analysis [here](https://drive.google.com/drive/folders/1e2r25DbYPpsC8wnMadWvwAnwz6xvWWVg?usp=sharing) and unzip each dataset folder. The download may take a while (~15 minutes) given the size of the datasets (~30 GB). To run only the demo, download the majajhong and places folders.
+Download the data used in all analysis [here](https://drive.google.com/drive/folders/1e2r25DbYPpsC8wnMadWvwAnwz6xvWWVg?usp=sharing) and unzip each dataset folder. The download may take a while given the size of the datasets (~100 GB). If you're only running the demo, download the "majajhong" and "places" folders.
 
 
-Clone this repository and navigate to the repository folder.
+Clone the repository then navigate to the repository folder.
 ```
 git clone https://github.com/akazemian/untrained_models_of_visual_cortex.git
 cd untrained_models_of_visual_cortex
 ```
 
-In the root directory, open ```.env``` and set the path for the ```CACHE``` and ```DATA``` (where the data was downloaded) folders. 
+In the root directory, open ```config``` and set the pats for the ```CACHE``` (where intermediate results will be saved) and ```DATA``` (where the data was downloaded) folders. 
 
-Install required packages (<1 minute)
-```
-conda create -n expansion_project python==3.12
-conda activate expansion_project
-pip install -e .
-```
 
 ## Running the demo
 For analyses involving neural data, a subset of the majajhong dataset (50 images) is used. For image classification, a subset of the Places train (500 images) and validation set (500 images) is used. Further, only the smallest version of the untrained models are used. Running the demo scripts as shown below produces all demo results, and figures can be generated in ```demo/notebooks```.
@@ -135,39 +126,40 @@ python -m demo.supplementary.non_linearity
 python -m demo.supplementary.sota_models 
 python -m demo.supplementary.var_partitioning_majajhong
 python -m demo.supplementary.majajhong_nc 
+python -m demo.supplementary.pecent_variance_explained 
 ```
 
-### Replicating results
+## Replicating results
 
-Navigate to the project directory and make sure to specify the dataset (```majajhong``` or ```naturalscenes```) and the device (```cuda``` or ```cpu```) when running the following. 
+Navigate to the project directory and make sure to specify the dataset (```majajhong``` or ```naturalscenes```) when running the following. 
 
-To generate brain similarity score for the untrained models and alexnet: 
+For instance, to generate the main figures for ```majajhong```, run: 
 ```
-python code/main_results.py --dataset majajhong --device cuda
-```
-
-To generate the PCA results:
-```
-python code/pca_analysis.py --dataset majajhong --device cuda
-```
-
-To generate model ablation results:
-```
-python code/ablation_studies.py --dataset majajhong --device cuda
+python -m code_.scripts.main.engineered_models --dataset majajhong
+python -m code_.scripts.supplementary.sota_models --model alexnet_trained --dataset majajhong
+python -m code_.scripts.main.pca_analysis --dataset majajhong
+python -m code_.scripts.main.local_connectivity --dataset majajhong
+python -m code_.scripts.main.classification --dataset majajhong
 ```
 
-To generate image classification results using the places dataset:
+To generate the supplementary figures for ```majajhong```, run: 
 ```
-python code/classification.py --device cuda
+python -m code_.scripts.supplementary.ablations --dataset majajhong
+python -m code_.scripts.supplementary.init_type --dataset majajhong
+python -m code_.scripts.supplementary.non_linearity --dataset majajhong
+python -m code_.scripts.supplementary.sota_models --dataset majajhong
+python -m code_.scripts.supplementary.var_partitioning_majajhong --dataset majajhong
+python -m code_.scripts.supplementary.majajhong_nc --dataset majajhong
+python -m code_.scripts.supplementary.pecent_variance_explained --dataset majajhong
 ```
-### Dealing with memory issues
+
+## Dealing with memory issues
 
 If there are any memory issues when running the above, try:
-- running the script again 
 - changing the batch size with --batchsize.
 - changing the device between cpu and gpu.
   
-### 3. Generating figures
+## Generating figures
 
 Navigate to the ```notebooks``` folder. Here you will find notebooks for generating each figure individually. These are saved in the ```figures``` folder.
 

@@ -1,7 +1,0 @@
-numpy
-timm
-torch
-torchvision
-xarray
-opencv-python
-
