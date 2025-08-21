@@ -59,8 +59,11 @@ cupy-cuda12x
 
 # Installation guide
 
-- Navigate to the repo folder, then install the requirements:
+Run:
+
 ```
+git clone https://github.com/akazemian/untrained_models_of_visual_cortex.git
+cd untrained_models_of_visual_cortex
 conda create -n expansion_project python==3.12
 conda activate expansion_project
 pip install -e .
