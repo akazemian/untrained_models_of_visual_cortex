@@ -3,8 +3,13 @@
   - [Hardware requirements](#hardware-requirements)
   - [Software requirements](#software-requirements)
 - [Installation guide](#installation-guide)
-  - [Using the Expansion Model](#using-the-expansion-model)
-  - [Entire Repository](#entire-repository)
+- [Using the Expansion model](#using-the-expansion-model)
+- [Running scripts](#running-scripts)
+  - [Initial setup](#initial-setup)
+  - [Running the demo](#running-the-demo)
+  - [Replicating results](#replicating-results)
+  - [Dealing with memory issues](#dealing-with-memory-issues)
+- [Generating figures](#generating-figures)
 - [Information about the datasets](#information-about-the-datasets)
 - [License](#license)
 - [References](#references)
@@ -31,7 +36,7 @@ The code has been tested on Fedora Linux 39 as well as RHEL 9.3.
 The code has been tested on Python==3.12
 
 ### Python dependencies
-The following is a list of python libraries with version numbers required to run all scripts:
+The following is a list of python libraries required to run all scripts:
 ```
 pillow
 opencv-python
@@ -90,7 +95,7 @@ features = expansion_model(X)
 
 The ouput is a tensor of size NxP, where N = the number of image and P = the number of features in the last layer of the model.
 
-# Replicating results in the repository
+# Running scripts 
 
 ## Initial setup
 
@@ -159,7 +164,7 @@ If there are any memory issues when running the above, try:
 - changing the batch size with --batchsize.
 - changing the device between cpu and gpu.
   
-## Generating figures
+# Generating figures
 
 Navigate to the ```notebooks``` folder. Here you will find notebooks for generating each figure individually. These are saved in the ```figures``` folder.
 
