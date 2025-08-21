@@ -43,8 +43,10 @@ def main():
         ALL_SAMPLED_INDICES = np.random.choice(N_ROWS, (N_BOOTSTRAPS, N_ROWS), replace=True) # Sample indices for all 
         TOTAL_COMPONENTS = 1000
         INCREMENTAL = False
+        MODELS = ['expansion','vit', 'fully_connected']
+
                 
-        for model in models:
+        for model in MODELS:
                 
             for features in cfg[args.dataset]['analysis']['pca']['features']:
 

@@ -4,14 +4,13 @@ from tqdm import tqdm
 import numpy as np
 import xarray as xr
 from scipy.stats import spearmanr, pearsonr
-from dotenv import load_dotenv
+from scipy.spatial.distance import pdist, squareform
 
 from code_.encoding_score.benchmarks.majajhong import load_majaj_data, load_activations
 from code_.encoding_score.benchmarks.nsd import load_nsd_data, filter_activations
+from config import CACHE
 
-import numpy as np
-load_dotenv()
-CACHE = os.getenv("CACHE")
+
 
 class RDM:
     """
@@ -21,10 +20,20 @@ class RDM:
     Kriegeskorte et al., 2008 https://doi.org/10.3389/neuro.06.004.2008
     """  
       
+    def __init__(self, metric):
+        self.metric = metric
+    
     def __call__(self, data):
-        dissimilarity = 1 - np.corrcoef(data)
-        return dissimilarity
+        if self.metric == 'euclidean':
+            d = pdist(data, metric='euclidean')
+            return squareform(d)
 
+        elif self.metric == 'pearson':
+            dissimilarity = 1 - np.corrcoef(data)
+            return dissimilarity
+        
+        else:
+            raise ValueError
         
 class RSA:
     def __init__(self, metric:str):
@@ -50,7 +59,7 @@ class RSA:
         return values[triangular_indices]
 
 
-def compute_rsa_nsd(iden, region):
+def compute_rsa_nsd(iden, region, rdm_metric, rsa_metric):
     """
     Computes similarity between neural data and activations for each feature in features_list.
     
@@ -66,8 +75,9 @@ def compute_rsa_nsd(iden, region):
     SUBJECTS = [i for i in range(8)]
     activations_data = xr.open_dataarray(os.path.join(CACHE,'activations',iden),engine='netcdf4')
     
-    rdm = RDM()
-    rsa = RSA(metric='pearsonr')
+    rdm = RDM(metric=rdm_metric)
+    # rdm = DIST()
+    rsa = RSA(metric= rsa_metric)
     
     rsa_all = []
     for subject in SUBJECTS:
@@ -86,13 +96,9 @@ def compute_rsa_nsd(iden, region):
     return sum(rsa_all)/len(rsa_all) # mean accross subjects
 
 
-def compute_rsa_majajhong(iden, region, demo=False):
+def compute_rsa_majajhong(iden, region, rdm_metric, rsa_metric, demo=False):
     """
     Computes similarity between neural data and activations for each feature in features_list.
-    
-    Args:
-    - features_list: List of feature values to be used in activations identifier.
-    - neural_data: The neural data for which the RDM is calculated.
     
     Returns:
     - sim_expansions: List of rsa results for each feature.
@@ -105,8 +111,9 @@ def compute_rsa_majajhong(iden, region, demo=False):
     else:
         activations = load_activations(activations_identifier=iden, mode='all')
     
-    rdm = RDM()
-    rsa = RSA(metric='pearsonr')
+    rdm = RDM(metric=rdm_metric)
+    # rdm = DIST()
+    rsa = RSA(metric=rsa_metric)
     
     rsa_all = []
     for subject in tqdm(SUBJECTS):
