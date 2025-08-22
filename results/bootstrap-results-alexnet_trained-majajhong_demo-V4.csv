@@ -1,2 +1,2 @@
 ,model,features,pcs,init_type,nl_type,score,lower,upper
-0,alexnet_trained,None,False,kaiming_uniform,relu,tensor(0.6929),0.6204720735549927,0.7502472400665283
+0,alexnet_trained,None,False,kaiming_uniform,relu,tensor(0.6970),0.6238980293273926,0.7665805816650391

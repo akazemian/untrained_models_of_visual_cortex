@@ -1,4 +1,4 @@
 ,model,features,pcs,init_type,nl_type,score,lower,upper
-0,fully_random,3,False,kaiming_uniform,relu,tensor(0.4427),0.32543742656707764,0.5490152835845947
-1,fully_random,30,False,kaiming_uniform,relu,tensor(0.5476),0.44068923592567444,0.618739664554596
-2,fully_random,300,False,kaiming_uniform,relu,tensor(0.5318),0.4373708963394165,0.6090006828308105
+0,fully_random,3,False,kaiming_uniform,relu,tensor(0.4256),0.3330899775028229,0.5266635417938232
+1,fully_random,30,False,kaiming_uniform,relu,tensor(0.5265),0.4389832615852356,0.6265426874160767
+2,fully_random,300,False,kaiming_uniform,relu,tensor(0.5292),0.425664484500885,0.6303392052650452

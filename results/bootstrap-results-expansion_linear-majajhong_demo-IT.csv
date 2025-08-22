@@ -1,4 +1,4 @@
 ,model,features,pcs,init_type,nl_type,score,lower,upper
-0,expansion_linear,3,False,kaiming_uniform,relu,tensor(0.5159),0.35801106691360474,0.6305547952651978
-1,expansion_linear,30,False,kaiming_uniform,relu,tensor(0.5249),0.3986513316631317,0.6315661668777466
-2,expansion_linear,300,False,kaiming_uniform,relu,tensor(0.5260),0.3929196894168854,0.6297926902770996
+0,expansion_linear,3,False,kaiming_uniform,relu,tensor(0.4746),0.3436011075973511,0.5969458818435669
+1,expansion_linear,30,False,kaiming_uniform,relu,tensor(0.5083),0.3510783910751343,0.638451337814331
+2,expansion_linear,300,False,kaiming_uniform,relu,tensor(0.5169),0.3696672320365906,0.6417096257209778
