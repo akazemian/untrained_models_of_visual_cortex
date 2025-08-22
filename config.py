@@ -4,12 +4,18 @@ from pathlib import Path
 import os
 import pickle
 from pathlib import Path
-# ----------------------------- SET THESE PATHS ----------------------------- 
-DATA = '/data/atlas/repo_data'
-CACHE = '/data/atlas/expansion_cache'
-# CACHE = '/data/atlas/.repo_cache_10'
 
-#---------------------------------------------------------------------------
+# ----------------------------- SET THESE PATHS ----------------------------- 
+DATA = ''
+CACHE = ''
+
+
+
+
+
+
+
+#------------------------------- OTHER PATHS -------------------------------
 ROOT = Path(__file__).resolve().parent
 PREDS_PATH = os.path.join(CACHE,'neural_preds')
 RESULTS = os.path.join(ROOT, 'results')
