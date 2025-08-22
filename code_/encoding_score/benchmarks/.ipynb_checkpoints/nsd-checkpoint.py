@@ -2,7 +2,6 @@
 from ..regression.regression_tools import regression_shared_unshared
 from ..regression.torch_cv import TorchRidgeGCV
 from sklearn.linear_model import Ridge
-from dotenv import load_dotenv
 
 import sys
 import xarray as xr
@@ -22,8 +21,6 @@ from scipy.sparse import csr_matrix
 from pathlib import Path
 
 from config import PREDS_PATH, ALPHA_RANGE, NSD_NEURAL_DATA
-
-load_dotenv()
 warnings.filterwarnings('ignore')
 random.seed(0)
 

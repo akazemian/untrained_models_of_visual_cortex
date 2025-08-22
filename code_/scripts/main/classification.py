@@ -13,11 +13,7 @@ from code_.image_classification.tools import get_Xy, cv_performance
 from code_.model_activations.configs import analysis_cfg as cfg     
 from code_.eigen_analysis.compute_pcs import compute_model_pcs
 from code_.tools.utils import timeit, setup_logging
-from dotenv import load_dotenv
-
-load_dotenv()
-
-CACHE = os.getenv("CACHE")
+from config import CACHE
 
 train_data = 'places_train'
 val_data = 'places_val'

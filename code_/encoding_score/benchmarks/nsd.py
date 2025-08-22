@@ -1,7 +1,5 @@
 
 from sklearn.linear_model import Ridge
-from dotenv import load_dotenv
-
 import xarray as xr
 import torch
 import os
@@ -14,21 +12,16 @@ import random
 random.seed(0)
 import gc
 from pathlib import Path
-from itertools import permutations
 from sklearn.model_selection import train_test_split
 import numpy as np
 
-from config import PREDS_PATH
-from config import ALPHA_RANGE, NSD_NEURAL_DATA
+
+from config import ALPHA_RANGE, NSD_NEURAL_DATA, CACHE, PREDS_PATH
 from code_.model_activations.loading import get_best_layer_path
 from code_.encoding_score.regression.regression_tools import regression_shared_unshared
 from code_.encoding_score.regression.torch_cv import TorchRidgeGCV
 
-load_dotenv()
-warnings.filterwarnings('ignore')
-random.seed(0)
 
-CACHE = os.getenv("CACHE")
 
 
 def nsd_scorer(activations_identifier: str, 

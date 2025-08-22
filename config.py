@@ -6,8 +6,8 @@ import pickle
 from pathlib import Path
 
 # ----------------------------- SET THESE PATHS ----------------------------- 
-DATA = ''
-CACHE = ''
+DATA = '/data/atlas/repo_data'
+CACHE = '/data/atlas/expansion_cache_new'
 
 
 
@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parent
 PREDS_PATH = os.path.join(CACHE,'neural_preds')
 RESULTS = os.path.join(ROOT, 'results')
 PCA_PATH = os.path.join(CACHE,'pca')
-FIGURES = os.path.join(ROOT, 'figures', 'main figures')
+FIGURES = os.path.join(ROOT, 'figures')
 
 # ----------------------------- Dataset Paths  ----------------------------- 
 

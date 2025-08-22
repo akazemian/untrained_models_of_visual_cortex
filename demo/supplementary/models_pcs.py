@@ -9,7 +9,6 @@ from code_.model_activations.loading import load_model, load_full_identifier
 from code_.encoding_score.regression.scores_tools import get_bootstrap_data
 from code_.eigen_analysis.compute_pcs import compute_model_pcs
 from code_.model_activations.configs import analysis_cfg as cfg     
-from dotenv import load_dotenv
 from code_.tools.utils import timeit, setup_logging
 from config import CACHE
 

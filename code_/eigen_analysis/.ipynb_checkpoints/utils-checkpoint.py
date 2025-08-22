@@ -8,12 +8,10 @@ import gc
 import torch
 from sklearn.decomposition import PCA
 from sklearn.decomposition import IncrementalPCA
-from dotenv import load_dotenv
-
+from config import CACHE
 # from config import setup_logging
 
 # setup_logging()
-load_dotenv()
 
 CACHE = os.getenv("CACHE")
 

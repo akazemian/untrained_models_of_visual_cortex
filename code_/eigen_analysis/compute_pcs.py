@@ -2,8 +2,6 @@ import os
 import pickle
 
 import xarray as xr
-from dotenv import load_dotenv
-
 from code_.model_activations.loading import load_model, load_full_identifier
 from code_.model_activations.activation_extractor import Activations
 from code_.eigen_analysis.utils import _PCA
