@@ -1,0 +1,9 @@
+cff-version: 1.1.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: Kazemian
+  given-names: Atlas
+orcid: https://orcid.org/0000-0001-7699-2964
+title:akazemian/untrained_models_of_visual_cortex: Stable version (used in manuscript submission)
+version: v1.0.0-submission
+date-released: 2025-08-28
