@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/613495308.svg)](https://doi.org/10.5281/zenodo.16920087)
+![DOI](https://zenodo.org/badge/613495308.svg)](https://doi.org/10.5281/zenodo.16920087)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
 [![Data Availability](https://img.shields.io/badge/Data-Google%20Drive-yellow.svg)](https://drive.google.com/drive/folders/1e2r25DbYPpsC8wnMadWvwAnwz6xvWWVg)
